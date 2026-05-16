@@ -1,0 +1,103 @@
+{
+  // ── GitHub Copilot settings ─────────────────────────────────────────────────
+  // LMU Astrophysics group — shared VS Code workspace settings
+  // Commit this file so all collaborators share the same Copilot + MCP config.
+  // Each user must set their own API tokens as environment variables —
+  // never put tokens in this file.
+
+  "github.copilot.enable": {
+    "*": true,
+    "plaintext": false,
+    "markdown": true,
+    "python": true
+  },
+
+  // ── MCP server configuration ─────────────────────────────────────────────
+  // Requires VS Code 1.99+ and GitHub Copilot with Agent Mode enabled.
+  // Set the following environment variables before starting VS Code:
+  //   export ADS_API_TOKEN="your_token_here"
+  //   (get yours at: https://ui.adsabs.harvard.edu/user/settings/token)
+
+  "mcp": {
+    "servers": {
+
+      // ── NASA ADS MCP (primary — most complete, 11 tools) ─────────────────
+      // Source: https://github.com/cbyrohl/mcp-server-ads
+      // Tools: search_papers, get_record, get_bibtex, get_citations,
+      //        get_references, citation_metrics, manage_library, export_bibliography
+      "ads": {
+        "command": "uvx",
+        "args": [
+          "--from",
+          "git+https://github.com/cbyrohl/mcp-server-ads",
+          "mcp-server-ads"
+        ],
+        "env": {
+          "ADS_API_TOKEN": "${env:ADS_API_TOKEN}"
+        }
+      },
+
+      // ── ALMA Archive MCP (uncomment if your project uses ALMA data) ───────
+      // Source: https://github.com/adamzacharia/alma_mcp
+      // Tools: ALMA archive search by target, frequency, resolution, PI
+      // "alma": {
+      //   "command": "uvx",
+      //   "args": [
+      //     "--from",
+      //     "git+https://github.com/adamzacharia/alma_mcp",
+      //     "alma-mcp"
+      //   ],
+      //   "env": {}
+      // },
+
+      // ── NASA APIs MCP (general NASA data products) ────────────────────────
+      // Source: https://github.com/ProgramComputer/NASA-MCP-server
+      // Tools: APOD, NEO, NExScI exoplanet archive, DONKI space weather
+      // "nasa": {
+      //   "command": "uvx",
+      //   "args": [
+      //     "--from",
+      //     "git+https://github.com/ProgramComputer/NASA-MCP-server",
+      //     "nasa-mcp"
+      //   ],
+      //   "env": {
+      //     "NASA_API_KEY": "${env:NASA_API_KEY}"
+      //   }
+      // },
+
+      // ── NASA PDS MCP (planetary science — uncomment if needed) ───────────
+      // Source: https://github.com/NASA-PDS/pds-mcp-server
+      // Official NASA Planetary Data System server
+      // "pds": {
+      //   "command": "uvx",
+      //   "args": [
+      //     "--from",
+      //     "git+https://github.com/NASA-PDS/pds-mcp-server",
+      //     "pds-mcp-server"
+      //   ],
+      //   "env": {}
+      // }
+
+    }
+  },
+
+  // ── Python environment ──────────────────────────────────────────────────────
+  "python.defaultInterpreterPath": "${workspaceFolder}/.conda/bin/python",
+  "python.formatting.provider": "black",
+  "python.linting.enabled": true,
+  "python.linting.flake8Enabled": true,
+  "python.linting.flake8Args": ["--max-line-length=100"],
+
+  // ── Editor defaults ─────────────────────────────────────────────────────────
+  "editor.rulers": [100],
+  "editor.formatOnSave": true,
+  "files.trimTrailingWhitespace": true,
+  "files.insertFinalNewline": true,
+
+  // ── File associations ───────────────────────────────────────────────────────
+  "files.associations": {
+    "*.reg": "plaintext",   // DS9 region files
+    "*.xcm": "plaintext",   // XSPEC script files
+    "*.par": "plaintext"    // CIAO/sherpa parameter files
+  }
+}

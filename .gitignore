@@ -1,0 +1,98 @@
+# ── LMU Astrophysics project .gitignore ─────────────────────────────────────
+# Keep this file: it prevents accidental commits of large data files,
+# proprietary observations, and machine-generated intermediates.
+
+# ── Raw observational data (often proprietary or very large) ─────────────────
+*.fits
+*.fits.gz
+*.fits.fz
+*.fit
+*.fts
+*.evt
+*.pha
+*.arf
+*.rmf
+*.pi
+*.pi.gz
+*.odf
+*.SAS
+
+# ── Chandra / CIAO ────────────────────────────────────────────────────────────
+*.asol1.fits
+*.bpix1.fits
+*.msk1.fits
+repro/
+primary/
+secondary/
+
+# ── XMM-Newton / SAS ─────────────────────────────────────────────────────────
+odf/
+pps/
+*.FTZ
+*.TAR
+
+# ── Large intermediate products ───────────────────────────────────────────────
+data/
+!data/.gitkeep         # keep the directory tracked, not its contents
+*.h5
+*.hdf5
+*.hdf
+*.npz
+*.npy
+
+# ── Python ────────────────────────────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*.pyo
+.pytest_cache/
+.mypy_cache/
+*.egg-info/
+dist/
+build/
+.eggs/
+
+# ── Jupyter ───────────────────────────────────────────────────────────────────
+.ipynb_checkpoints/
+# Optionally track notebooks but strip output before committing:
+# *.ipynb  (uncomment to ignore all notebooks)
+
+# ── Conda / virtual environments ──────────────────────────────────────────────
+.conda/
+.venv/
+venv/
+env/
+
+# ── IDE / editor ──────────────────────────────────────────────────────────────
+.vscode/extensions.json   # user-specific extensions, not team config
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# ── LaTeX build artefacts ─────────────────────────────────────────────────────
+*.aux
+*.bbl
+*.blg
+*.log
+*.out
+*.synctex.gz
+*.fls
+*.fdb_latexmk
+*.toc
+*.lot
+*.lof
+# Keep: *.tex, *.bib, *.pdf (figures and final paper)
+
+# ── Cluster job files ─────────────────────────────────────────────────────────
+*.o[0-9]*
+*.e[0-9]*
+slurm-*.out
+qsub_*.sh.o*
+
+# ── Secrets — never commit these ─────────────────────────────────────────────
+.env
+.env.*
+*_token.txt
+*_key.txt
+secrets/
