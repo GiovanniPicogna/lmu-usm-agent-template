@@ -24,6 +24,9 @@ at LMU Munich.
 
 AGENTS.md                     # Project-specific context (fill in per project)
 .gitignore                    # Astrophysics-aware gitignore
+.pre-commit-config.yaml       # black, flake8, file-size guard, BibTeX DOI check
+envs/
+└── base.yml                  # Conda environment (Python 3.11 + full astro stack)
 prompts/
 └── TEMPLATE.md               # Prompt log template (copy for each task)
 ```
@@ -46,12 +49,27 @@ cp prompts/TEMPLATE.md              your-project/prompts/
 cp .gitignore                       your-project/   # merge carefully
 ```
 
-### 2. Fill in AGENTS.md
+### 2. Set up the environment and pre-commit hooks
+
+```bash
+conda env create -f envs/base.yml
+conda activate lmu-astro
+pre-commit install          # installs hooks into .git/hooks/ — run once
+```
+
+After this, every `git commit` will automatically run `black`, `flake8`,
+file-size checks, and BibTeX DOI validation. To run manually on all files:
+
+```bash
+pre-commit run --all-files
+```
+
+### 3. Fill in AGENTS.md
 
 Open `AGENTS.md` and replace every `<PLACEHOLDER>` with your project's
 actual values: target name, ObsIDs, spectral model, redshift, nH, etc.
 
-### 3. Set your ADS API token
+### 4. Set your ADS API token
 
 ```bash
 # Add to your ~/.bashrc or ~/.zshrc:
@@ -59,14 +77,14 @@ export ADS_API_TOKEN="your_token_here"
 # Get your token at: https://ui.adsabs.harvard.edu/user/settings/token
 ```
 
-### 4. Open the project in VS Code
+### 5. Open the project in VS Code
 
 The MCP server starts automatically when VS Code loads. To verify:
 - Open Copilot Chat
 - Type: `@ads search_papers query:"intracluster medium sloshing" limit:3`
 - You should get real ADS results, not hallucinated ones.
 
-### 5. Use the specialist agents
+### 6. Use the specialist agents
 
 In Copilot Chat or Agent Mode:
 
@@ -78,7 +96,7 @@ In Copilot Chat or Agent Mode:
                   using the parameters in AGENTS.md
 ```
 
-### 6. Log your prompts
+### 7. Log your prompts
 
 Every time you use Agent Mode for a science task:
 

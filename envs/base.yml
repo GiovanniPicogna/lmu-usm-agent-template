@@ -49,6 +49,7 @@ dependencies:
   - click>=8.1
   - black>=24.0
   - flake8>=7.0
+  - pre-commit>=3.7
   - pytest>=8.0
   - ipykernel                # Jupyter kernel for VS Code notebooks
 

@@ -1,0 +1,74 @@
+# Pre-commit hooks for LMU astrophysics analysis projects
+# Install once after cloning: pre-commit install
+# Run manually on all files: pre-commit run --all-files
+# Docs: https://pre-commit.com
+
+repos:
+  # ── Standard file hygiene ──────────────────────────────────────────────────
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v5.0.0
+    hooks:
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: check-yaml
+      - id: check-toml
+      - id: check-merge-conflict
+      - id: check-added-large-files
+        args: ["--maxkb=5120"]   # block files >5 MB (FITS, HDF5, etc.)
+
+  # ── Python formatting (black) ──────────────────────────────────────────────
+  - repo: https://github.com/psf/black
+    rev: 25.1.0
+    hooks:
+      - id: black
+        language_version: python3
+        args: ["--line-length=100"]
+
+  # ── Python linting (flake8) ────────────────────────────────────────────────
+  - repo: https://github.com/PyCQA/flake8
+    rev: 7.2.0
+    hooks:
+      - id: flake8
+        args: ["--max-line-length=100", "--extend-ignore=E203,W503"]
+
+  # ── BibTeX validation ──────────────────────────────────────────────────────
+  # Reject .bib entries that are missing a doi field (science reproducibility).
+  # Allows entries starting with @string, @preamble, or @comment.
+  - repo: local
+    hooks:
+      - id: bib-has-doi
+        name: BibTeX entries must include a doi field
+        language: python
+        types: [file]
+        files: \.bib$
+        entry: python
+        args:
+          - "-c"
+          - |
+            import sys, re
+
+            def check(path):
+                text = open(path).read()
+                # Find all entry types (skip @string/@preamble/@comment)
+                entries = re.findall(
+                    r'@(?!string|preamble|comment)(\w+)\s*\{([^,]+),',
+                    text, re.IGNORECASE
+                )
+                missing = []
+                for kind, key in entries:
+                    # Each entry's body is between its opening { and the
+                    # matching closing }; scan for a doi = field.
+                    pat = re.compile(
+                        r'@' + re.escape(kind) + r'\s*\{' + re.escape(key)
+                        + r',(.*?)^\}',
+                        re.IGNORECASE | re.DOTALL | re.MULTILINE
+                    )
+                    m = pat.search(text)
+                    if m and not re.search(r'\bdoi\s*=', m.group(1), re.IGNORECASE):
+                        missing.append(key.strip())
+                if missing:
+                    print(f"{path}: entries missing doi field: {', '.join(missing)}")
+                    sys.exit(1)
+
+            for f in sys.argv[1:]:
+                check(f)
