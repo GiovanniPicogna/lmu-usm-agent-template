@@ -15,9 +15,16 @@ at LMU Munich.
 ```
 .github/
 ├── copilot-instructions.md   # Group-wide agent baseline (auto-loaded)
-└── agents/
-    ├── literature-agent.agent.md   # @literature-agent: ADS search & BibTeX
-    └── spectral-agent.agent.md     # @spectral-agent: X-ray fitting pipeline
+├── agents/
+│   ├── literature-agent.agent.md   # @literature-agent: ADS search & BibTeX
+│   ├── spectral-agent.agent.md     # @spectral-agent: X-ray fitting pipeline
+│   └── mcmc-agent.agent.md         # @mcmc-agent: emcee sampling & corner plots
+├── workflows/
+│   └── pre-commit.yml              # CI: runs hooks on every PR
+├── dependabot.yml                  # Auto-updates Actions & pre-commit pins
+└── ISSUE_TEMPLATE/
+    ├── new_agent.yml               # Structured form to propose a new agent
+    └── bug_report.yml              # Bug report form
 
 .vscode/
 └── settings.json             # MCP server config (ADS + optional others)
@@ -94,6 +101,9 @@ In Copilot Chat or Agent Mode:
 
 @spectral-agent   Fit an absorbed APEC model to data/spectra/core/
                   using the parameters in AGENTS.md
+
+@mcmc-agent       Sample posteriors for the core region fit in
+                  results/spectral/core_fit.json and produce a corner plot
 ```
 
 ### 7. Log your prompts

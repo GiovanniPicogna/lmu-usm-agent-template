@@ -1,0 +1,81 @@
+---
+name: "Propose a new specialist agent"
+description: "Suggest a new .agent.md definition for a scientific workflow not yet covered."
+title: "[agent] <short name>: <one-line description>"
+labels: ["agent", "enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for contributing! Complete all sections — this form becomes
+        the first draft of the new agent's specification.
+
+  - type: input
+    id: agent-name
+    attributes:
+      label: Agent name
+      description: "Slug that will appear in `@agent-name` invocations (lowercase, hyphenated)."
+      placeholder: "mcmc-agent"
+    validations:
+      required: true
+
+  - type: textarea
+    id: scientific-purpose
+    attributes:
+      label: Scientific purpose
+      description: "What specific scientific task does this agent handle? What is its scope?"
+      placeholder: "Runs emcee MCMC sampling on parameter grids from spectral fits and produces corner plots."
+    validations:
+      required: true
+
+  - type: textarea
+    id: tools
+    attributes:
+      label: Required tools / MCP servers
+      description: "Which VS Code tools or MCP servers does the agent need? (e.g. terminal, file_system, mcp: ads)"
+      placeholder: |
+        - terminal
+        - file_system
+    validations:
+      required: true
+
+  - type: textarea
+    id: key-libraries
+    attributes:
+      label: Key Python libraries
+      description: "Which libraries should the agent prefer?"
+      placeholder: "emcee, corner, h5py, astropy"
+    validations:
+      required: false
+
+  - type: textarea
+    id: mandatory-workflow
+    attributes:
+      label: Mandatory workflow steps
+      description: "List the ordered steps the agent must follow (these become the agent's 'Mandatory workflow' section)."
+      placeholder: |
+        1. Read AGENTS.md for priors and parameter bounds.
+        2. Load the JSON results file from the spectral fit.
+        3. Run emcee with ≥ 500 walkers and ≥ 2000 steps.
+        4. Save flat_samples as results/mcmc/<target>_chains.h5.
+        5. Produce a corner plot at plots/mcmc/<target>_corner.pdf.
+    validations:
+      required: true
+
+  - type: textarea
+    id: forbidden-actions
+    attributes:
+      label: Forbidden actions
+      description: "What should this agent never do?"
+      placeholder: "Never use scipy.optimize for posterior sampling. Never overwrite existing chain files."
+    validations:
+      required: false
+
+  - type: textarea
+    id: example-invocation
+    attributes:
+      label: Example invocation
+      description: "Show a realistic one-liner a user would type to invoke this agent."
+      placeholder: "@mcmc-agent Sample posteriors for the core region fit in results/spectral/core_fit.json"
+    validations:
+      required: true

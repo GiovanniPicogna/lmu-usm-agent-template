@@ -1,0 +1,63 @@
+---
+name: "Bug report"
+description: "Report an error in an agent definition, the conda environment, a hook, or the instructions."
+title: "[bug] <short description>"
+labels: ["bug"]
+body:
+  - type: dropdown
+    id: component
+    attributes:
+      label: Affected component
+      options:
+        - "copilot-instructions.md (group baseline)"
+        - "spectral-agent.agent.md"
+        - "literature-agent.agent.md"
+        - "mcmc-agent.agent.md"
+        - "envs/base.yml (conda environment)"
+        - ".pre-commit-config.yaml (hooks)"
+        - ".vscode/settings.json (MCP config)"
+        - "AGENTS.md (project template)"
+        - "Other"
+    validations:
+      required: true
+
+  - type: textarea
+    id: description
+    attributes:
+      label: What went wrong?
+      description: "Describe the incorrect behaviour. Paste exact error messages or unexpected agent output."
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. Open Copilot Chat in Agent Mode
+        2. Type: @spectral-agent ...
+        3. Agent produced: ...
+        4. Expected: ...
+    validations:
+      required: true
+
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment
+      description: "VS Code version, Copilot extension version, OS, conda env version if relevant."
+      placeholder: |
+        VS Code: 1.100.0
+        GitHub Copilot Chat: 0.45.1
+        OS: macOS 15.4
+        conda env: lmu-astro (base.yml from 2026-05-16)
+    validations:
+      required: false
+
+  - type: textarea
+    id: proposed-fix
+    attributes:
+      label: Proposed fix (optional)
+      description: "If you know what the correct behaviour or wording should be, describe it here."
+    validations:
+      required: false

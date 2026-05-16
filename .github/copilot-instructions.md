@@ -135,6 +135,10 @@ At minimum, record:
 ## 10. What this agent must never do
 
 - Invent author names, journal names, DOIs, or bibcodes.
+- **Invent or guess observation metadata**: ObsIDs, exposure times, instrument
+  modes, calibration versions, or pipeline version numbers must always be read
+  from `AGENTS.md`, actual file headers (`astropy.io.fits`), or the relevant
+  archive (Chandra, XMM, ALMA). Never reconstruct these from training data.
 - Modify raw data files.
 - Submit jobs to a cluster or remote machine without explicit user confirmation.
 - Delete or overwrite existing results files (always write to a new path
