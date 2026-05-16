@@ -47,7 +47,7 @@
       //     "git+https://github.com/adamzacharia/alma_mcp",
       //     "alma-mcp"
       //   ],
-      //   "env": {}
+      //   "env": { "ALMA_TOKEN": "${env:ALMA_TOKEN}" }
       // },
 
       // ── NASA APIs MCP (general NASA data products) ────────────────────────
@@ -82,11 +82,17 @@
   },
 
   // ── Python environment ──────────────────────────────────────────────────────
-  "python.defaultInterpreterPath": "${workspaceFolder}/.conda/bin/python",
-  "python.formatting.provider": "black",
-  "python.linting.enabled": true,
-  "python.linting.flake8Enabled": true,
-  "python.linting.flake8Args": ["--max-line-length=100"],
+  // python.defaultInterpreterPath is user-specific — each collaborator sets
+  // their own via Ctrl+Shift+P → "Python: Select Interpreter".
+  // If your team uses a shared conda env name, set it here, e.g.:
+  //   "python.defaultInterpreterPath": "/opt/conda/envs/astro/bin/python"
+
+  // Formatter: requires the "Black Formatter" extension (ms-python.black-formatter)
+  "[python]": {
+    "editor.defaultFormatter": "ms-python.black-formatter"
+  },
+  // Linter: requires the "Flake8" extension (ms-python.flake8)
+  "flake8.args": ["--max-line-length=100"],
 
   // ── Editor defaults ─────────────────────────────────────────────────────────
   "editor.rulers": [100],

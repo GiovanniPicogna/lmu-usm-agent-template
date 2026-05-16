@@ -16,8 +16,8 @@ at LMU Munich.
 .github/
 ├── copilot-instructions.md   # Group-wide agent baseline (auto-loaded)
 └── agents/
-    ├── literature-agent.md   # @literature-agent: ADS search & BibTeX
-    └── spectral-agent.md     # @spectral-agent: X-ray fitting pipeline
+    ├── literature-agent.agent.md   # @literature-agent: ADS search & BibTeX
+    └── spectral-agent.agent.md     # @spectral-agent: X-ray fitting pipeline
 
 .vscode/
 └── settings.json             # MCP server config (ADS + optional others)

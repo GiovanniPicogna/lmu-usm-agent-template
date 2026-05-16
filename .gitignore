@@ -34,6 +34,10 @@ pps/
 # ── Large intermediate products ───────────────────────────────────────────────
 data/
 !data/.gitkeep         # keep the directory tracked, not its contents
+results/
+!results/.gitkeep      # keep the directory; large HDF5 results are ignored
+plots/
+!plots/.gitkeep        # keep the directory; PNG previews are ignored
 *.h5
 *.hdf5
 *.hdf
@@ -74,7 +78,7 @@ env/
 *.aux
 *.bbl
 *.blg
-*.log
+paper/*.log          # LaTeX .log files only — not Python/SAS/CIAO logs
 *.out
 *.synctex.gz
 *.fls

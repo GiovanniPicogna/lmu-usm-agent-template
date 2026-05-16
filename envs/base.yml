@@ -1,0 +1,59 @@
+# envs/base.yml
+#
+# Conda environment for LMU Astrophysics analysis projects.
+# Provides all packages referenced in .github/copilot-instructions.md.
+#
+# Usage:
+#   conda env create -f envs/base.yml
+#   conda activate lmu-astro
+#
+# To update an existing environment:
+#   conda env update -f envs/base.yml --prune
+#
+# Add project-specific packages in a project-level envs/project.yml
+# that inherits from this file, or simply `conda install` into the env.
+
+name: lmu-astro
+
+channels:
+  - conda-forge
+  - defaults
+
+dependencies:
+  # ── Python ─────────────────────────────────────────────────────────────────
+  - python=3.11
+
+  # ── Core scientific stack ──────────────────────────────────────────────────
+  - numpy>=1.26
+  - scipy>=1.12
+  - matplotlib>=3.8
+  - astropy>=6.0
+  - astroquery>=0.4.7
+  - h5py>=3.10
+
+  # ── MCMC & posteriors ──────────────────────────────────────────────────────
+  - emcee>=3.1
+  - corner>=2.2
+
+  # ── X-ray spectral fitting ─────────────────────────────────────────────────
+  # sherpa is best installed via conda-forge; PyXSPEC requires a local XSPEC build.
+  - sherpa>=4.16
+
+  # ── Data handling ──────────────────────────────────────────────────────────
+  - regions>=0.8           # astropy regions (DS9 .reg files)
+  - reproject>=0.13        # FITS image reprojection
+  - photutils>=1.11        # aperture & source photometry
+
+  # ── Development & reproducibility ─────────────────────────────────────────
+  - tqdm>=4.66
+  - click>=8.1
+  - black>=24.0
+  - flake8>=7.0
+  - pytest>=8.0
+  - ipykernel                # Jupyter kernel for VS Code notebooks
+
+  # ── MCP / agent tooling (pip-only packages) ───────────────────────────────
+  - pip
+  - pip:
+    - ads>=0.12.6            # NASA ADS Python library (fallback when MCP unavailable)
+    - uvx                    # needed to run MCP servers defined in settings.json

@@ -1,0 +1,25 @@
+{
+  // Recommended extensions for LMU Astrophysics agent template.
+  // VS Code will prompt collaborators to install these when they open the repo.
+  "recommendations": [
+    // ── GitHub Copilot ──────────────────────────────────────────────────────
+    "GitHub.copilot",
+    "GitHub.copilot-chat",
+
+    // ── Python toolchain ────────────────────────────────────────────────────
+    "ms-python.python",
+    "ms-python.black-formatter",   // required for the formatter in settings.json
+    "ms-python.flake8",            // required for the linter in settings.json
+    "ms-toolsai.jupyter",          // Jupyter notebook support
+
+    // ── Scientific / data formats ───────────────────────────────────────────
+    "mechatroner.rainbow-csv",     // highlights .csv and .tsv files
+    "GrapeCity.gc-excelviewer",    // quick preview of small tables
+
+    // ── Git & collaboration ─────────────────────────────────────────────────
+    "eamodio.gitlens",
+
+    // ── LaTeX (for paper writing alongside analysis) ─────────────────────
+    "James-Yu.latex-workshop"
+  ]
+}

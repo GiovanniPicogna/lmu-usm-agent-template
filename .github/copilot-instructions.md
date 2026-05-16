@@ -49,6 +49,9 @@ than speed.
 - Report uncertainties at **1σ** (68% confidence) unless explicitly stated
   otherwise. Confidence intervals for spectral fitting: **90%** (standard
   in X-ray astronomy — state this clearly in comments and output).
+  For MCMC posteriors: report **68% (1σ) credible intervals** — this is
+  consistent with the global rule and is distinct from the 90% convention
+  used for spectral fitting confidence contours.
 - Propagate uncertainties explicitly. Do not silently drop error terms.
 - When comparing fitted parameters across observations, always check and
   state whether errors are statistical only or include systematics.
