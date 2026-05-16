@@ -65,7 +65,11 @@ pre-commit install          # installs hooks into .git/hooks/ — run once
 ```
 
 After this, every `git commit` will automatically run `black`, `flake8`,
-file-size checks, and BibTeX DOI validation. To run manually on all files:
+file-size checks, and BibTeX DOI validation — giving you instant local
+feedback before pushing. The same checks also run in CI on every PR, so
+collaborators who skip this step are still caught.
+
+To run the hooks manually on all files at any time:
 
 ```bash
 pre-commit run --all-files
