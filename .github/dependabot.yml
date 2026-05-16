@@ -6,6 +6,9 @@ updates:
     schedule:
       interval: "monthly"
     labels: ["dependencies"]
+    groups:
+      github-actions:
+        patterns: ["*"]
 
   # Keep pre-commit hook revisions up to date
   - package-ecosystem: "pip"
