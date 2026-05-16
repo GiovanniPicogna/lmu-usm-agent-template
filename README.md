@@ -4,8 +4,8 @@ A first-draft template for using GitHub Copilot (and other AI agents)
 in a reproducible, citable, and policy-compliant way in astrophysics research
 at LMU Munich.
 
-**Status**: community draft — open to contributions from all group members.  
-**Maintainer**: LMU Astrophysics Group  
+**Status**: community draft — open to contributions from all group members.
+**Maintainer**: LMU Astrophysics Group
 **Template version**: 1.0 (May 2026)
 
 ---

@@ -13,10 +13,10 @@
 
 ## Project overview
 
-**Project**: <PROJECT_NAME>  
-**PI**: <PI_NAME> (<pi@physik.lmu.de>)  
-**Group**: LMU Munich Astrophysics  
-**Status**: <active | analysis | writing | published>  
+**Project**: <PROJECT_NAME>
+**PI**: <PI_NAME> (<pi@physik.lmu.de>)
+**Group**: LMU Munich Astrophysics
+**Status**: <active | analysis | writing | published>
 **Associated paper**: <Author et al. YYYY, Journal, arxiv:XXXX.XXXXX>
 
 One-sentence science goal:
