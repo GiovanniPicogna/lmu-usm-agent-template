@@ -220,9 +220,8 @@ Then link it from `docs/index.md`.
 
 Suggestions and improvements welcome. Open an issue or PR.
 Particularly useful additions:
-- Agents for MCMC / posterior analysis (`@mcmc-agent`)
-- Agents for image processing (`@imaging-agent`)
-- PLUTO / NIRVANA-III output readers for disk simulations
+- Agent for optical/radio image processing (`@imaging-agent`)
+- NIRVANA-III output readers for disk simulations (name-dropped in `@simulation-agent` but not yet implemented)
 - DustPy post-processing helpers (gap depth, drift flux, SED generation)
 - Magneticum weak-lensing / SZ mock-observation pipeline
 - GCM post-processing for hot-Jupiter atmospheric dynamics
