@@ -16,3 +16,6 @@ header_pages:
   - agents.md
   - skills.md
   - quickstart.md
+
+exclude:
+  - "*.un~"

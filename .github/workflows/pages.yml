@@ -7,6 +7,7 @@ on:
       - 'docs/**'
       - '.github/workflows/pages.yml'
       - 'README.md'
+      - '*.html'
   workflow_dispatch:           # allow manual re-deploy from the Actions tab
 
 permissions:

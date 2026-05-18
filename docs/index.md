@@ -17,6 +17,19 @@ Primary publication venues: *Astronomy & Astrophysics* (~54%), *MNRAS* (~16%), *
 
 [View on GitHub](https://github.com/GiovanniPicogna/lmu-usm-agent-template){: .btn }
 [Use this template](https://github.com/GiovanniPicogna/lmu-usm-agent-template/generate){: .btn .btn-primary }
+[▶ View Slides](slides.html){: .btn }
+
+---
+
+## Presentation: AI Agents — How We Use Them, How We Cite Them
+
+*Code & Coffee, LMU Astrophysics Department, May 2026*
+
+A 29-slide reveal.js presentation covering GitHub Copilot Agent Mode, MCP & the ADS
+server, pitfalls in AI-assisted research, reproducibility best practices, and journal
+disclosure policies (MNRAS, A&A, ApJ, Nature, Science).
+
+[▶ Open full-screen slides](slides.html){: .btn .btn-primary }
 
 ---
 
