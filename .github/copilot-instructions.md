@@ -147,6 +147,21 @@ Correctness and reproducibility are more important than speed.
 Every analysis script must be accompanied by a corresponding prompt
 log in `prompts/`. See `prompts/TEMPLATE.md` for the required format.
 
+**When operating in Agent Mode on any science task, create the prompt
+log as your very first action — before writing code, running commands,
+or reading data files:**
+
+```bash
+cp prompts/TEMPLATE.md prompts/<task_id>_$(date +%Y%m%d).md
+```
+
+Derive `task_id` as a short `snake_case` label from the user's request
+(e.g. `spectral_fit_core`, `mcmc_wasp189b`, `disk_gap_depth_1mjup`).
+Pre-fill the Metadata block (date, tool, model, task ID) and paste the
+user's exact prompt into the "Prompt(s) used" section. Complete the
+"Output files" table and "Validation performed" checklist at the end
+of the task before marking it done.
+
 At minimum, record:
 - Date, tool name, and model version used
 - The exact prompt(s) given to the agent

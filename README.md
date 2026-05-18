@@ -139,14 +139,40 @@ In Copilot Chat or Agent Mode:
 
 ### 7. Log your prompts
 
-Every time you use Agent Mode for a science task:
+Prompt logging is **automatic** when using the specialist agents —
+each agent creates `prompts/<task>_<date>.md` as its very first action,
+before writing any code. You only need to commit the file.
 
-```bash
-cp prompts/TEMPLATE.md prompts/spectral_fit_core_20260515.md
-# Fill in the fields, then:
-git add prompts/spectral_fit_core_20260515.md src/spectral/fit.py
-git commit -m "feat: spectral fit of core region [AI-assisted, GPT-4o]"
+Here is the complete flow using `@spectral-agent` as an example:
+
+**Step 1 — invoke the agent:**
 ```
+@spectral-agent  Fit an absorbed apec model to data/spectra/obs/cluster_core/
+                 in the 0.5–7.0 keV band. Parameters are in AGENTS.md.
+```
+
+**Step 2 — the agent's first action (automatic):**
+Before touching any data, the agent runs:
+```bash
+cp prompts/TEMPLATE.md prompts/spectral_fit_cluster_core_20260515.md
+```
+and pre-fills the Metadata block and your exact prompt. It completes
+the Output files table and validation checklist when the task finishes.
+
+**Step 3 — commit everything together:**
+```bash
+git add prompts/spectral_fit_cluster_core_20260515.md \
+        src/spectral/fit_core.py \
+        results/fits/cluster_core.json \
+        plots/cluster_core_spectrum.pdf
+git commit -m "feat: X-ray spectral fit of cluster core [AI-assisted, claude-sonnet-4-6]"
+```
+
+**Step 4 — cite in your Methods section:**
+> "Analysis scripts were drafted with GitHub Copilot (claude-sonnet-4-6,
+> May 2026, VS Code Agent Mode). The exact prompts and all generated files
+> are archived in `prompts/spectral_fit_cluster_core_20260515.md`
+> (commit `abc1234`)."
 
 ---
 
