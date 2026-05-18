@@ -17,8 +17,10 @@ at LMU Munich.
 ├── copilot-instructions.md   # Group-wide agent baseline (auto-loaded)
 ├── agents/
 │   ├── literature-agent.agent.md   # @literature-agent: ADS search & BibTeX
-│   ├── spectral-agent.agent.md     # @spectral-agent: X-ray fitting pipeline
-│   └── mcmc-agent.agent.md         # @mcmc-agent: emcee sampling & corner plots
+│   ├── simulation-agent.agent.md   # @simulation-agent: FARGO3D/PLUTO/Magneticum
+│   ├── retrieval-agent.agent.md    # @retrieval-agent: petitRADTRANS CCF & dynesty
+│   ├── spectral-agent.agent.md     # @spectral-agent: X-ray Sherpa/PyXSPEC fitting
+│   └── mcmc-agent.agent.md         # @mcmc-agent: emcee/dynesty sampling & corner plots
 ├── workflows/
 │   └── pre-commit.yml              # CI: runs hooks on every PR
 ├── dependabot.yml                  # Auto-updates Actions & pre-commit pins
@@ -100,14 +102,30 @@ The MCP server starts automatically when VS Code loads. To verify:
 In Copilot Chat or Agent Mode:
 
 ```
-@literature-agent Find all papers citing 2007PhR...443....1M since 2020
-                  and add them to paper/bibliography.bib
+@literature-agent  Find all papers citing 2025A&A...703A.270R since 2025
+                   and add them to paper/bibliography.bib
 
-@spectral-agent   Fit an absorbed APEC model to data/spectra/core/
-                  using the parameters in AGENTS.md
+@simulation-agent  Read all FARGO3D snapshots in data/runs/disk_1Mjup/
+                   and compute the azimuthally averaged gap depth as a
+                   function of time for planet 0. Save to results/gaps/.
 
-@mcmc-agent       Sample posteriors for the core region fit in
-                  results/spectral/core_fit.json and produce a corner plot
+@simulation-agent  Load the Magneticum Box2/hr snapshot at z=0 and plot
+                   the projected gas temperature map centred on the most
+                   massive cluster. Save to plots/cosmo/.
+
+@retrieval-agent   Run a petitRADTRANS CCF pipeline on
+                   data/spectra/obs/wasp189b_K.fits using CO and H2O
+                   templates. Parameters are in AGENTS.md.
+
+@retrieval-agent   Execute a dynesty retrieval for WASP-189b (emission,
+                   K-band) with nlive=500. Use the forward model in
+                   src/analysis/retrieval.py.
+
+@spectral-agent    Fit an absorbed APEC model to data/spectra/core/
+                   using the parameters in AGENTS.md
+
+@mcmc-agent        Sample posteriors for the core region fit in
+                   results/fits/core.json and produce a corner plot
 ```
 
 ### 7. Log your prompts
@@ -156,5 +174,9 @@ Suggestions and improvements welcome. Open an issue or PR.
 Particularly useful additions:
 - Agents for MCMC / posterior analysis (`@mcmc-agent`)
 - Agents for image processing (`@imaging-agent`)
-- Instructions tuned for radio or optical astronomy
+- PLUTO / NIRVANA-III output readers for disk simulations
+- DustPy post-processing helpers (gap depth, drift flux, SED generation)
+- Magneticum weak-lensing / SZ mock-observation pipeline
+- GCM post-processing for hot-Jupiter atmospheric dynamics
+- Euclid / DES weak-lensing pipeline integration
 - A Chandra/CIAO reduction workflow example

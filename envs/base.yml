@@ -33,9 +33,17 @@ dependencies:
 
   # ── MCMC & posteriors ──────────────────────────────────────────────────────
   - emcee>=3.1
+  - dynesty>=2.1          # nested sampling (retrievals, multi-modal posteriors)
   - corner>=2.2
 
-  # ── X-ray spectral fitting ─────────────────────────────────────────────────
+  # ── Simulation analysis ────────────────────────────────────────────────────
+  - yt>=4.3               # volumetric analysis of SPH/AMR snapshots (Magneticum, Gadget)
+  - dustpy>=1.0           # 1-D dust coagulation/fragmentation (Birnstiel group)
+
+  # ── Radiative transfer (disk post-processing) ──────────────────────────────
+  # radmc3dPy and fargopy are pip-only; see pip block below.
+
+  # ── X-ray spectral fitting (optional; comment out if not needed) ───────────
   # sherpa is best installed via conda-forge; PyXSPEC requires a local XSPEC build.
   - sherpa>=4.16
 
@@ -53,8 +61,11 @@ dependencies:
   - pytest>=8.0
   - ipykernel                # Jupyter kernel for VS Code notebooks
 
-  # ── MCP / agent tooling (pip-only packages) ───────────────────────────────
+  # ── MCP / agent tooling & simulation-specific (pip-only) ──────────────────
   - pip
   - pip:
     - ads>=0.12.6            # NASA ADS Python library (fallback when MCP unavailable)
     - uvx                    # needed to run MCP servers defined in settings.json
+    - petitRADTRANS>=3.0     # atmospheric forward model & retrieval (Nortmann/Molaverdikhani group)
+    - radmc3dPy>=0.41        # Python interface to RADMC-3D radiative transfer
+    - fargopy>=0.3           # FARGO3D output reader (Picogna/Roatti group)

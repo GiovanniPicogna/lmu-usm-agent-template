@@ -17,26 +17,68 @@
 
 ## 1. Identity & scientific domain
 
-You are assisting researchers at the LMU Munich Astrophysics group.
-Our work spans X-ray astronomy, galaxy clusters, cosmology, and
-multi-wavelength data analysis. Code you write will be used in published
-scientific papers. Correctness and reproducibility are more important
-than speed.
+You are assisting researchers at the LMU Munich Astrophysics group
+(Universitäts-Sternwarte München, USM).
+Our work spans multiple computational domains:
+- **Protoplanetary disk & planet formation**: radiation-hydrodynamics with
+  FARGO3D, PLUTO, NIRVANA-III; dust evolution with DustPy; radiative
+  transfer post-processing with RADMC-3D; planet population synthesis (NGPPS).
+- **Cosmological simulations**: Magneticum (GADGET-based SPH); constrained
+  simulations (SLOW suite); post-processing with yt, GadgetIO.jl (Julia),
+  and h5py.
+- **Exoplanet atmospheric science**: high-resolution spectroscopy (CARMENES,
+  CRIRES+, JWST/NIRSpec); petitRADTRANS retrievals; cross-correlation
+  spectroscopy; GCM modelling.
+- **Large-scale structure & cosmological inference**: void statistics, weak
+  lensing, SBI / neural posterior estimation, Euclid pipelines.
+- **X-ray astronomy & galaxy clusters**: XMM-Newton, Chandra, eROSITA;
+  Sherpa / PyXSPEC spectral fitting; thermodynamic maps.
+
+Code you write will be used in published scientific papers.
+Correctness and reproducibility are more important than speed.
 
 ## 2. Programming language & environment
 
-- **Language**: Python 3.11+ exclusively unless a task explicitly requires
-  something else (e.g. a Fortran legacy interface).
+- **Language**: Python 3.11+ by default. Julia (GadgetIO.jl) and shell
+  scripts are acceptable for simulation I/O and pipeline tasks.
+  Fortran interfaces exist in PLUTO/FARGO3D; do not rewrite them.
 - **Package manager**: conda or mamba (environment files in `envs/`).
-- **Key libraries** (prefer these over ad-hoc alternatives):
+- **Key libraries by domain** (prefer these over ad-hoc alternatives):
+
+  *Universal*
   - `astropy` — units, coordinates, FITS I/O, cosmology, tables
   - `numpy`, `scipy` — numerical work
   - `matplotlib` — all plots (see §5 for style rules)
-  - `emcee` — MCMC sampling
-  - `corner` — MCMC posterior corner plots
-  - `sherpa` or `xspec` (via PyXSPEC) — X-ray spectral fitting
+  - `h5py` — HDF5 file I/O (simulation snapshots, spectral products)
   - `astroquery` — catalogue and archive queries
-  - `h5py` — HDF5 file I/O for large datasets
+
+  *MCMC / posterior sampling*
+  - `emcee` — ensemble sampler (general purpose)
+  - `dynesty` — nested sampling (preferred for multi-modal posteriors
+    and retrievals)
+  - `corner` — MCMC posterior corner plots
+
+  *Disk & planet formation post-processing*
+  - `dustpy` — 1-D dust evolution (Birnstiel group standard)
+  - `radmc3dPy` — Python interface to RADMC-3D radiative transfer
+  - `fargopy` — FARGO3D output reader (if available); otherwise parse
+    binary `.dat` files directly with `numpy.fromfile`
+
+  *Cosmological simulation analysis*
+  - `yt` — volumetric analysis and rendering of SPH/AMR snapshots
+  - `h5py` — direct GADGET/Magneticum HDF5 snapshot access
+  - Prefer `GadgetIO.jl` (Julia) for snapshot I/O in Julia workflows;
+    call from Python via `subprocess` if needed
+
+  *Atmospheric retrievals*
+  - `petitRADTRANS` — forward model and retrieval (Molaverdikhani/Nortmann
+    group standard)
+  - `PyMultiNest` or `dynesty` — nested sampling back-end
+  - `scipy.signal.correlate` — cross-correlation for CCF pipelines
+
+  *X-ray spectral fitting*
+  - `sherpa` or `xspec` (via PyXSPEC)
+
 - **Avoid**: `pandas` for FITS tables (use `astropy.table`); raw `requests`
   for ADS queries (use the ADS MCP or `ads` Python library).
 
