@@ -12,6 +12,9 @@ in reproducible, citable astrophysics research at
 
 **Template version**: 1.0 (May 2026) · **Status**: community draft
 
+USM produces ~200 refereed astronomy papers per year (1,016 in 2021–2026 via NASA ADS).
+Primary publication venues: *Astronomy & Astrophysics* (~54%), *MNRAS* (~16%), *ApJ* family (~11%), *Physical Review D* + *JCAP* (~10%).
+
 [View on GitHub](https://github.com/GiovanniPicogna/lmu-usm-agent-template){: .btn }
 [Use this template](https://github.com/GiovanniPicogna/lmu-usm-agent-template/generate){: .btn .btn-primary }
 
