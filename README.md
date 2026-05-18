@@ -139,9 +139,11 @@ In Copilot Chat or Agent Mode:
 
 ### 7. Log your prompts
 
-Prompt logging is **automatic** when using the specialist agents —
-each agent creates `prompts/<task>_<date>.md` as its very first action,
-before writing any code. You only need to commit the file.
+Prompt logging is **automatic** whenever you use Agent Mode — the
+instruction to create `prompts/<task>_<date>.md` as the first action
+is in `.github/copilot-instructions.md`, which is loaded by every agent
+(default Copilot agent and all specialist agents alike). You only need
+to commit the file.
 
 Here is the complete flow using `@spectral-agent` as an example:
 
