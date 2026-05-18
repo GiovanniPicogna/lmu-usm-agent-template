@@ -101,19 +101,36 @@ and `plots/` unless explicitly instructed.
 
 ## Code structure
 
+Only `src/utils/` is committed in the template.
+Create the subdirectories relevant to **your** domain and delete this comment
+once you have added them.
+
 ```
 src/
-├── reduction/      # instrument pipeline wrappers (SAS, CIAO, CASA, etc.)
-├── simulation/     # pre-processing, parameter files, job-submission scripts
-│   ├── setup.py    # generate FARGO3D / PLUTO .par files from a config dict
-│   └── submit.sh   # HPC job-submission template
-├── analysis/       # post-processing of simulation / observational outputs
-│   ├── dust.py     # DustPy output reader + gap-depth analysis
-│   ├── snap.py     # GADGET/Magneticum snapshot reader (wraps h5py / yt)
-│   ├── retrieval.py# petitRADTRANS forward model + CCF pipeline
-│   └── spectral.py # Sherpa/PyXSPEC fitting pipeline (X-ray)
-├── mcmc/           # emcee / dynesty sampling and posterior analysis
 └── utils/          # shared helpers (coords, units, plotting, constants)
+                    # kept in all projects — do not remove
+```
+
+**Create as needed — delete the rest:**
+
+| Domain | Add these subdirectories |
+|---|---|
+| Disk / planet formation | `simulation/` (setup & job scripts), `analysis/` (gap depth, dust, RADMC-3D) |
+| Cosmological simulations | `simulation/` (snapshot I/O, halo finding), `analysis/` (maps, HMF, profiles) |
+| Atmospheric retrievals | `analysis/` (CCF, forward model), `retrieval/` (dynesty wrapper, corner plots) |
+| X-ray / galaxy clusters | `reduction/` (SAS / CIAO wrappers), `analysis/` (Sherpa, thermo maps) |
+| MCMC / sampling (any) | `mcmc/` (emcee / dynesty sampling and posterior analysis) |
+
+Example after filling in for a disk-simulation project:
+
+```
+src/
+├── simulation/     # FARGO3D / PLUTO .par generation; HPC job scripts
+│   ├── setup.py
+│   └── submit.sh
+├── analysis/       # gap depth, dust evolution, RADMC-3D post-processing
+│   └── dust.py
+└── utils/          # astropy units helpers, plot style, constants
 
 results/            # fit results as JSON/HDF5 (committed if < 10 MB)
 plots/              # publication figures (committed as PDF)

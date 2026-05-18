@@ -22,7 +22,8 @@ at LMU Munich.
 │   ├── spectral-agent.agent.md     # @spectral-agent: X-ray Sherpa/PyXSPEC fitting
 │   └── mcmc-agent.agent.md         # @mcmc-agent: emcee/dynesty sampling & corner plots
 ├── workflows/
-│   └── pre-commit.yml              # CI: runs hooks on every PR
+│   ├── pre-commit.yml              # CI: runs hooks on every PR
+│   └── pages.yml                   # CI: builds & deploys GitHub Pages
 ├── dependabot.yml                  # Auto-updates Actions & pre-commit pins
 └── ISSUE_TEMPLATE/
     ├── new_agent.yml               # Structured form to propose a new agent
@@ -34,10 +35,18 @@ at LMU Munich.
 AGENTS.md                     # Project-specific context (fill in per project)
 .gitignore                    # Astrophysics-aware gitignore
 .pre-commit-config.yaml       # black, flake8, file-size guard, BibTeX DOI check
+docs/                         # GitHub Pages site (Jekyll / minima)
+├── index.md                  #   Landing page
+├── agents.md                 #   Specialist agent documentation
+├── skills.md                 #   Recommended agent skills by domain
+└── _config.yml               #   Jekyll configuration
 envs/
 └── base.yml                  # Conda environment (Python 3.11 + full astro stack)
 prompts/
 └── TEMPLATE.md               # Prompt log template (copy for each task)
+src/
+└── utils/                    # Shared helpers (units, plotting, constants)
+                              # Add domain subdirs as needed — see AGENTS.md
 ```
 
 ---
@@ -165,6 +174,45 @@ Use this text in your Methods section (adapt to your actual usage):
   settings are appropriate for your institution.
   Check: `github.copilot.advanced.shareOpenTabsWithCopilot` (set to `false`
   if working with proprietary data).
+
+---
+
+## Agent skills
+
+Skills are reusable instruction packages that extend the agent for specific
+tasks without bloating the baseline. Install from:
+
+→ **[K-Dense-AI/scientific-agent-skills](https://github.com/K-Dense-AI/scientific-agent-skills)**
+
+In Copilot Chat, activate a skill by name:
+```
+Use the scientific-visualization skill for this figure.
+```
+
+Recommended skills by domain are listed in
+[`docs/skills.md`](https://giovannipicogna.github.io/lmu-usm-agent-template/skills)
+and in §11 of `.github/copilot-instructions.md`.
+
+---
+
+## GitHub Pages
+
+The `docs/` folder is automatically deployed to GitHub Pages on every push to `main`.
+
+→ **https://giovannipicogna.github.io/lmu-usm-agent-template**
+
+To enable Pages in a fork or your own copy of this template:
+1. Go to **Settings → Pages**
+2. Set **Source** to `GitHub Actions`
+3. Push any change to trigger the first build
+
+To add the presentation slides to the site, export the latest version
+as PDF and commit it to `docs/`:
+```bash
+cp AI_Agents_Astrophysics_v4.pdf docs/slides.pdf
+git add docs/slides.pdf && git commit -m "docs: add presentation slides"
+```
+Then link it from `docs/index.md`.
 
 ---
 

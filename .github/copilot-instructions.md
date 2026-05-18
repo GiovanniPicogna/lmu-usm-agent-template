@@ -187,3 +187,65 @@ At minimum, record:
   or prompt for confirmation).
 - Use a non-deterministic random seed without logging it to the output.
 - Silently subsample or filter data without documenting the selection.
+
+## 11. Agent skills
+
+Agent skills are reusable, domain-specific instruction packages that you
+can activate on demand to extend your capabilities. They live in
+`~/.agents/skills/` and are loaded with `read_file` at the start of a
+relevant task.
+
+**Full catalog and installation instructions:**
+→ https://github.com/K-Dense-AI/scientific-agent-skills
+
+### Recommended skills for USM groups
+
+*Universal (all groups)*
+
+| Skill | Invoke when… |
+|-------|-------------|
+| `astropy` | coordinate transforms, FITS I/O, cosmological distances, WCS |
+| `matplotlib` | any publication plot needing fine-grained control |
+| `scientific-visualization` | multi-panel journal figures (Nature/A&A style, colourblind palettes) |
+| `statistical-analysis` | choosing and running statistical tests, power analysis |
+| `paper-lookup` | searching PubMed / arXiv / OpenAlex / Semantic Scholar |
+| `citation-management` | verifying BibTeX, converting DOIs, formatting references |
+
+*Disk & planet formation*
+
+| Skill | Invoke when… |
+|-------|-------------|
+| `database-lookup` | querying SIMBAD, VizieR, ALMA archive, ExoFOP |
+| `exploratory-data-analysis` | first look at a new simulation output or data file |
+| `scientific-schematics` | disk structure diagrams, gap morphology schematics |
+
+*Cosmological simulations*
+
+| Skill | Invoke when… |
+|-------|-------------|
+| `networkx` | building merger trees or substructure graphs |
+| `umap-learn` | dimensionality reduction for halo/galaxy populations |
+| `scikit-learn` | classification / regression on simulation catalogues |
+
+*Atmospheric retrievals & high-res spectroscopy*
+
+| Skill | Invoke when… |
+|-------|-------------|
+| `statsmodels` | frequentist inference, ARIMA detrending of time series |
+| `shap` | interpreting ML-based retrieval or classification models |
+| `database-lookup` | querying ExoAtmospheres, HITRAN, ExoMol line lists |
+
+*X-ray & galaxy clusters*
+
+| Skill | Invoke when… |
+|-------|-------------|
+| `imaging-data-commons` | accessing NCI / public X-ray / CT imaging datasets |
+| `pydicom` | reading DICOM files from medical / detector calibration data |
+
+### Using a skill
+
+```python
+# At the start of a task, tell the agent which skill to load:
+# "Use the scientific-visualization skill for this figure."
+# The agent will read the SKILL.md and follow its instructions.
+```
