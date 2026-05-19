@@ -8,8 +8,9 @@ description: >
   executes dynesty nested-sampling retrievals. Ensures all species,
   wavelength masks, and T-P profiles are documented in AGENTS.md.
 tools:
-  - terminal
-  - file_system
+  - read
+  - edit
+  - execute
 ---
 
 # Atmospheric Retrieval Agent — LMU Astrophysics

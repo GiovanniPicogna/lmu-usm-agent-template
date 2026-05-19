@@ -6,8 +6,8 @@ description: >
   other parameter grids, diagnose chain convergence, and produce
   publication-quality corner plots with correctly reported credible intervals.
 tools:
-  - terminal
-  - file_system
+  - read, edit
+  - execute
 ---
 
 # MCMC Agent — LMU Astrophysics

@@ -6,8 +6,9 @@ description: >
   fit results, and generate publication-quality spectral plots.
   Always runs fits on a test spectrum before the full dataset.
 tools:
-  - terminal
-  - file_system
+  - read
+  - edit
+  - execute
 ---
 
 # Spectral Fitting Agent — LMU Astrophysics
