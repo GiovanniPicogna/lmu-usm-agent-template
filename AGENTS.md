@@ -28,7 +28,7 @@ One-sentence science goal:
 
 ## Data & simulation outputs
 
-**Primary simulation code**: <FARGO3D | PLUTO | NIRVANA-III | RAMSES | Magneticum | petitRADTRANS | other>
+**Primary simulation code**: <FARGO3D | PLUTO | Magneticum | petitRADTRANS | other>
 **Code version / commit**: <hash or tag>
 **Run location** (HPC cluster, not in Git): <e.g. LRZ SuperMUC-NG, project ID xyz>
 
