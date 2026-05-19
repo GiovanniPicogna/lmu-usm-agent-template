@@ -7,10 +7,10 @@ description: >
   Reads binary snapshots, post-processes outputs, generates 
   publication-quality diagnostic plots, and prepares
   data products for comparison with ALMA / eROSITA observations.
-tools:
-  - read
-  - edit
-  - execute
+argument-hint: "Run directory and analysis task, e.g. 'runs/ring_1Mjup — gap depth at snap 100'"
+handoffs:
+  - spectral-agent
+  - mcmc-agent
 ---
 
 # Simulation Analysis Agent — LMU Astrophysics

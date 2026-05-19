@@ -7,10 +7,10 @@ description: >
   spectroscopy (CCF) pipelines on CARMENES / CRIRES+ / JWST data, and
   executes dynesty nested-sampling retrievals. Ensures all species,
   wavelength masks, and T-P profiles are documented in AGENTS.md.
-tools:
-  - read
-  - edit
-  - execute
+argument-hint: "Planet name, instrument, and mode, e.g. 'WASP-189b CRIRES+ emission'"
+handoffs:
+  - mcmc-agent
+  - literature-agent
 ---
 
 # Atmospheric Retrieval Agent — LMU Astrophysics

@@ -5,9 +5,9 @@ description: >
   Use this agent to set up and run emcee samplers on spectral-fit or
   other parameter grids, diagnose chain convergence, and produce
   publication-quality corner plots with correctly reported credible intervals.
-tools:
-  - read, edit
-  - execute
+argument-hint: "Target name and results JSON path, e.g. 'Perseus core — results/spectral/core_fit.json'"
+handoffs:
+  - literature-agent
 ---
 
 # MCMC Agent — LMU Astrophysics

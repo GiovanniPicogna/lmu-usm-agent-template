@@ -5,10 +5,9 @@ description: >
   Use this agent to write or debug spectral fitting scripts, interpret
   fit results, and generate publication-quality spectral plots.
   Always runs fits on a test spectrum before the full dataset.
-tools:
-  - read
-  - edit
-  - execute
+argument-hint: "Spectrum file or region name and task, e.g. 'fit core.pha with TBabs*apec'"
+handoffs:
+  - mcmc-agent
 ---
 
 # Spectral Fitting Agent — LMU Astrophysics
