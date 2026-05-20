@@ -20,7 +20,12 @@ at LMU Munich.
 │   ├── simulation-agent.agent.md   # @simulation-agent: FARGO3D/PLUTO/Magneticum
 │   ├── retrieval-agent.agent.md    # @retrieval-agent: petitRADTRANS CCF & dynesty
 │   ├── spectral-agent.agent.md     # @spectral-agent: X-ray Sherpa/PyXSPEC fitting
-│   └── mcmc-agent.agent.md         # @mcmc-agent: emcee/dynesty sampling & corner plots
+│   ├── mcmc-agent.agent.md         # @mcmc-agent: emcee/dynesty sampling & corner plots
+│   └── references/                 # Large code blocks extracted from agent files
+│       ├── output_conventions.md   #   FARGO3D/PLUTO/GADGET I/O functions + unit tables
+│       └── code_conventions.md     #   Script skeleton, HDF5 saving, figure naming
+├── shared/
+│   └── handoff_schemas.md          # JSON schemas: Simulation/Spectral/MCMCHandoff v1
 ├── skills/                         # Bundled simulation launch skills
 │   ├── dustpy/
 │   │   ├── SKILL.md                #   DustPy: grain growth & radial drift
@@ -49,6 +54,8 @@ at LMU Munich.
 .vscode/
 └── settings.json             # MCP server config (ADS + optional others)
 
+ARCHITECTURE.md               # Agent roster, pipeline diagram, handoff schemas overview
+CHANGELOG.md                  # Design history (Keep a Changelog format)
 AGENTS.md                     # Project-specific context (fill in per project)
 .gitignore                    # Astrophysics-aware gitignore
 .pre-commit-config.yaml       # black, flake8, file-size guard, BibTeX DOI check
@@ -302,6 +309,31 @@ Every analysis agent's Role section includes a hard stop:
 returns no result. These markers make silent hallucination visible: a
 `[DATA MISSING]` reply means the agent is correctly refusing to invent data
 rather than producing a plausible-looking but fabricated result.
+
+---
+
+## Pipeline architecture
+
+See [`ARCHITECTURE.md`](ARCHITECTURE.md) for the complete picture:
+Mermaid pipeline diagram, full agent roster table, three data-flow descriptions
+(disk simulation, X-ray spectroscopy, atmospheric retrieval), and the quality-gate
+summary that maps to the three anti-failure mechanisms above.
+
+### Structured handoffs between agents
+
+When one specialist agent finishes and a downstream agent needs its results, it
+emits a **handoff JSON** whose schema is defined in
+[`.github/shared/handoff_schemas.md`](.github/shared/handoff_schemas.md).
+Three schemas are currently defined:
+
+| Schema | Emitted by | Consumed by |
+|---|---|---|
+| `SimulationHandoff/v1` | `@simulation-agent` | `@spectral-agent`, `@mcmc-agent` |
+| `SpectralFitHandoff/v1` | `@spectral-agent` | `@mcmc-agent` |
+| `MCMCHandoff/v1` | `@mcmc-agent` | `@paper-agent`, user |
+
+Each schema includes a `sanity_passed` / `converged` gate: the receiving
+agent will refuse to proceed if the gate is `false`.
 
 ---
 

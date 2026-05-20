@@ -37,6 +37,14 @@ FARGO3D, PLUTO, and Magneticum/GADGET. Provides:
 - Sanity checks: gap depth floors, planetary torque sign conventions,
   halo mass / ICM temperature ranges
 
+Large code blocks (I/O functions, argparse skeleton, HDF5 saving pattern)
+are extracted to [`.github/agents/references/`](.github/agents/references/):
+- `output_conventions.md` — `read_fargo_field()`, `read_fargo_dat()`, `read_gadget_snap()`, `GADGET_UNITS`
+- `code_conventions.md` — standard script skeleton, HDF5 saving, diagnostic figure naming
+
+Handoff schema after a completed analysis: `SimulationHandoff/v1`
+(see [`.github/shared/handoff_schemas.md`](.github/shared/handoff_schemas.md)).
+
 ```
 @simulation-agent  Run a DustPy dust evolution simulation with alpha=1e-3,
                    disk mass 0.05 Msun, for 1 Myr. Save snapshots to data/dustpy/.
@@ -101,6 +109,11 @@ and convergence diagnostics.
 ---
 
 ## Agent reliability design
+
+See [`ARCHITECTURE.md`](https://github.com/giovannipicogna/lmu-usm-agent-template/blob/main/ARCHITECTURE.md)
+for the full pipeline diagram, agent roster, handoff schemas, and quality-gate
+summary. The three anti-failure mechanisms below are embedded directly in
+each agent file.
 
 All analysis agents include three anti-failure mechanisms to prevent
 silent hallucination in long sessions:
