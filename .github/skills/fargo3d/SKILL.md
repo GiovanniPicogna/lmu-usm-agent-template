@@ -51,11 +51,11 @@ argument-hint: "Par file + parameters, e.g. 'setups/p_gap/p_gap.par Alpha=1e-3 P
 
 > Full table with types, defaults, and constraints: [`references/parameters.md`](references/parameters.md)
 
-**Required:** `par_file`, `output_dir`  
-**Disk structure:** `AspectRatio` · `Sigma0` · `Alpha` · `FlaringIndex`  
-**Planet:** `PlanetMass`  
-**Time integration:** `Tmax` · `DT` · `Ninterm`  
-**Execution:** `fargo3d_bin` · `n_procs` · `gpu`  
+**Required:** `par_file`, `output_dir`
+**Disk structure:** `AspectRatio` · `Sigma0` · `Alpha` · `FlaringIndex`
+**Planet:** `PlanetMass`
+**Time integration:** `Tmax` · `DT` · `Ninterm`
+**Execution:** `fargo3d_bin` · `n_procs` · `gpu`
 Use `extra_params: {"Key": value}` for any other `.par` entry.
 
 ## Output

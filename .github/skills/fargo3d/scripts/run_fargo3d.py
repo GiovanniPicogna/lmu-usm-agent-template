@@ -30,6 +30,7 @@ from pydantic import BaseModel, Field, field_validator, model_validator
 # Pydantic parameter model
 # ---------------------------------------------------------------------------
 
+
 class FARGO3DParams(BaseModel):
     par_file: str
     output_dir: str
@@ -59,8 +60,13 @@ class FARGO3DParams(BaseModel):
     gpu: bool = False
 
     @field_validator(
-        "AspectRatio", "Sigma0", "Alpha", "FlaringIndex",
-        "PlanetMass", "Tmax", "DT",
+        "AspectRatio",
+        "Sigma0",
+        "Alpha",
+        "FlaringIndex",
+        "PlanetMass",
+        "Tmax",
+        "DT",
         mode="before",
     )
     @classmethod
@@ -89,6 +95,7 @@ class FARGO3DParams(BaseModel):
 # ---------------------------------------------------------------------------
 # FARGO3D .par patcher
 # ---------------------------------------------------------------------------
+
 
 class FARGOParPatcher:
     """Read, patch, and write a FARGO3D .par file (KEY   VALUE per line)."""
@@ -135,6 +142,7 @@ class FARGOParPatcher:
 # ---------------------------------------------------------------------------
 # Output parsers
 # ---------------------------------------------------------------------------
+
 
 def _parse_fargo_output(output_dir: str, sigma0_ref: Optional[float]) -> dict:
     """Parse last gasdens*.dat and planet files for diagnostics."""
@@ -198,13 +206,24 @@ def _parse_fargo_output(output_dir: str, sigma0_ref: Optional[float]) -> dict:
 # Simulation runner
 # ---------------------------------------------------------------------------
 
+
 def run_fargo3d_simulation(params: FARGO3DParams) -> str:
     os.makedirs(params.output_dir, exist_ok=True)
 
     # Build overrides dict from model (only non-None physical params)
     overrides: Dict[str, Any] = {}
-    for attr in ("AspectRatio", "Sigma0", "Alpha", "FlaringIndex",
-                 "PlanetMass", "Tmax", "Ninterm", "DT", "Nx", "Ny"):
+    for attr in (
+        "AspectRatio",
+        "Sigma0",
+        "Alpha",
+        "FlaringIndex",
+        "PlanetMass",
+        "Tmax",
+        "Ninterm",
+        "DT",
+        "Nx",
+        "Ny",
+    ):
         v = getattr(params, attr)
         if v is not None:
             overrides[attr] = v
@@ -268,6 +287,7 @@ def run_fargo3d_simulation(params: FARGO3DParams) -> str:
 # ---------------------------------------------------------------------------
 # CLI
 # ---------------------------------------------------------------------------
+
 
 def _build_parser() -> argparse.ArgumentParser:
     p = argparse.ArgumentParser(description="Patch a FARGO3D .par file and run.")

@@ -24,14 +24,14 @@ If required input data (spectral fit results JSON, likelihood function, prior bo
 
 ## Iron rules
 
-> **IRON RULE 1 — 68%, not 90%.**  
+> **IRON RULE 1 — 68%, not 90%.**
 > Always report posterior credible intervals at 68% (16th–84th percentile).
 > 90% is the X-ray spectral fitting convention only (see `copilot-instructions.md §3`).
 
-> **IRON RULE 2 — Never overwrite chains.**  
+> **IRON RULE 2 — Never overwrite chains.**
 > Never overwrite an existing HDF5 chain file. Append a timestamp suffix instead.
 
-> **IRON RULE 3 — Convergence before reporting.**  
+> **IRON RULE 3 — Convergence before reporting.**
 > Never report parameter estimates from a run where the autocorrelation time
 > could not be estimated or the acceptance fraction was outside 0.2–0.5.
 

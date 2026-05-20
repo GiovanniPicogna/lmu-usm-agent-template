@@ -31,9 +31,10 @@ from scientific_pydantic.numpy import NDArrayAdapter
 # Pydantic parameter model
 # ---------------------------------------------------------------------------
 
+
 class PLUTOParams(BaseModel):
     run_dir: str
-    output_dir: Optional[str] = None          # defaults to run_dir
+    output_dir: Optional[str] = None  # defaults to run_dir
     tstop: Optional[float] = Field(default=None, gt=0.0)
     cfl: Optional[float] = Field(default=None, ge=0.1, le=0.9)
     first_dt: Optional[float] = Field(default=None, gt=0.0)
@@ -44,9 +45,9 @@ class PLUTOParams(BaseModel):
     restart: Optional[int] = Field(default=None, ge=0)
     # Optional staged-run schedule: PLUTO is called once per checkpoint, with
     # automatic restarts between stops.  Mutually exclusive with `tstop`.
-    checkpoint_times: ty.Optional[ty.Annotated[
-        np.ndarray, NDArrayAdapter(ndim=1, dtype="float64", gt=0.0)
-    ]] = None
+    checkpoint_times: ty.Optional[
+        ty.Annotated[np.ndarray, NDArrayAdapter(ndim=1, dtype="float64", gt=0.0)]
+    ] = None
 
     @field_validator("tstop", "cfl", "first_dt", mode="before")
     @classmethod
@@ -74,15 +75,14 @@ class PLUTOParams(BaseModel):
         if not os.path.isfile(ini):
             raise ValueError(f"pluto.ini not found in run_dir: {self.run_dir!r}")
         if self.tstop is not None and self.checkpoint_times is not None:
-            raise ValueError(
-                "Specify either 'tstop' or 'checkpoint_times', not both."
-            )
+            raise ValueError("Specify either 'tstop' or 'checkpoint_times', not both.")
         return self
 
 
 # ---------------------------------------------------------------------------
 # pluto.ini patcher
 # ---------------------------------------------------------------------------
+
 
 class PLUTOIniPatcher:
     """Line-based patcher for pluto.ini that preserves structure."""
@@ -169,6 +169,7 @@ class PLUTOIniPatcher:
 # Snapshot parser helpers
 # ---------------------------------------------------------------------------
 
+
 def _parse_last_snapshot(run_dir: str) -> dict:
     """Return {'n': int, 't': float, 'rho_max': float, 'rho_min': float}."""
     result = {"n": -1, "t": float("nan"), "rho_max": float("nan"), "rho_min": float("nan")}
@@ -176,6 +177,7 @@ def _parse_last_snapshot(run_dir: str) -> dict:
     # Try HDF5 first
     try:
         import h5py
+
         hdf_files = sorted(Path(run_dir).glob("data.*.hdf5"))
         if hdf_files:
             last = hdf_files[-1]
@@ -211,6 +213,7 @@ def _parse_last_snapshot(run_dir: str) -> dict:
 # ---------------------------------------------------------------------------
 # Simulation runner
 # ---------------------------------------------------------------------------
+
 
 def run_pluto_simulation(params: PLUTOParams) -> str:
     ini_path = os.path.join(params.run_dir, "pluto.ini")
@@ -283,6 +286,7 @@ def run_pluto_simulation(params: PLUTOParams) -> str:
 # ---------------------------------------------------------------------------
 # CLI
 # ---------------------------------------------------------------------------
+
 
 def _build_parser() -> argparse.ArgumentParser:
     p = argparse.ArgumentParser(description="Patch pluto.ini and run PLUTO.")

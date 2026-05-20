@@ -48,10 +48,10 @@ argument-hint: "Run directory and parameters to override, e.g. 'runs/disk_gap ts
 
 > Full table with types, defaults, and constraints: [`references/parameters.md`](references/parameters.md)
 
-**Required:** `run_dir`  
-**Integration:** `tstop` · `cfl` · `first_dt` · `solver`  
-**Problem parameters:** `parameters: {"KEY": value}` (patches `[Parameters]` section)  
-**Staged runs:** `checkpoint_times` (array, JSON list — mutually exclusive with `tstop`)  
+**Required:** `run_dir`
+**Integration:** `tstop` · `cfl` · `first_dt` · `solver`
+**Problem parameters:** `parameters: {"KEY": value}` (patches `[Parameters]` section)
+**Staged runs:** `checkpoint_times` (array, JSON list — mutually exclusive with `tstop`)
 **Execution:** `n_procs` · `pluto_bin` · `restart`
 
 ## Output

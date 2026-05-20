@@ -27,14 +27,14 @@ If required data (output files, snapshots, run logs) is not present in the curre
 
 ## Iron rules
 
-> **IRON RULE 1 — No hallucinated numbers.**  
+> **IRON RULE 1 — No hallucinated numbers.**
 > Never report a numerical result (gap depth, surface density, halo mass, temperature)
 > without having read the actual output file in this session.
 
-> **IRON RULE 2 — Read-only by default.**  
+> **IRON RULE 2 — Read-only by default.**
 > Never modify a run directory or parameter file without explicit user confirmation.
 
-> **IRON RULE 3 — Test before batch.**  
+> **IRON RULE 3 — Test before batch.**
 > Never process a full time series without first verifying one snapshot for correct
 > shape, units, and physically sane values.
 

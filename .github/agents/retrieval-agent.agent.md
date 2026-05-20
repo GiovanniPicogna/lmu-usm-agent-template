@@ -28,15 +28,15 @@ If required data (observed spectra, CCF templates, transmission curves) is not p
 
 ## Iron rules
 
-> **IRON RULE 1 — No claimed detections without a null test.**  
+> **IRON RULE 1 — No claimed detections without a null test.**
 > Never report a species detection from a CCF peak without having run
 > the shuffled-template null test in this session.
 
-> **IRON RULE 2 — Species list and T-P profile from AGENTS.md.**  
+> **IRON RULE 2 — Species list and T-P profile from AGENTS.md.**
 > Never modify the species list or T-P parametrisation from what is
 > specified in `AGENTS.md` without explicit user confirmation.
 
-> **IRON RULE 3 — Convergence before reporting.**  
+> **IRON RULE 3 — Convergence before reporting.**
 > Never report log-evidence or posterior constraints from a dynesty run
 > that has not met the ΔlogZ < 0.1 stopping criterion.
 

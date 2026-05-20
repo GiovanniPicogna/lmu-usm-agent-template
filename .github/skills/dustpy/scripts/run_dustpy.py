@@ -23,15 +23,16 @@ from scientific_pydantic.numpy import NDArrayAdapter
 # ---------------------------------------------------------------------------
 # Physical constants
 # ---------------------------------------------------------------------------
-M_SUN_G = 1.989e33          # grams
-L_SUN_ERG = 3.846e33        # erg/s
-AU_TO_CM = 1.496e13         # cm / au
-YR_TO_S = 3.1536e7          # s / yr
+M_SUN_G = 1.989e33  # grams
+L_SUN_ERG = 3.846e33  # erg/s
+AU_TO_CM = 1.496e13  # cm / au
+YR_TO_S = 3.1536e7  # s / yr
 
 
 # ---------------------------------------------------------------------------
 # Pydantic parameter model
 # ---------------------------------------------------------------------------
+
 
 class DustPyParams(BaseModel):
     alpha_viscosity: float = Field(default=1e-3, ge=1e-6, le=1e-1)
@@ -47,15 +48,21 @@ class DustPyParams(BaseModel):
     N_snapshots: int = Field(default=100, ge=10, le=1000)
     # Optional custom snapshot schedule; overrides N_snapshots when provided.
     # Accepts a JSON list ([1e4, 1e5, 1e6]) or a Python list / np.ndarray.
-    snapshot_times_yr: ty.Optional[ty.Annotated[
-        np.ndarray, NDArrayAdapter(ndim=1, dtype="float64", gt=0.0)
-    ]] = None
+    snapshot_times_yr: ty.Optional[
+        ty.Annotated[np.ndarray, NDArrayAdapter(ndim=1, dtype="float64", gt=0.0)]
+    ] = None
     output_dir: str = Field(default="dustpy_out")
 
     @field_validator(
-        "alpha_viscosity", "disk_mass_msun", "stellar_mass_msun",
-        "stellar_luminosity_lsun", "dust_to_gas_ratio",
-        "r_in_au", "r_out_au", "t_end_yr", "fragmentation_velocity_ms",
+        "alpha_viscosity",
+        "disk_mass_msun",
+        "stellar_mass_msun",
+        "stellar_luminosity_lsun",
+        "dust_to_gas_ratio",
+        "r_in_au",
+        "r_out_au",
+        "t_end_yr",
+        "fragmentation_velocity_ms",
         mode="before",
     )
     @classmethod
@@ -71,9 +78,7 @@ class DustPyParams(BaseModel):
     @model_validator(mode="after")
     def check_geometry_and_snapshots(self):
         if self.r_out_au <= self.r_in_au:
-            raise ValueError(
-                f"r_out_au ({self.r_out_au}) must be > r_in_au ({self.r_in_au})"
-            )
+            raise ValueError(f"r_out_au ({self.r_out_au}) must be > r_in_au ({self.r_in_au})")
         # When a custom snapshot schedule is given, derive t_end_yr from it
         # so the caller does not have to supply both.
         if self.snapshot_times_yr is not None:
@@ -84,6 +89,7 @@ class DustPyParams(BaseModel):
 # ---------------------------------------------------------------------------
 # Simulation runner
 # ---------------------------------------------------------------------------
+
 
 def run_dustpy_simulation(params: DustPyParams) -> str:
     """Run a DustPy simulation with validated params.  Returns a plain-text result string."""
@@ -145,12 +151,8 @@ def run_dustpy_simulation(params: DustPyParams) -> str:
 
     # Final gas and dust mass
     try:
-        final_gas_mass = float(
-            (sim.grid.A * sim.gas.Sigma).sum() / M_SUN_G
-        )
-        final_dust_mass = float(
-            (sim.grid.A * sim.dust.Sigma.sum(-1)).sum() / M_SUN_G
-        )
+        final_gas_mass = float((sim.grid.A * sim.gas.Sigma).sum() / M_SUN_G)
+        final_dust_mass = float((sim.grid.A * sim.dust.Sigma.sum(-1)).sum() / M_SUN_G)
     except Exception:
         final_gas_mass = float("nan")
         final_dust_mass = float("nan")
@@ -182,6 +184,7 @@ def run_dustpy_simulation(params: DustPyParams) -> str:
 # ---------------------------------------------------------------------------
 # CLI
 # ---------------------------------------------------------------------------
+
 
 def _build_parser() -> argparse.ArgumentParser:
     p = argparse.ArgumentParser(description="Run a DustPy dust-evolution simulation.")

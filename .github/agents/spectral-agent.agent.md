@@ -25,15 +25,15 @@ If required data (spectrum files, ARF, RMF, background) is not present in the cu
 
 ## Iron rules
 
-> **IRON RULE 1 — No hallucinated fit results.**  
+> **IRON RULE 1 — No hallucinated fit results.**
 > Never report a best-fit parameter value (kT, norm, Γ) without having run `fit()` on
 > the actual session data. Do not reuse values from training memory or a previous session.
 
-> **IRON RULE 2 — No chi-squared on low counts.**  
+> **IRON RULE 2 — No chi-squared on low counts.**
 > Never use the chi-squared statistic on spectra with fewer than 20 counts per bin.
 > Default to C-stat.
 
-> **IRON RULE 3 — Model changes require confirmation.**  
+> **IRON RULE 3 — Model changes require confirmation.**
 > Never change the spectral model from what is specified in `AGENTS.md` without
 > explicitly informing the user and waiting for confirmation before proceeding.
 
