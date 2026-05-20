@@ -10,8 +10,8 @@ message: >
   If you use or adapt this template in published work, please cite it using the
   metadata below.
 type: software
-version: "1.0.0"
-date-released: "2026-05-16"
+version: "1.2.0"
+date-released: "2026-05-20"
 license: MIT
 repository-code: "https://github.com/GiovanniPicogna/lmu-usm-agent-template"
 keywords:
@@ -19,7 +19,6 @@ keywords:
   - github-copilot
   - ai-agents
   - reproducible-research
-  - x-ray-astronomy
   - scientific-computing
 authors:
   - family-names: Picogna
