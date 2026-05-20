@@ -311,6 +311,10 @@
     <div class="n-tag new">Policy-compliant AI use in publications</div>
     <div class="n-tag">GitHub Copilot Agent Mode</div>
     <div class="n-tag hot">Reproducible by design</div>
+    <div class="n-tag new">Bundled simulation skills — DustPy · FARGO3D · PLUTO</div>
+    <div class="n-tag hot">IRON RULE reliability design</div>
+    <div class="n-tag new">Structured agent handoff schemas</div>
+    <div class="n-tag">ARCHITECTURE.md pipeline diagram</div>
     <div class="n-tag">MNRAS · A&amp;A · ApJ · Nature · Science</div>
   </div>
 
@@ -346,9 +350,10 @@
       <div class="d-card-number">02 ·</div>
       <h3>Specialist agents for our domains</h3>
       <p>
-        Five domain-specific agents:
+        Six domain-specific agents:
         <strong>@literature-agent</strong>, @simulation-agent,
-        @retrieval-agent, @spectral-agent, @mcmc-agent.
+        @retrieval-agent, @spectral-agent, @mcmc-agent,
+        and the new <strong>@paper-agent</strong> orchestrator.
         Each understands our codes, unit conventions, and sanity checks.
       </p>
     </div>
@@ -383,8 +388,19 @@
       </p>
     </div>
 
-    <div class="d-card" style="--accent: var(--blue)">
+    <div class="d-card" style="--accent: var(--green)">
       <div class="d-card-number">06 ·</div>
+      <h3>Agent reliability design — no silent hallucination</h3>
+      <p>
+        Every analysis agent carries <strong>IRON RULEs</strong>, anti-patterns,
+        and <strong>[DATA&nbsp;MISSING]</strong> hard-stops. Structured
+        <strong>handoff&nbsp;schemas</strong> (Simulation/Spectral/MCMC)
+        make inter-agent data contracts explicit and machine-checkable.
+      </p>
+    </div>
+
+    <div class="d-card" style="--accent: var(--blue)">
+      <div class="d-card-number">07 ·</div>
       <h3>This is a community draft — shape it now</h3>
       <p>
         Version 1.0 will be out on the 1st of June, but it's only as good as the group's
@@ -403,6 +419,7 @@
     <span class="agent-pill" style="--c: var(--green)">@retrieval-agent</span>
     <span class="agent-pill" style="--c: var(--red)">@spectral-agent</span>
     <span class="agent-pill" style="--c: var(--gold)">@mcmc-agent</span>
+    <span class="agent-pill" style="--c: var(--muted)">@paper-agent</span>
   </div>
 
   <!-- OPEN QUESTIONS -->
