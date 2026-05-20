@@ -37,7 +37,7 @@ class DustPyParams(BaseModel):
     alpha_viscosity: float = Field(default=1e-3, ge=1e-6, le=1e-1)
     disk_mass_msun: float = Field(default=0.05, gt=0.0, le=1.0)
     stellar_mass_msun: float = Field(default=1.0, gt=0.0, le=100.0)
-    stellar_luminosity_lsun: Optional[float] = Field(default=1.0, gt=0.0, le=1e6)
+    stellar_luminosity_lsun: ty.Optional[float] = Field(default=1.0, gt=0.0, le=1e6)
     dust_to_gas_ratio: float = Field(default=0.01, gt=0.0, le=0.5)
     r_in_au: float = Field(default=1.0, gt=0.0)
     r_out_au: float = Field(default=300.0, gt=0.0)

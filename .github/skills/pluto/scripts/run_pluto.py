@@ -3,7 +3,8 @@
 PLUTO ini patcher and runner with Pydantic v2 parameter validation.
 
 Usage (agent / JSON form):
-    python run_pluto.py --json '{"run_dir": "runs/disk", "tstop": 500, "parameters": {"ALPHA": 1e-3}}'
+    python run_pluto.py \
+        --json '{"run_dir": "runs/disk", "tstop": 500, "parameters": {"ALPHA": 1e-3}}'
 
 Usage (CLI form):
     python run_pluto.py --run-dir runs/disk --tstop 500 --n-procs 4
@@ -196,7 +197,7 @@ def _parse_last_snapshot(run_dir: str) -> dict:
     dbl_out = os.path.join(run_dir, "dbl.out")
     if os.path.isfile(dbl_out):
         with open(dbl_out) as fh:
-            lines = [l for l in fh.readlines() if l.strip()]
+            lines = [line for line in fh.readlines() if line.strip()]
         if lines:
             last_line = lines[-1].split()
             try:
@@ -268,13 +269,11 @@ def run_pluto_simulation(params: PLUTOParams) -> str:
         )
 
     snap = _parse_last_snapshot(output_dir)
-    assert last_proc is not None
-    warnings = [l for l in last_proc.stderr.splitlines() if "warn" in l.lower()]
+    warnings = [w for w in proc.stderr.splitlines() if "warn" in w.lower()]
     warn_str = "; ".join(warnings[:5]) if warnings else "none"
-    n_stages = len(stops)
 
     return (
-        f"SUCCESS: run_dir={params.run_dir}  stages={n_stages}  wall_clock={t_wall:.1f}s\n"
+        f"SUCCESS: run_dir={params.run_dir}  wall_clock={t_wall:.1f}s\n"
         f"  last_snapshot={snap['n']}  t={snap['t']:.4g} (code units)\n"
         f"  rho_max={snap['rho_max']:.3e}  rho_min={snap['rho_min']:.3e}\n"
         f"  warnings: {warn_str}"

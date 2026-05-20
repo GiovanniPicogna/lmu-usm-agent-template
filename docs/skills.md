@@ -15,6 +15,47 @@ machine and are loaded on demand.
 
 ---
 
+## Bundled simulation skills (shipped with this template)
+
+Three simulation launch skills are included in `.github/skills/` and are
+used automatically by `@simulation-agent`. Each ships a Pydantic-validated
+Python runner that patches configuration files, launches the simulation,
+and returns a `SUCCESS` / `ERROR` status line.
+
+| Skill | Simulation code | Use case |
+|---|---|---|
+| [`dustpy`](https://github.com/GiovanniPicogna/lmu-usm-agent-template/blob/main/.github/skills/dustpy/SKILL.md) | DustPy | Radial dust evolution, grain growth, fragmentation barrier, Stokes numbers, dust-to-gas mass fractions |
+| [`fargo3d`](https://github.com/GiovanniPicogna/lmu-usm-agent-template/blob/main/.github/skills/fargo3d/SKILL.md) | FARGO3D | Planet–disk interaction, gap opening, type-I/II migration torques — patches `.par` file without recompiling |
+| [`pluto`](https://github.com/GiovanniPicogna/lmu-usm-agent-template/blob/main/.github/skills/pluto/SKILL.md) | PLUTO | HD/MHD disk and jet simulations — overrides `pluto.ini` parameters without recompiling |
+
+Each skill follows the **lean SKILL.md pattern**: the `SKILL.md` file stays
+compact (trigger conditions, procedure, key parameters, output format, error
+table). Full parameter tables and worked examples live in the skill's
+`references/` subdirectory and are read by the agent on demand:
+
+```
+skills/<code>/
+├── SKILL.md              # Lean — quick-scan essentials only
+├── references/
+│   ├── parameters.md     # Full parameter table (types, defaults, constraints)
+│   └── examples.md       # Step-by-step run examples  (PLUTO only)
+└── scripts/
+    └── run_<code>.py     # Validated runner
+```
+
+**Prerequisites:**
+- `dustpy`: `pip install dustpy scientific-pydantic`
+- `fargo3d` / `pluto`: compiled binary must already exist in the run directory
+
+```bash
+# Example: launch DustPy via simulation-agent
+@simulation-agent  Run a dust evolution simulation with alpha=1e-3,
+                   disk mass 0.05 Msun, fragmentation velocity 10 m/s,
+                   for 1 Myr. Save snapshots to data/dustpy/run01/.
+```
+
+---
+
 ## Recommended skills for USM groups
 
 ### Universal (all groups)

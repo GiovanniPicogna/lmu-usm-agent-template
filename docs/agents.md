@@ -27,8 +27,10 @@ Searches NASA ADS, retrieves BibTeX entries, and appends them to
 
 ## `@simulation-agent`
 
-Post-processes hydrodynamical simulation outputs from FARGO3D, PLUTO,
-and Magneticum/GADGET. Provides:
+Launches and post-processes hydrodynamical simulations from DustPy,
+FARGO3D, PLUTO, and Magneticum/GADGET. Provides:
+- **Simulation launching** via bundled skill scripts (DustPy, FARGO3D, PLUTO)
+  with Pydantic-validated parameters and `SUCCESS` / `ERROR` exit protocol
 - FARGO3D HDF5 and legacy binary `.dat` readers with code-unit → physical-unit conversion
 - Magneticum/GADGET HDF5 reader with complete unit conversion table
 - GadgetIO.jl subprocess call pattern
@@ -36,6 +38,9 @@ and Magneticum/GADGET. Provides:
   halo mass / ICM temperature ranges
 
 ```
+@simulation-agent  Run a DustPy dust evolution simulation with alpha=1e-3,
+                   disk mass 0.05 Msun, for 1 Myr. Save snapshots to data/dustpy/.
+
 @simulation-agent  Read all FARGO3D snapshots in data/runs/disk_1Mjup/
                    and compute the azimuthally averaged gap depth as a
                    function of time for planet 0. Save to results/gaps/.
@@ -92,3 +97,32 @@ and convergence diagnostics.
 @mcmc-agent        Sample posteriors for the core region fit in
                    results/fits/core.json and produce a corner plot
 ```
+
+---
+
+## Agent reliability design
+
+All analysis agents include three anti-failure mechanisms to prevent
+silent hallucination in long sessions:
+
+### Iron rules
+Blockquoted `IRON RULE` markers in each agent file flag non-negotiable
+constraints. Examples:
+
+| Agent | Critical rules |
+|---|---|
+| `@simulation-agent` | No hallucinated numbers; read-only by default; test one snapshot before batch |
+| `@spectral-agent` | No hallucinated fit results; C-stat on low-count data; model changes need confirmation |
+| `@mcmc-agent` | Report 68% credible intervals (not 90%); never overwrite chain files; convergence check before reporting |
+| `@retrieval-agent` | No species detection without a shuffled-template null test; species list from `AGENTS.md`; ΔlogZ < 0.1 before reporting |
+
+### Anti-patterns tables
+Each agent carries a four-row table — *Anti-Pattern \| Why It Fails \|
+Correct Behaviour* — providing explicit negative examples at inference
+time for the most common failure modes.
+
+### Anti-leakage (`[DATA MISSING]`)
+If data required for analysis is absent from the current session, agents
+emit `[DATA MISSING: <description>]` and stop rather than substituting
+values from training memory. `@literature-agent` uses the variant
+`[CITATION MISSING: <query>]` when ADS returns no result.

@@ -30,6 +30,7 @@ argument-hint: "Par file + parameters, e.g. 'setups/p_gap/p_gap.par Alpha=1e-3 P
 ## Procedure
 
 1. Collect the `.par` file path, output directory, and any parameter overrides.
+   Read `references/parameters.md` for the full parameter table.
 2. Call the patch-and-run script:
    ```
    python ~/.agents/skills/fargo3d/scripts/run_fargo3d.py \
@@ -48,24 +49,14 @@ argument-hint: "Par file + parameters, e.g. 'setups/p_gap/p_gap.par Alpha=1e-3 P
 
 ## Parameters
 
-| Name | Type | Default | Constraint | Notes |
-|---|---|---|---|---|
-| `par_file` | str | **required** | must exist | Path to `.par` setup file |
-| `output_dir` | str | **required** | — | Where FARGO3D writes `gasdens*.dat` etc. |
-| `AspectRatio` | float | (from par) | (0, 1] | Disk scale-height ratio h/r |
-| `Sigma0` | float | (from par) | > 0 | Surface density at 1 au (code units) |
-| `Alpha` | float | (from par) | [0, 0.1] | Alpha-viscosity |
-| `FlaringIndex` | float | (from par) | [0, 1] | Disk flaring index |
-| `PlanetMass` | float | (from par) | ≥ 0 | Planet mass in stellar masses |
-| `Tmax` | float | (from par) | > 0 | Max time in orbital periods |
-| `Ninterm` | int | (from par) | ≥ 1 | Output cadence (steps between outputs) |
-| `DT` | float | (from par) | > 0 | Time-step per orbit fraction |
-| `Nx` | int | (from par) | [8, 4096] | Azimuthal resolution |
-| `Ny` | int | (from par) | [8, 1024] | Radial resolution |
-| `extra_params` | dict | `{}` | — | Any other `.par` key-value pairs |
-| `fargo3d_bin` | str | `./fargo3d` | — | Path to FARGO3D executable |
-| `n_procs` | int | 1 | [1, 512] | MPI rank count (CPU runs) |
-| `gpu` | bool | False | — | Use GPU flag (`-m` instead of `-0`) |
+> Full table with types, defaults, and constraints: [`references/parameters.md`](references/parameters.md)
+
+**Required:** `par_file`, `output_dir`  
+**Disk structure:** `AspectRatio` · `Sigma0` · `Alpha` · `FlaringIndex`  
+**Planet:** `PlanetMass`  
+**Time integration:** `Tmax` · `DT` · `Ninterm`  
+**Execution:** `fargo3d_bin` · `n_procs` · `gpu`  
+Use `extra_params: {"Key": value}` for any other `.par` entry.
 
 ## Output
 

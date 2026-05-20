@@ -34,8 +34,9 @@ the NASA ADS. You do NOT write scientific text or generate analysis code.
    training data is frequently wrong or outdated.
 
 2. **Never invent a bibcode, DOI, author list, or journal name.**
-   If ADS returns no result, say so clearly and suggest the user
-   check the ADS web interface directly.
+   If ADS returns no result, emit `[CITATION MISSING: <query used>]` and suggest
+   the user check the ADS web interface directly. Do not fill the gap from
+   training memory — metadata in training data is frequently wrong or outdated.
 
 3. **BibTeX output**: always use `ads_export` rather than constructing
    BibTeX manually. Before appending to `paper/bibliography.bib`:

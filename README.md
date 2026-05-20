@@ -21,6 +21,23 @@ at LMU Munich.
 │   ├── retrieval-agent.agent.md    # @retrieval-agent: petitRADTRANS CCF & dynesty
 │   ├── spectral-agent.agent.md     # @spectral-agent: X-ray Sherpa/PyXSPEC fitting
 │   └── mcmc-agent.agent.md         # @mcmc-agent: emcee/dynesty sampling & corner plots
+├── skills/                         # Bundled simulation launch skills
+│   ├── dustpy/
+│   │   ├── SKILL.md                #   DustPy: grain growth & radial drift
+│   │   ├── references/
+│   │   │   └── parameters.md       #   Full parameter table (lean SKILL.md pattern)
+│   │   └── scripts/run_dustpy.py   #   Validated runner (Pydantic, SUCCESS/ERROR protocol)
+│   ├── fargo3d/
+│   │   ├── SKILL.md                #   FARGO3D: planet–disk interaction & gap opening
+│   │   ├── references/
+│   │   │   └── parameters.md       #   Full parameter table
+│   │   └── scripts/run_fargo3d.py  #   Patches .par file, launches simulation
+│   └── pluto/
+│       ├── SKILL.md                #   PLUTO: HD/MHD disk & jet simulations
+│       ├── references/
+│       │   ├── parameters.md       #   Full parameter table
+│       │   └── examples.md         #   Step-by-step run examples
+│       └── scripts/run_pluto.py    #   Patches pluto.ini, launches simulation
 ├── workflows/
 │   ├── pre-commit.yml              # CI: runs hooks on every PR
 │   └── pages.yml                   # CI: builds & deploys GitHub Pages
@@ -217,9 +234,74 @@ In Copilot Chat, activate a skill by name:
 Use the scientific-visualization skill for this figure.
 ```
 
+### Bundled simulation launch skills
+
+This template ships three simulation skills in `.github/skills/`. Each provides
+a validated Python runner (`run_<code>.py`) with Pydantic parameter checking and
+a `SUCCESS` / `ERROR` exit protocol that `@simulation-agent` parses automatically.
+
+| Skill | Code | Use case | Key parameters | Prerequisite |
+|---|---|---|---|---|
+| [`dustpy`](.github/skills/dustpy/SKILL.md) | DustPy | Radial dust evolution, grain growth, fragmentation, Stokes numbers | `alpha_viscosity`, `disk_mass_msun`, `t_end_yr`, `snapshot_times_yr` | `pip install dustpy scientific-pydantic` |
+| [`fargo3d`](.github/skills/fargo3d/SKILL.md) | FARGO3D | Planet–disk interaction, gap opening, type-I/II migration torques | `par_file`, `Alpha`, `PlanetMass`, `Sigma0`, `AspectRatio`, `Tmax` | Compiled `fargo3d` binary + valid `.par` file |
+| [`pluto`](.github/skills/pluto/SKILL.md) | PLUTO | HD/MHD disk or jet simulations; parameter overrides without recompiling | `run_dir`, `tstop`, `CFL`, `[Parameters]` overrides, `n_procs` | Compiled `pluto` binary + valid `pluto.ini` |
+
+Scripts accept individual flags or a single `--json` blob for multi-parameter calls:
+
+```bash
+# DustPy — 1 Myr dust evolution run
+python .github/skills/dustpy/scripts/run_dustpy.py \
+    --json '{"alpha_viscosity": 1e-3, "disk_mass_msun": 0.05, "t_end_yr": 1e6}'
+
+# FARGO3D — planet-gap simulation, overriding planet mass and viscosity
+python .github/skills/fargo3d/scripts/run_fargo3d.py \
+    --json '{"par_file": "setups/p_gap/p_gap.par", "Alpha": 1e-3, "PlanetMass": 3e-4}'
+
+# PLUTO — HD disk run in an existing compiled directory
+python .github/skills/pluto/scripts/run_pluto.py \
+    --json '{"run_dir": "runs/disk_gap", "tstop": 500.0, "parameters": {"ALPHA": 1e-3}}'
+```
+
+Skill files follow the **lean SKILL.md pattern**: `SKILL.md` contains the essentials
+(trigger conditions, procedure, compact parameter summary, output format, error table).
+Detailed parameter tables and worked examples live in each skill’s `references/`
+subdirectory and are loaded by the agent on demand.
+
 Recommended skills by domain are listed in
 [`docs/skills.md`](https://giovannipicogna.github.io/lmu-usm-agent-template/skills)
 and in §11 of `.github/copilot-instructions.md`.
+
+---
+
+## Agent reliability design
+
+Each specialist agent includes three anti-failure mechanisms:
+
+### Iron rules
+Blockquoted `IRON RULE` markers inside every agent file flag non-negotiable
+constraints that must hold even in long conversations (context rot).
+
+| Agent | Critical rules |
+|---|---|
+| `@simulation-agent` | No hallucinated numbers; read-only by default; test before batch |
+| `@spectral-agent` | No hallucinated fit results; C-stat on low counts; model changes need confirmation |
+| `@mcmc-agent` | 68% intervals (not 90%); never overwrite chains; convergence before reporting |
+| `@retrieval-agent` | No detections without null test; species list from `AGENTS.md`; convergence before reporting |
+
+### Anti-patterns table
+Each agent carries a four-row table with columns
+*Anti-Pattern | Why It Fails | Correct Behaviour*, providing explicit
+negative examples at inference time to counter the most common failure modes.
+
+### Anti-leakage (`[DATA MISSING]`)
+Every analysis agent's Role section includes a hard stop:
+> If required data is not present in the current session, emit
+> `[DATA MISSING: <path or description>]` and stop — do not substitute values from training memory.
+
+`@literature-agent` uses the variant `[CITATION MISSING: <query>]` when ADS
+returns no result. These markers make silent hallucination visible: a
+`[DATA MISSING]` reply means the agent is correctly refusing to invent data
+rather than producing a plausible-looking but fabricated result.
 
 ---
 

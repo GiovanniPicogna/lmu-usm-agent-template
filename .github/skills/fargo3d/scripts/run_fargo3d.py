@@ -22,11 +22,8 @@ import time
 from pathlib import Path
 from typing import Any, Dict, Optional
 
-import typing as ty
-
 import numpy as np
 from pydantic import BaseModel, Field, field_validator, model_validator
-from scientific_pydantic.numpy import NDArrayAdapter  # noqa: F401 — available for future array fields
 
 
 # ---------------------------------------------------------------------------
@@ -176,7 +173,7 @@ def _parse_fargo_output(output_dir: str, sigma0_ref: Optional[float]) -> dict:
     if summary.is_file():
         try:
             with open(summary) as fh:
-                lines = [l for l in fh.readlines() if l.strip()]
+                lines = [line for line in fh.readlines() if line.strip()]
             if lines:
                 result["last_orbit"] = float(lines[-1].split()[0])
         except Exception:
