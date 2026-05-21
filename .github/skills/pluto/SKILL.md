@@ -1,35 +1,57 @@
 ---
 name: pluto
 description: >
-  Patch pluto.ini parameters and launch a PLUTO (HD/MHD) simulation.
-  Use this skill to override time, solver, or problem-specific [Parameters]
-  in an existing PLUTO run directory without touching definitions.h or
-  recompiling the binary. Returns last-snapshot diagnostics and wall-clock time.
+  Compile a PLUTO problem or patch pluto.ini and launch a PLUTO (HD/MHD) simulation.
+  Use this skill to compile a PLUTO problem from its definitions.h, override time,
+  solver, or problem-specific [Parameters] in an existing run directory.
+  Returns last-snapshot diagnostics and wall-clock time.
   Trigger phrases: PLUTO code, pluto.ini, PLUTO simulation, tstop, CFL,
-  HD simulation, MHD simulation, .dbl file, PLUTO snapshot, PLUTO run.
-argument-hint: "Run directory and parameters to override, e.g. 'runs/disk_gap tstop=500 ALPHA=1e-3'"
+  HD simulation, MHD simulation, .dbl file, PLUTO snapshot, PLUTO run,
+  compile PLUTO, definitions.h, make PLUTO.
+argument-hint: "Run directory and task, e.g. 'runs/disk_gap compile config_num=1' or 'runs/disk_gap tstop=500 ALPHA=1e-3'"
 ---
 
 # PLUTO Skill
 
 ## When to Use
 
-- Run or resume a PLUTO (HD/MHD) simulation in an existing compiled run directory
-- Adjust `tstop`, `CFL`, `first_dt`, the Riemann solver, or any `[Parameters]`
+- **Compile** a PLUTO problem from `definitions.h` (or a numbered variant `definitions_N.h`)
+- **Run or resume** a compiled PLUTO simulation
+- **Adjust** `tstop`, `CFL`, `first_dt`, Riemann solver, or any `[Parameters]`
   entry **without** recompiling
-- Do **NOT** use this skill to change `definitions.h`, grid geometry, or physics
-  modules — those require recompilation (consult the `simulation-agent`)
+- Do **NOT** use this skill to change grid geometry or physics modules if a
+  compiled binary already exists — those require calling the compile step again
 
 ## Prerequisites
 
-- The PLUTO binary (`pluto` or `mpirun`) must already be **compiled** in `run_dir`
-- A valid `pluto.ini` must exist in `run_dir`
+- `$PLUTO_DIR` must point to the PLUTO source tree (or pass `--pluto-dir`)
+- A C compiler (`gcc`) and `make` must be on `PATH`
+- For the run step: a compiled `pluto` binary in `run_dir`
 - MPI must be available if `n_procs > 1`
 
-## Procedure
+## Compile Procedure
+
+1. Identify `run_dir` and the config variant (if any) from the user.
+2. Call the compile script:
+   ```bash
+   python ~/.agents/skills/pluto/scripts/compile_pluto.py \
+       --run-dir $PLUTO_DIR/Test_Problems/HD/Disk_Planet --config-num 1
+   ```
+   JSON form:
+   ```bash
+   python ~/.agents/skills/pluto/scripts/compile_pluto.py \
+       --json '{"run_dir": "/path/to/Disk_Planet", "config_num": 1}'
+   ```
+3. The script:
+   - Copies `definitions_01.h` → `definitions.h` and `pluto_01.ini` → `pluto.ini`
+   - Auto-detects the host arch (Darwin / Linux) and writes a stub `makefile`
+   - Calls `setup.py --auto-update --no-curses` to regenerate the full `makefile`
+   - Runs `make -j4` (parallel)
+4. Parse `SUCCESS:` / `ERROR:` prefix. On error, show the last 20 lines of stderr.
+
+## Run Procedure
 
 1. Collect `run_dir` and any parameter overrides from the user.
-   Read `references/parameters.md` for the full parameter table.
 2. Call the patch-and-run script:
    ```
    python ~/.agents/skills/pluto/scripts/run_pluto.py \
@@ -46,16 +68,42 @@ argument-hint: "Run directory and parameters to override, e.g. 'runs/disk_gap ts
 
 ## Parameters
 
-> Full table with types, defaults, and constraints: [`references/parameters.md`](references/parameters.md)
+### Compile (`PLUTOCompileParams`)
 
-**Required:** `run_dir`
-**Integration:** `tstop` · `cfl` · `first_dt` · `solver`
-**Problem parameters:** `parameters: {"KEY": value}` (patches `[Parameters]` section)
-**Staged runs:** `checkpoint_times` (array, JSON list — mutually exclusive with `tstop`)
-**Execution:** `n_procs` · `pluto_bin` · `restart`
+| Name | Type | Default | Notes |
+|---|---|---|---|
+| `run_dir` | str | **required** | Path to PLUTO problem directory |
+| `pluto_dir` | str | `$PLUTO_DIR` | Path to PLUTO source tree |
+| `config_num` | int | None | Copies `definitions_N.h` + `pluto_N.ini` before compiling |
+| `arch` | str | auto-detected | Makefile arch e.g. `Darwin.gcc.defs`, `Linux.gcc.defs` |
+| `make_jobs` | int | 4 | Parallel `make -jN` jobs |
+
+### Run (`PLUTOParams`)
+
+| Name | Type | Default | Constraint | Notes |
+|---|---|---|---|---|
+| `run_dir` | str | **required** | must exist | Path to compiled PLUTO run dir |
+| `output_dir` | str | `run_dir` | — | Where `.dbl` / HDF5 output is written |
+| `tstop` | float | (keep existing) | > 0 | Single-stop end time (mutually exclusive with `checkpoint_times`) |
+| `checkpoint_times` | `np.ndarray` (1-D) | None | all > 0 | Staged-run schedule in code units; pass as JSON list `[100, 200, 500]`. Mutually exclusive with `tstop`. |
+| `cfl` | float | (keep existing) | [0.1, 0.9] | CFL safety factor |
+| `first_dt` | float | (keep existing) | > 0 | First time-step |
+| `solver` | str | (keep existing) | — | Riemann solver name, e.g. `roe`, `hll` |
+| `parameters` | dict | `{}` | — | Key-value pairs for `[Parameters]` section |
+| `n_procs` | int | 1 | [1, 512] | MPI rank count |
+| `pluto_bin` | str | `./pluto` | — | Path to PLUTO executable |
+| `restart` | int | None | ≥ 0 | Restart from snapshot number N (first stage only) |
 
 ## Output
 
+**Compile:**
+```
+SUCCESS: binary=<path>
+  arch=<arch>  config_num=<N>  make_jobs=<N>  wall_clock=<N>s
+  pluto_dir=<path>
+```
+
+**Run:**
 ```
 SUCCESS: run_dir=<path>  wall_clock=<N>s
   last_snapshot=<N>  t=<val> (code units)
@@ -63,21 +111,16 @@ SUCCESS: run_dir=<path>  wall_clock=<N>s
   warnings: <any stderr warnings>
 ```
 
-## Examples
-
-> Step-by-step examples (compile, run with defaults, parameter overrides, staged
-> runs, restart): [`references/examples.md`](references/examples.md)
-
----
-
 ## Common Errors
 
 | Message | Fix |
 |---|---|
-| `pluto binary not found` | Check `pluto_bin` path; ensure binary is compiled |
+| `PLUTO binary not found` | Run the compile step first; check `pluto_bin` path |
 | `pluto.ini not found` | Verify `run_dir` contains `pluto.ini` |
+| `definitions.h not found` | Pass `config_num` or copy manually |
+| `setup.py --auto-update failed` | Check `$PLUTO_DIR`; ensure `setup.py` is executable |
+| `make failed` | Install `gcc` / `make`; check compiler error in output |
 | `Specify either tstop or checkpoint_times` | Remove one of the two conflicting fields |
 | `scientific_pydantic not found` | `pip install scientific-pydantic` |
-| `section [Parameters] key not found` | Key will be appended; check spelling |
 | `MPI launch failed` | Ensure `mpirun` is on PATH; try `n_procs=1` |
 | `cfl must be in [0.1, 0.9]` | Use a value like 0.3 or 0.4 |

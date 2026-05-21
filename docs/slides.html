@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -17,17 +18,27 @@
       --r-main-color: #e6edf3;
       --r-heading-color: #ffffff;
       --r-link-color: #4fc3f7;
-      --a1: #4fc3f7;   /* nebula blue  */
-      --a2: #81c784;   /* aurora green */
-      --a3: #ffb74d;   /* amber        */
-      --a4: #ef5350;   /* alert red    */
-      --a5: #ce93d8;   /* purple       */
-      --card-bg: rgba(255,255,255,0.04);
-      --card-border: rgba(255,255,255,0.1);
+      --a1: #4fc3f7;
+      /* nebula blue  */
+      --a2: #81c784;
+      /* aurora green */
+      --a3: #ffb74d;
+      /* amber        */
+      --a4: #ef5350;
+      /* alert red    */
+      --a5: #ce93d8;
+      /* purple       */
+      --card-bg: rgba(255, 255, 255, 0.04);
+      --card-border: rgba(255, 255, 255, 0.1);
     }
 
-    .reveal .slides section { text-align: left; }
-    .reveal .slides section.title-slide { text-align: center; }
+    .reveal .slides section {
+      text-align: left;
+    }
+
+    .reveal .slides section.title-slide {
+      text-align: center;
+    }
 
     /* ---- section label ---- */
     .stag {
@@ -50,9 +61,23 @@
     }
 
     /* ---- grid layouts ---- */
-    .g2 { display: grid; grid-template-columns: 1fr 1fr;         gap: 0.9em; }
-    .g3 { display: grid; grid-template-columns: 1fr 1fr 1fr;     gap: 0.8em; }
-    .g4 { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 0.7em; }
+    .g2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.9em;
+    }
+
+    .g3 {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 0.8em;
+    }
+
+    .g4 {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr 1fr;
+      gap: 0.7em;
+    }
 
     /* ---- cards ---- */
     .card {
@@ -62,12 +87,33 @@
       padding: 0.65em 0.85em;
       font-size: 0.82em;
     }
-    .c1 { border-left: 3px solid var(--a1); }
-    .c2 { border-left: 3px solid var(--a2); }
-    .c3 { border-left: 3px solid var(--a3); }
-    .c4 { border-left: 3px solid var(--a4); }
-    .c5 { border-left: 3px solid var(--a5); }
-    .card .ct { font-weight: 700; color: #fff; margin-bottom: 0.25em; font-size: 0.95em; }
+
+    .c1 {
+      border-left: 3px solid var(--a1);
+    }
+
+    .c2 {
+      border-left: 3px solid var(--a2);
+    }
+
+    .c3 {
+      border-left: 3px solid var(--a3);
+    }
+
+    .c4 {
+      border-left: 3px solid var(--a4);
+    }
+
+    .c5 {
+      border-left: 3px solid var(--a5);
+    }
+
+    .card .ct {
+      font-weight: 700;
+      color: #fff;
+      margin-bottom: 0.25em;
+      font-size: 0.95em;
+    }
 
     /* ---- code ---- */
     .reveal pre {
@@ -79,7 +125,12 @@
       width: 100%;
       box-shadow: none;
     }
-    .reveal pre code { padding: 0.8em 1em; max-height: 360px; }
+
+    .reveal pre code {
+      padding: 0.8em 1em;
+      max-height: 360px;
+    }
+
     .reveal code {
       background: #161b22;
       border-radius: 4px;
@@ -89,52 +140,182 @@
     }
 
     /* ---- tables ---- */
-    .reveal table { font-size: 0.68em; width: 100%; border-collapse: collapse; }
+    .reveal table {
+      font-size: 0.68em;
+      width: 100%;
+      border-collapse: collapse;
+    }
+
     .reveal table th {
-      background: rgba(79,195,247,0.18);
+      background: rgba(79, 195, 247, 0.18);
       color: var(--a1);
       font-weight: 700;
       padding: 0.45em 0.65em;
-      border: 1px solid rgba(255,255,255,0.1);
+      border: 1px solid rgba(255, 255, 255, 0.1);
     }
-    .reveal table td { padding: 0.38em 0.65em; border: 1px solid rgba(255,255,255,0.07); }
-    .reveal table tr:nth-child(even) td { background: rgba(255,255,255,0.03); }
+
+    .reveal table td {
+      padding: 0.38em 0.65em;
+      border: 1px solid rgba(255, 255, 255, 0.07);
+    }
+
+    .reveal table tr:nth-child(even) td {
+      background: rgba(255, 255, 255, 0.03);
+    }
 
     /* ---- coloured status text ---- */
-    .g  { color: var(--a2); font-weight: 600; }
-    .am { color: var(--a3); font-weight: 600; }
-    .r  { color: var(--a4); font-weight: 600; }
-    .b  { color: var(--a1); font-weight: 600; }
+    .g {
+      color: var(--a2);
+      font-weight: 600;
+    }
+
+    .am {
+      color: var(--a3);
+      font-weight: 600;
+    }
+
+    .r {
+      color: var(--a4);
+      font-weight: 600;
+    }
+
+    .b {
+      color: var(--a1);
+      font-weight: 600;
+    }
 
     /* ---- info / warning / success boxes ---- */
-    .ibox { background: rgba(79,195,247,0.07);  border: 1px solid rgba(79,195,247,0.28);  border-radius:6px; padding:0.45em 0.75em; font-size:0.76em; margin-top:0.45em; }
-    .wbox { background: rgba(239,83,80,0.08);   border: 1px solid rgba(239,83,80,0.35);   border-radius:6px; padding:0.45em 0.75em; font-size:0.76em; margin-top:0.45em; }
-    .sbox { background: rgba(129,199,132,0.07); border: 1px solid rgba(129,199,132,0.28); border-radius:6px; padding:0.45em 0.75em; font-size:0.76em; margin-top:0.45em; }
+    .ibox {
+      background: rgba(79, 195, 247, 0.07);
+      border: 1px solid rgba(79, 195, 247, 0.28);
+      border-radius: 6px;
+      padding: 0.45em 0.75em;
+      font-size: 0.76em;
+      margin-top: 0.45em;
+    }
+
+    .wbox {
+      background: rgba(239, 83, 80, 0.08);
+      border: 1px solid rgba(239, 83, 80, 0.35);
+      border-radius: 6px;
+      padding: 0.45em 0.75em;
+      font-size: 0.76em;
+      margin-top: 0.45em;
+    }
+
+    .sbox {
+      background: rgba(129, 199, 132, 0.07);
+      border: 1px solid rgba(129, 199, 132, 0.28);
+      border-radius: 6px;
+      padding: 0.45em 0.75em;
+      font-size: 0.76em;
+      margin-top: 0.45em;
+    }
 
     /* ---- numbered step list ---- */
-    ol.steps { list-style:none; margin:0; padding:0; }
-    ol.steps li { display:flex; gap:0.65em; margin-bottom:0.55em; font-size:0.8em; align-items:flex-start; }
-    .sn {
-      background: var(--a1); color:#000; font-weight:700; border-radius:50%;
-      min-width:1.45em; height:1.45em; display:flex; align-items:center;
-      justify-content:center; flex-shrink:0; font-size:0.84em;
+    ol.steps {
+      list-style: none;
+      margin: 0;
+      padding: 0;
     }
-    .sn.g { background: var(--a2); }
+
+    ol.steps li {
+      display: flex;
+      gap: 0.65em;
+      margin-bottom: 0.55em;
+      font-size: 0.8em;
+      align-items: flex-start;
+    }
+
+    .sn {
+      background: var(--a1);
+      color: #000;
+      font-weight: 700;
+      border-radius: 50%;
+      min-width: 1.45em;
+      height: 1.45em;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      font-size: 0.84em;
+    }
+
+    .sn.g {
+      background: var(--a2);
+    }
 
     /* ---- agenda ---- */
-    .agenda { display:grid; grid-template-columns:1fr 1fr; gap:0.7em; }
-    .aitem  { display:flex; align-items:flex-start; gap:0.6em; padding:0.5em 0.75em; background:var(--card-bg); border-radius:8px; border:1px solid var(--card-border); }
-    .anum   { font-size:1.7em; font-weight:900; color:var(--a1); line-height:1; min-width:1.15em; }
-    .atopic { font-weight:700; font-size:0.88em; }
-    .asub   { font-size:0.73em; color:#999; }
+    .agenda {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.7em;
+    }
+
+    .aitem {
+      display: flex;
+      align-items: flex-start;
+      gap: 0.6em;
+      padding: 0.5em 0.75em;
+      background: var(--card-bg);
+      border-radius: 8px;
+      border: 1px solid var(--card-border);
+    }
+
+    .anum {
+      font-size: 1.7em;
+      font-weight: 900;
+      color: var(--a1);
+      line-height: 1;
+      min-width: 1.15em;
+    }
+
+    .atopic {
+      font-weight: 700;
+      font-size: 0.88em;
+    }
+
+    .asub {
+      font-size: 0.73em;
+      color: #999;
+    }
 
     /* ---- loop diagram ---- */
-    .loop { display:flex; align-items:center; justify-content:space-around; margin:0.7em 0; gap:0.4em; }
-    .lstep { text-align:center; padding:0.7em 0.9em; background:var(--card-bg); border-radius:8px; border:1px solid var(--card-border); }
-    .lstep .li { font-size:1.4em; }
-    .lstep .ln { font-weight:700; font-size:0.82em; color:var(--a1); }
-    .lstep .ld { font-size:0.62em; color:#999; }
-    .larr { color:var(--a1); font-size:1.3em; }
+    .loop {
+      display: flex;
+      align-items: center;
+      justify-content: space-around;
+      margin: 0.7em 0;
+      gap: 0.4em;
+    }
+
+    .lstep {
+      text-align: center;
+      padding: 0.7em 0.9em;
+      background: var(--card-bg);
+      border-radius: 8px;
+      border: 1px solid var(--card-border);
+    }
+
+    .lstep .li {
+      font-size: 1.4em;
+    }
+
+    .lstep .ln {
+      font-weight: 700;
+      font-size: 0.82em;
+      color: var(--a1);
+    }
+
+    .lstep .ld {
+      font-size: 0.62em;
+      color: #999;
+    }
+
+    .larr {
+      color: var(--a1);
+      font-size: 1.3em;
+    }
 
     /* ---- paper cards ---- */
     .pcard {
@@ -146,7 +327,12 @@
       font-size: 0.76em;
       line-height: 1.45;
     }
-    .pref { font-weight:700; color:var(--a1); margin-bottom:0.15em; }
+
+    .pref {
+      font-weight: 700;
+      color: var(--a1);
+      margin-bottom: 0.15em;
+    }
 
     /* ---- disclosure box ---- */
     .dbox {
@@ -158,257 +344,390 @@
       margin-bottom: 0.5em;
       line-height: 1.55;
     }
-    .dlabel { font-weight:700; color:var(--a2); margin-bottom:0.25em; font-size:0.92em; }
+
+    .dlabel {
+      font-weight: 700;
+      color: var(--a2);
+      margin-bottom: 0.25em;
+      font-size: 0.92em;
+    }
 
     /* ---- takeaway grid ---- */
-    .tgrid { display:grid; grid-template-columns:1fr 1fr; gap:0.6em; }
-    .titem { display:flex; gap:0.55em; align-items:flex-start; background:var(--card-bg); border-radius:8px; padding:0.55em 0.75em; font-size:0.77em; }
-    .ticon { font-size:1.25em; flex-shrink:0; }
-    .ttitle { font-weight:700; color:#fff; }
-    .tdesc  { color:#bbb; }
+    .tgrid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.6em;
+    }
+
+    .titem {
+      display: flex;
+      gap: 0.55em;
+      align-items: flex-start;
+      background: var(--card-bg);
+      border-radius: 8px;
+      padding: 0.55em 0.75em;
+      font-size: 0.77em;
+    }
+
+    .ticon {
+      font-size: 1.25em;
+      flex-shrink: 0;
+    }
+
+    .ttitle {
+      font-weight: 700;
+      color: #fff;
+    }
+
+    .tdesc {
+      color: #bbb;
+    }
 
     /* ---- title slide ---- */
-    .t1 h1 { font-size:1.75em; line-height:1.2; color:#fff; margin-bottom:0.35em; }
-    .t1 .venue { font-size:0.52em; letter-spacing:0.18em; text-transform:uppercase; color:var(--a1); margin-bottom:0.6em; }
-    .tags { display:flex; gap:0.55em; justify-content:center; flex-wrap:wrap; margin-top:0.7em; }
-    .tag  { padding:0.22em 0.65em; border:1px solid var(--a1); border-radius:20px; font-size:0.68em; color:var(--a1); }
+    .t1 h1 {
+      font-size: 1.75em;
+      line-height: 1.2;
+      color: #fff;
+      margin-bottom: 0.35em;
+    }
+
+    .t1 .venue {
+      font-size: 0.52em;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--a1);
+      margin-bottom: 0.6em;
+    }
+
+    .tags {
+      display: flex;
+      gap: 0.55em;
+      justify-content: center;
+      flex-wrap: wrap;
+      margin-top: 0.7em;
+    }
+
+    .tag {
+      padding: 0.22em 0.65em;
+      border: 1px solid var(--a1);
+      border-radius: 20px;
+      font-size: 0.68em;
+      color: var(--a1);
+    }
 
     /* ---- misc ---- */
-    .reveal ul { margin-left:1em; }
-    .reveal ul li, .card ul li { margin-bottom:0.22em; font-size:0.87em; }
-    .sm   { font-size:0.7em; color:#888; }
-    .reveal a { color:var(--a1); }
-    .reveal p { font-size:0.84em; line-height:1.5; }
-    .reveal .progress span { background: var(--a1); }
-    .reveal .progress { background: rgba(255,255,255,0.1); height:3px; }
+    .reveal ul {
+      margin-left: 1em;
+    }
+
+    .reveal ul li,
+    .card ul li {
+      margin-bottom: 0.22em;
+      font-size: 0.87em;
+    }
+
+    .sm {
+      font-size: 0.7em;
+      color: #888;
+    }
+
+    .reveal a {
+      color: var(--a1);
+    }
+
+    .reveal p {
+      font-size: 0.84em;
+      line-height: 1.5;
+    }
+
+    .reveal .progress span {
+      background: var(--a1);
+    }
+
+    .reveal .progress {
+      background: rgba(255, 255, 255, 0.1);
+      height: 3px;
+    }
 
     /* cross-out for do/don't rows */
-    .no { color:#666; text-decoration:line-through; }
-    .yes { color:var(--a2); }
+    .no {
+      color: #666;
+      text-decoration: line-through;
+    }
+
+    .yes {
+      color: var(--a2);
+    }
   </style>
 </head>
-<body>
-<div class="reveal">
-<div class="slides">
 
-<!-- ═══════════════════════════════════════════════════════
+<body>
+  <div class="reveal">
+    <div class="slides">
+
+      <!-- ═══════════════════════════════════════════════════════
      SLIDE 1 — TITLE
      ═══════════════════════════════════════════════════════ -->
-<section data-background-gradient="radial-gradient(ellipse at center, #0d1b2e 0%, #080c14 100%)" class="title-slide t1">
-  <div class="venue">Code &amp; Coffee · Astrophysics Department · May 2026</div>
-  <h1>AI Agents:<br><em style="color:var(--a1);">How We Use Them,<br>How We Cite Them</em></h1>
-  <div class="tags">
-    <span class="tag">GitHub Copilot</span>
-    <span class="tag">MCP &amp; ADS</span>
-    <span class="tag">Reproducibility</span>
-    <span class="tag">Journal Policies</span>
-  </div>
-</section>
+      <section data-background-gradient="radial-gradient(ellipse at center, #0d1b2e 0%, #080c14 100%)"
+        class="title-slide t1">
+        <div class="venue">Code &amp; Coffee · Astrophysics Department · May 2026</div>
+        <h1>AI Agents:<br><em style="color:var(--a1);">How We Use Them,<br>How We Cite Them</em></h1>
+        <div class="tags">
+          <span class="tag">GitHub Copilot</span>
+          <span class="tag">MCP &amp; ADS</span>
+          <span class="tag">Reproducibility</span>
+          <span class="tag">Journal Policies</span>
+        </div>
+      </section>
 
-<!-- ═══════════════════════════════════════════════════════
+      <!-- ═══════════════════════════════════════════════════════
      SLIDE 2 — MOTIVATION QUOTE
      ═══════════════════════════════════════════════════════ -->
-<section data-background-gradient="radial-gradient(ellipse at center, #0d1b2e 0%, #080c14 100%)">
-  <span class="stag">Setting the Scene · 2026</span>
-  <div style="max-width:800px;margin:1.2em auto 0;text-align:center;">
-    <p style="font-size:1.08em;line-height:1.7;color:#e6edf3;margin-bottom:0.6em;">
-      If you've been following the AI agent space in early 2026, you've probably noticed something:<br>
-      <strong style="color:var(--a1);">the conversation has shifted.</strong>
-    </p>
-    <p style="font-size:1.05em;line-height:1.7;color:#e6edf3;margin-bottom:0.6em;">
-      We're no longer debating whether agents <em>work</em>.
-    </p>
-    <p style="font-size:1.05em;line-height:1.7;color:#e6edf3;margin-bottom:0.9em;">
-      We're debating how to make them <strong style="color:var(--a2);">reliable</strong>,
-      <strong style="color:var(--a3);">reusable</strong>, and
-      <strong style="color:var(--a5);">composable</strong>.
-    </p>
-    <div class="ibox" style="text-align:left;font-size:0.88em;max-width:640px;margin:0 auto;">
-      The answer, it turns out, isn't a better model.<br>
-      It's <strong>better infrastructure</strong> around the model.
-    </div>
-    <p class="sm" style="margin-top:1em;">Source: <a href="https://medium.com" target="_blank">Medium</a></p>
-  </div>
-</section>
+      <section data-background-gradient="radial-gradient(ellipse at center, #0d1b2e 0%, #080c14 100%)">
+        <span class="stag">Setting the Scene · 2026</span>
+        <div style="max-width:800px;margin:1.2em auto 0;text-align:center;">
+          <p style="font-size:1.08em;line-height:1.7;color:#e6edf3;margin-bottom:0.6em;">
+            If you've been following the AI agent space in early 2026, you've probably noticed something:<br>
+            <strong style="color:var(--a1);">the conversation has shifted.</strong>
+          </p>
+          <p style="font-size:1.05em;line-height:1.7;color:#e6edf3;margin-bottom:0.6em;">
+            We're no longer debating whether agents <em>work</em>.
+          </p>
+          <p style="font-size:1.05em;line-height:1.7;color:#e6edf3;margin-bottom:0.9em;">
+            We're debating how to make them <strong style="color:var(--a2);">reliable</strong>,
+            <strong style="color:var(--a3);">reusable</strong>, and
+            <strong style="color:var(--a5);">composable</strong>.
+          </p>
+          <div class="ibox" style="text-align:left;font-size:0.88em;max-width:640px;margin:0 auto;">
+            The answer, it turns out, isn't a better model.<br>
+            It's <strong>better infrastructure</strong> around the model.
+          </div>
+          <p class="sm" style="margin-top:1em;">Source: <a href="https://medium.com" target="_blank">Medium</a></p>
+        </div>
+      </section>
 
-<!-- ═══════════════════════════════════════════════════════
+      <!-- ═══════════════════════════════════════════════════════
      SLIDE 3 — AGENDA
      ═══════════════════════════════════════════════════════ -->
-<section>
-  <span class="stag">Overview</span>
-  <h2>Today's Agenda</h2>
-  <div class="agenda">
-    <div class="aitem">
-      <span class="anum">01</span>
-      <div><div class="atopic">What Are AI Agents?</div><div class="asub">Chatbots vs agents · the loop</div></div>
-    </div>
-    <div class="aitem">
-      <span class="anum">05</span>
-      <div><div class="atopic">Reproducibility with AI</div><div class="asub">Prompts, provenance, best practices</div></div>
-    </div>
-    <div class="aitem">
-      <span class="anum">02</span>
-      <div><div class="atopic">GitHub Copilot Deep-Dive</div><div class="asub">Your free tool: modes, demos, instructions</div></div>
-    </div>
-    <div class="aitem">
-      <span class="anum">06</span>
-      <div><div class="atopic">Journal Policies</div><div class="asub">MNRAS, A&amp;A, ApJ, Nature compared</div></div>
-    </div>
-    <div class="aitem">
-      <span class="anum">03</span>
-      <div><div class="atopic">MCP &amp; the ADS Server</div><div class="asub">Grounded citations, no hallucinations</div></div>
-    </div>
-    <div class="aitem">
-      <span class="anum">07</span>
-      <div><div class="atopic">Templates &amp; Discussion</div><div class="asub">Ready-to-use disclosure + Q&amp;A</div></div>
-    </div>
-    <div class="aitem">
-      <span class="anum">04</span>
-      <div><div class="atopic">Pitfalls</div><div class="asub">What the research says</div></div>
-    </div>
-  </div>
-</section>
+      <section>
+        <span class="stag">Overview</span>
+        <h2>Today's Agenda</h2>
+        <div class="agenda">
+          <div class="aitem">
+            <span class="anum">01</span>
+            <div>
+              <div class="atopic">What Are AI Agents?</div>
+              <div class="asub">Chatbots vs agents · the loop</div>
+            </div>
+          </div>
+          <div class="aitem">
+            <span class="anum">05</span>
+            <div>
+              <div class="atopic">Reproducibility with AI</div>
+              <div class="asub">Prompts, provenance, best practices</div>
+            </div>
+          </div>
+          <div class="aitem">
+            <span class="anum">02</span>
+            <div>
+              <div class="atopic">GitHub Copilot Deep-Dive</div>
+              <div class="asub">Your free tool: modes, demos, instructions</div>
+            </div>
+          </div>
+          <div class="aitem">
+            <span class="anum">06</span>
+            <div>
+              <div class="atopic">Journal Policies</div>
+              <div class="asub">MNRAS, A&amp;A, ApJ, Nature compared</div>
+            </div>
+          </div>
+          <div class="aitem">
+            <span class="anum">03</span>
+            <div>
+              <div class="atopic">MCP &amp; the ADS Server</div>
+              <div class="asub">Grounded citations, no hallucinations</div>
+            </div>
+          </div>
+          <div class="aitem">
+            <span class="anum">07</span>
+            <div>
+              <div class="atopic">Templates &amp; Discussion</div>
+              <div class="asub">Ready-to-use disclosure + Q&amp;A</div>
+            </div>
+          </div>
+          <div class="aitem">
+            <span class="anum">04</span>
+            <div>
+              <div class="atopic">Pitfalls</div>
+              <div class="asub">What the research says</div>
+            </div>
+          </div>
+        </div>
+      </section>
 
-<!-- ═══════════════════════════════════════════════════════
+      <!-- ═══════════════════════════════════════════════════════
      SLIDE 3 — CHATBOT vs AGENT
      ═══════════════════════════════════════════════════════ -->
-<section>
-  <span class="stag">Part 1 — What Are AI Agents?</span>
-  <h2>From Chatbot to Agent: Key Distinctions</h2>
-  <div class="g2">
-    <div class="card c1">
-      <div class="ct">🤖 LLM / Chatbot</div>
-      <ul>
-        <li>Single-prompt, single-response</li>
-        <li>No memory across sessions</li>
-        <li>No tools or external data calls</li>
-        <li>One-shot text generation</li>
-        <li>You fix errors manually</li>
-      </ul>
-      <div class="sm" style="margin-top:0.5em;font-style:italic;">Example: asking ChatGPT to explain the Sunyaev–Zel'dovich effect</div>
-    </div>
-    <div class="card c2">
-      <div class="ct">⚡ AI Agent</div>
-      <ul>
-        <li>Plans &amp; executes multi-step tasks</li>
-        <li>Uses tools: code, web, files, APIs</li>
-        <li>Iterates, self-corrects on errors</li>
-        <li>Can spawn sub-agents (multi-agent)</li>
-        <li>Example: write → run → debug → plot<br>entire SED fitting pipeline</li>
-      </ul>
-    </div>
-  </div>
-</section>
+      <section>
+        <span class="stag">Part 1 — What Are AI Agents?</span>
+        <h2>From Chatbot to Agent: Key Distinctions</h2>
+        <div class="g2">
+          <div class="card c1">
+            <div class="ct">🤖 LLM / Chatbot</div>
+            <ul>
+              <li>Single-prompt, single-response</li>
+              <li>No memory across sessions</li>
+              <li>No tools or external data calls</li>
+              <li>One-shot text generation</li>
+              <li>You fix errors manually</li>
+            </ul>
+            <div class="sm" style="margin-top:0.5em;font-style:italic;">Example: asking ChatGPT to explain the
+              Sunyaev–Zel'dovich effect</div>
+          </div>
+          <div class="card c2">
+            <div class="ct">⚡ AI Agent</div>
+            <ul>
+              <li>Plans &amp; executes multi-step tasks</li>
+              <li>Uses tools: code, web, files, APIs</li>
+              <li>Iterates, self-corrects on errors</li>
+              <li>Can spawn sub-agents (multi-agent)</li>
+              <li>Example: write → run → debug → plot<br>entire SED fitting pipeline</li>
+            </ul>
+          </div>
+        </div>
+      </section>
 
-<!-- ═══════════════════════════════════════════════════════
+      <!-- ═══════════════════════════════════════════════════════
      SLIDE 4 — AGENT LOOP
      ═══════════════════════════════════════════════════════ -->
-<section>
-  <span class="stag">Part 1 — The Agent Loop</span>
-  <h2>Anatomy of an Agent Loop</h2>
-  <div class="loop">
-    <div class="lstep"><div class="li">👁</div><div class="ln">Perceive</div><div class="ld">Task, context,<br>repo, memory</div></div>
-    <div class="larr">▶</div>
-    <div class="lstep"><div class="li">🧠</div><div class="ln">Plan</div><div class="ld">Break goal into<br>actions</div></div>
-    <div class="larr">▶</div>
-    <div class="lstep"><div class="li">⚡</div><div class="ln">Act</div><div class="ld">Call tools:<br>bash, APIs, files</div></div>
-    <div class="larr">▶</div>
-    <div class="lstep"><div class="li">🔍</div><div class="ln">Observe</div><div class="ld">Read result,<br>check errors</div></div>
-  </div>
-  <div class="sm" style="text-align:center;margin-bottom:0.7em;">↙ Loop until task complete or human review required</div>
-  <div class="ibox">
-    <strong>Copilot Agent tools relevant to astrophysics:</strong><br>
-    Python/bash executor &nbsp;·&nbsp; ADS MCP (live literature) &nbsp;·&nbsp;
-    astropy / emcee / sherpa &nbsp;·&nbsp; FITS file reader &nbsp;·&nbsp; matplotlib PDF output
-  </div>
-</section>
+      <section>
+        <span class="stag">Part 1 — The Agent Loop</span>
+        <h2>Anatomy of an Agent Loop</h2>
+        <div class="loop">
+          <div class="lstep">
+            <div class="li">👁</div>
+            <div class="ln">Perceive</div>
+            <div class="ld">Task, context,<br>repo, memory</div>
+          </div>
+          <div class="larr">▶</div>
+          <div class="lstep">
+            <div class="li">🧠</div>
+            <div class="ln">Plan</div>
+            <div class="ld">Break goal into<br>actions</div>
+          </div>
+          <div class="larr">▶</div>
+          <div class="lstep">
+            <div class="li">⚡</div>
+            <div class="ln">Act</div>
+            <div class="ld">Call tools:<br>bash, APIs, files</div>
+          </div>
+          <div class="larr">▶</div>
+          <div class="lstep">
+            <div class="li">🔍</div>
+            <div class="ln">Observe</div>
+            <div class="ld">Read result,<br>check errors</div>
+          </div>
+        </div>
+        <div class="sm" style="text-align:center;margin-bottom:0.7em;">↙ Loop until task complete or human review
+          required</div>
+        <div class="ibox">
+          <strong>Copilot Agent tools relevant to astrophysics:</strong><br>
+          Python/bash executor &nbsp;·&nbsp; ADS MCP (live literature) &nbsp;·&nbsp;
+          astropy / emcee / sherpa &nbsp;·&nbsp; FITS file reader &nbsp;·&nbsp; matplotlib PDF output
+        </div>
+      </section>
 
-<!-- ═══════════════════════════════════════════════════════
+      <!-- ═══════════════════════════════════════════════════════
      SLIDE 5 — GITHUB COPILOT
      ═══════════════════════════════════════════════════════ -->
-<section>
-  <span class="stag">Part 2 — GitHub Copilot: Your Free Tool</span>
-  <h2>GitHub Copilot: What You Already Have for Free</h2>
-  <div class="ibox" style="margin-bottom:0.65em;">
-    🎓 <strong>Your plan:</strong> GitHub Copilot (Student / verified faculty) —
-    <span class="g">FREE</span> via GitHub Education.
-    Unlimited completions, Chat, Agent Mode.
-  </div>
-  <div class="g4">
-    <div class="card c1">
-      <div class="ct">✏️ Inline Autocomplete</div>
-      <p>Tab-complete as you type. Context-aware completions for astropy, numpy, matplotlib.</p>
-    </div>
-    <div class="card c2">
-      <div class="ct">💬 Copilot Chat<br><span style="font-size:0.8em;">(Ctrl+Alt+I)</span></div>
-      <p>Ask questions, explain code, generate functions, fix bugs. In sidebar or inline.</p>
-    </div>
-    <div class="card c3">
-      <div class="ct">🛠️ Agent Mode<br><span style="font-size:0.8em;">(VS Code)</span></div>
-      <p>Multi-file, multi-step tasks. Runs terminal, self-heals errors. GA on VS Code &amp; JetBrains.</p>
-    </div>
-    <div class="card c5">
-      <div class="ct">☁️ Coding Agent<br><span style="font-size:0.8em;">(Cloud)</span></div>
-      <p>Assign a GitHub Issue → Copilot opens a PR autonomously. You review and merge.</p>
-    </div>
-  </div>
-  <div class="sm" style="margin-top:0.55em;">
-    Model choice in Chat: GPT-4o (default, unlimited) + Claude Sonnet &amp; Gemini 2.5 via premium requests (monthly allowance included in student plan)
-  </div>
-</section>
+      <section>
+        <span class="stag">Part 2 — GitHub Copilot: Your Free Tool</span>
+        <h2>GitHub Copilot: What You Already Have for Free</h2>
+        <div class="ibox" style="margin-bottom:0.65em;">
+          🎓 <strong>Your plan:</strong> GitHub Copilot (Student / verified faculty) —
+          <span class="g">FREE</span> via GitHub Education.
+          Unlimited completions, Chat, Agent Mode.
+        </div>
+        <div class="g4">
+          <div class="card c1">
+            <div class="ct">✏️ Inline Autocomplete</div>
+            <p>Tab-complete as you type. Context-aware completions for astropy, numpy, matplotlib.</p>
+          </div>
+          <div class="card c2">
+            <div class="ct">💬 Copilot Chat<br><span style="font-size:0.8em;">(Ctrl+Alt+I)</span></div>
+            <p>Ask questions, explain code, generate functions, fix bugs. In sidebar or inline.</p>
+          </div>
+          <div class="card c3">
+            <div class="ct">🛠️ Agent Mode<br><span style="font-size:0.8em;">(VS Code)</span></div>
+            <p>Multi-file, multi-step tasks. Runs terminal, self-heals errors. GA on VS Code &amp; JetBrains.</p>
+          </div>
+          <div class="card c5">
+            <div class="ct">☁️ Coding Agent<br><span style="font-size:0.8em;">(Cloud)</span></div>
+            <p>Assign a GitHub Issue → Copilot opens a PR autonomously. You review and merge.</p>
+          </div>
+        </div>
+        <div class="sm" style="margin-top:0.55em;">
+          Model choice in Chat: GPT-4o (default, unlimited) + Claude Sonnet &amp; Gemini 2.5 via premium requests
+          (monthly allowance included in student plan)
+        </div>
+      </section>
 
-<!-- ═══════════════════════════════════════════════════════
+      <!-- ═══════════════════════════════════════════════════════
      SLIDE 6 — DEMO
      ═══════════════════════════════════════════════════════ -->
-<section>
-  <span class="stag">Part 2 — Demo: Copilot in Action</span>
-  <h2>Demo: Fitting a Broken Power-Law SED with Copilot</h2>
-  <div class="sm" style="margin-bottom:0.5em;">Task: fit radio-to-X-ray SED of a cluster with emcee + corner plot, auto-fixed by the agent</div>
-  <div class="g3">
-    <div class="card c1">
-      <div class="ct">1. Autocomplete</div>
-      <pre><code class="language-python">emcee.EnsembleSampler(
+      <section>
+        <span class="stag">Part 2 — Demo: Copilot in Action</span>
+        <h2>Demo: Fitting a Broken Power-Law SED with Copilot</h2>
+        <div class="sm" style="margin-bottom:0.5em;">Task: fit radio-to-X-ray SED of a cluster with emcee + corner plot,
+          auto-fixed by the agent</div>
+        <div class="g3">
+          <div class="card c1">
+            <div class="ct">1. Autocomplete</div>
+            <pre><code class="language-python">emcee.EnsembleSampler(
   # → Copilot suggests:
   nwalkers, ndim,
   log_prob_fn=log_prob)
 
 # Tab to accept.
 # No syntax lookup.</code></pre>
-    </div>
-    <div class="card c2">
-      <div class="ct">2. Chat (Ctrl+Alt+I)</div>
-      <div style="font-size:0.8em;">
-        <p><strong>You:</strong> <em>Why do chi2 residuals diverge at low freq?</em></p>
-        <p><strong>Copilot:</strong> Your spectrum may have a spectral break. Try a BPL model with <code>nu_break</code> as free param.</p>
-      </div>
-    </div>
-    <div class="card c3">
-      <div class="ct">3. Agent Mode</div>
-      <div style="font-size:0.8em;">
-        <p><em>Refactor fit.py: log-uniform priors, corner plot, save PDF</em></p>
-        <ul>
-          <li>✅ Edited fit.py, plot.py</li>
-          <li>✅ Caught ImportError</li>
-          <li>✅ Fixed &amp; re-ran</li>
-        </ul>
-      </div>
-    </div>
-  </div>
-  <div class="ibox" style="font-size:0.73em;">
-    💡 <strong>Pro tip:</strong> Use Copilot Chat to ask "what does this sherpa/astropy function do?" on any line — faster than reading docs
-  </div>
-</section>
+          </div>
+          <div class="card c2">
+            <div class="ct">2. Chat (Ctrl+Alt+I)</div>
+            <div style="font-size:0.8em;">
+              <p><strong>You:</strong> <em>Why do chi2 residuals diverge at low freq?</em></p>
+              <p><strong>Copilot:</strong> Your spectrum may have a spectral break. Try a BPL model with
+                <code>nu_break</code> as free param.</p>
+            </div>
+          </div>
+          <div class="card c3">
+            <div class="ct">3. Agent Mode</div>
+            <div style="font-size:0.8em;">
+              <p><em>Refactor fit.py: log-uniform priors, corner plot, save PDF</em></p>
+              <ul>
+                <li>✅ Edited fit.py, plot.py</li>
+                <li>✅ Caught ImportError</li>
+                <li>✅ Fixed &amp; re-ran</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+        <div class="ibox" style="font-size:0.73em;">
+          💡 <strong>Pro tip:</strong> Use Copilot Chat to ask "what does this sherpa/astropy function do?" on any line
+          — faster than reading docs
+        </div>
+      </section>
 
-<!-- ═══════════════════════════════════════════════════════
+      <!-- ═══════════════════════════════════════════════════════
      SLIDE 7 — CUSTOM INSTRUCTIONS
      ═══════════════════════════════════════════════════════ -->
-<section>
-  <span class="stag">Part 2 — Teaching Copilot Your Science</span>
-  <h2>Custom Instructions: <code>.github/copilot-instructions.md</code></h2>
-  <div class="sm" style="margin-bottom:0.4em;">
-    Create this file in any repo → version-controlled, shared with collaborators, auto-loaded by Copilot every session
-  </div>
-  <pre><code class="language-markdown"># Project: NGC 1275 X-ray Spectral Analysis
+      <section>
+        <span class="stag">Part 2 — Teaching Copilot Your Science</span>
+        <h2>Custom Instructions: <code>.github/copilot-instructions.md</code></h2>
+        <div class="sm" style="margin-bottom:0.4em;">
+          Create this file in any repo → version-controlled, shared with collaborators, auto-loaded by Copilot every
+          session
+        </div>
+        <pre><code class="language-markdown"># Project: NGC 1275 X-ray Spectral Analysis
 
 ## Scientific context
 - Data: XMM-Newton EPIC-pn, 0.5-10 keV, background subtracted
@@ -424,214 +743,239 @@
 - Verify ALL citations via NASA ADS before including them
 - Use ADS bibcode format, e.g. 2016A&amp;A...594A.116H
 - NEVER invent author names, journal names, or DOIs</code></pre>
-  <div class="sbox" style="font-size:0.74em;">
-    This single file replaces having to re-explain your project to Copilot every session — the team shares the same AI context
-  </div>
-</section>
+        <div class="sbox" style="font-size:0.74em;">
+          This single file replaces having to re-explain your project to Copilot every session — the team shares the
+          same AI context
+        </div>
+      </section>
 
-<!-- ═══════════════════════════════════════════════════════
+      <!-- ═══════════════════════════════════════════════════════
      SLIDE 8 — AGENT SKILLS
      ═══════════════════════════════════════════════════════ -->
-<section>
-  <span class="stag">Part 2 — Agent Skills: Reusable Prompt Modules</span>
-  <h2>Agent Skills: Teaching Copilot Repeatable Procedures</h2>
-  <p>An <strong>Agent Skill</strong> is a structured prompt document that tells an agent <em>how</em> to perform a specific task — including which tools to use, what steps to follow, and how to handle errors. Think of them as reusable SOPs for your agent.</p>
-  <div class="g2">
-    <div>
-      <div class="card c1" style="margin-bottom:0.5em;">
-        <div class="ct">Why skills matter for science</div>
-        <ul>
-          <li>Encode domain knowledge once, reuse across projects</li>
-          <li>Make agent behaviour consistent and auditable</li>
-          <li>New group members can onboard via shared skills</li>
-          <li>Skills can be versioned and cited in Methods</li>
-          <li>Reduce prompt drift between collaborators</li>
-        </ul>
-      </div>
-      <div class="card c2">
-        <div class="ct">🔬 Local (6 agents)</div>
-        <div>spectral · mcmc · literature · simulation · retrieval · <strong>paper</strong></div>
-      </div>
-    </div>
-    <div>
-      <div class="card c3">
-        <div class="ct">📦 K-Dense-AI/scientific-agent-skills</div>
-        <p style="font-size:0.82em;">2.4k forks — active community repo. Skills for: data analysis, paper writing, literature review, coding. Each skill: <code>SKILL.md</code> with explicit steps, example prompts, expected outputs. Drop into <code>.github/</code> alongside <code>copilot-instructions.md</code>.</p>
-      </div>
-      <div class="wbox" style="margin-top:0.45em;">
-        ⚠️ <strong>Security:</strong> Third-party skills run as agent instructions — vet them carefully. A malicious skill could exfiltrate data or override safety rules. Treat like code: read before you run.<br>
-        💡 VS Code 1.99+: agent files must end in <code>.agent.md</code> — plain <code>.md</code> is silently ignored.
-      </div>
-    </div>
-  </div>
-</section>
+      <section>
+        <span class="stag">Part 2 — Agent Skills: Reusable Prompt Modules</span>
+        <h2>Agent Skills: Teaching Copilot Repeatable Procedures</h2>
+        <p>An <strong>Agent Skill</strong> is a structured prompt document that tells an agent <em>how</em> to perform a
+          specific task — including which tools to use, what steps to follow, and how to handle errors. Think of them as
+          reusable SOPs for your agent.</p>
+        <div class="g2">
+          <div>
+            <div class="card c1" style="margin-bottom:0.5em;">
+              <div class="ct">Why skills matter for science</div>
+              <ul>
+                <li>Encode domain knowledge once, reuse across projects</li>
+                <li>Make agent behaviour consistent and auditable</li>
+                <li>New group members can onboard via shared skills</li>
+                <li>Skills can be versioned and cited in Methods</li>
+                <li>Reduce prompt drift between collaborators</li>
+              </ul>
+            </div>
+            <div class="card c2">
+              <div class="ct">🔬 Local (6 agents)</div>
+              <div>spectral · mcmc · literature · simulation · retrieval · <strong>paper</strong></div>
+            </div>
+          </div>
+          <div>
+            <div class="card c3">
+              <div class="ct">📦 K-Dense-AI/scientific-agent-skills</div>
+              <p style="font-size:0.82em;">2.4k forks — active community repo. Skills for: data analysis, paper writing,
+                literature review, coding. Each skill: <code>SKILL.md</code> with explicit steps, example prompts,
+                expected outputs. Drop into <code>.github/</code> alongside <code>copilot-instructions.md</code>.</p>
+            </div>
+            <div class="wbox" style="margin-top:0.45em;">
+              ⚠️ <strong>Security:</strong> Third-party skills run as agent instructions — vet them carefully. A
+              malicious skill could exfiltrate data or override safety rules. Treat like code: read before you run.<br>
+              💡 VS Code 1.99+: agent files must end in <code>.agent.md</code> — plain <code>.md</code> is silently
+              ignored.
+            </div>
+          </div>
+        </div>
+      </section>
 
-<!-- ═══════════════════════════════════════════════════════
+      <!-- ═══════════════════════════════════════════════════════
      SLIDE 9 — TWO LEVELS
      ═══════════════════════════════════════════════════════ -->
-<section>
-  <span class="stag">Part 2 — Agent Instructions: General &amp; Project-Specific</span>
-  <h2>Instructing Your Agent: Two Levels That Matter</h2>
-  <div class="g2">
-    <div class="card c1">
-      <div class="ct">Level 1: General Agent Instructions</div>
-      <div class="sm" style="margin-bottom:0.35em;">Set once, apply to every session.<br>File: <code>.github/copilot-instructions.md</code></div>
-      <ul>
-        <li>Preferred language &amp; style (Python 3.11+, docstrings)</li>
-        <li>Scientific conventions (astropy units, SI unless noted)</li>
-        <li>Output standards (300 dpi figures, tab10 palette)</li>
-        <li>Safety rules (verify references in ADS, never invent DOIs)</li>
-        <li>Tool preferences (sherpa over xspec-python, emcee for MCMC)</li>
-        <li>Error handling (always print traceback, test on subset first)</li>
-      </ul>
-    </div>
-    <div class="card c2">
-      <div class="ct">Level 2: Project-Specific Instructions</div>
-      <div class="sm" style="margin-bottom:0.35em;">Per-project, per-paper context.<br>File: <code>AGENTS.md</code> (repo root)</div>
-      <ul>
-        <li>Dataset description (XMM-Newton EPIC-pn, obs ID, filter)</li>
-        <li>Specific model assumptions (TBabs*powerlaw, fixed nH)</li>
-        <li>Known issues (bad time intervals, excluded channels)</li>
-        <li>Calibration files location (local paths or archive URIs)</li>
-        <li>Current hypothesis being tested</li>
-        <li>Links to relevant papers (bibcodes, not URLs — ADS verifiable)</li>
-      </ul>
-    </div>
-  </div>
-  <div class="ibox" style="margin-top:0.5em;">
-    <strong>Rule:</strong> the more domain context you give the agent upfront, the less it has to guess — and the fewer hallucinations you get. <em>Specificity is safety.</em>
-  </div>
-</section>
+      <section>
+        <span class="stag">Part 2 — Agent Instructions: General &amp; Project-Specific</span>
+        <h2>Instructing Your Agent: Two Levels That Matter</h2>
+        <div class="g2">
+          <div class="card c1">
+            <div class="ct">Level 1: General Agent Instructions</div>
+            <div class="sm" style="margin-bottom:0.35em;">Set once, apply to every session.<br>File:
+              <code>.github/copilot-instructions.md</code></div>
+            <ul>
+              <li>Preferred language &amp; style (Python 3.11+, docstrings)</li>
+              <li>Scientific conventions (astropy units, SI unless noted)</li>
+              <li>Output standards (300 dpi figures, tab10 palette)</li>
+              <li>Safety rules (verify references in ADS, never invent DOIs)</li>
+              <li>Tool preferences (sherpa over xspec-python, emcee for MCMC)</li>
+              <li>Error handling (always print traceback, test on subset first)</li>
+            </ul>
+          </div>
+          <div class="card c2">
+            <div class="ct">Level 2: Project-Specific Instructions</div>
+            <div class="sm" style="margin-bottom:0.35em;">Per-project, per-paper context.<br>File:
+              <code>AGENTS.md</code> (repo root)</div>
+            <ul>
+              <li>Dataset description (XMM-Newton EPIC-pn, obs ID, filter)</li>
+              <li>Specific model assumptions (TBabs*powerlaw, fixed nH)</li>
+              <li>Known issues (bad time intervals, excluded channels)</li>
+              <li>Calibration files location (local paths or archive URIs)</li>
+              <li>Current hypothesis being tested</li>
+              <li>Links to relevant papers (bibcodes, not URLs — ADS verifiable)</li>
+            </ul>
+          </div>
+        </div>
+        <div class="ibox" style="margin-top:0.5em;">
+          <strong>Rule:</strong> the more domain context you give the agent upfront, the less it has to guess — and the
+          fewer hallucinations you get. <em>Specificity is safety.</em>
+        </div>
+      </section>
 
-<!-- ═══════════════════════════════════════════════════════
+      <!-- ═══════════════════════════════════════════════════════
      SLIDE 10 — MCP INTRO
      ═══════════════════════════════════════════════════════ -->
-<section>
-  <span class="stag">Part 3 — MCP: Plugins for AI Agents</span>
-  <h2>What Is MCP? Giving Agents Real-World Tools</h2>
-  <p><strong>Model Context Protocol (MCP)</strong> is an open standard that lets any AI agent call external tools — databases, APIs, file systems — through a consistent interface. Think of it as a <em>plugin system</em> for agents.</p>
-  <div style="display:flex;align-items:center;justify-content:space-around;margin:0.65em 0;gap:0.4em;">
-    <div class="card" style="text-align:center;padding:0.7em 1em;font-size:0.8em;">
-      <div class="sm">Your Prompt</div>
-      <strong>in Copilot Chat<br>or Agent Mode</strong>
-    </div>
-    <span style="color:var(--a1);font-size:1.3em;">▶</span>
-    <div class="card" style="text-align:center;padding:0.7em 1em;font-size:0.8em;">
-      <div class="sm">Copilot Agent</div>
-      <strong>decides which<br>tool to call</strong>
-    </div>
-    <span style="color:var(--a1);font-size:1.3em;">▶</span>
-    <div class="card" style="text-align:center;padding:0.7em 1em;font-size:0.8em;">
-      <div class="sm">MCP Server</div>
-      <strong>local process<br>or remote API</strong>
-    </div>
-    <span style="color:var(--a1);font-size:1.3em;">▶</span>
-    <div class="card" style="text-align:center;padding:0.7em 1em;font-size:0.8em;">
-      <div class="sm">Real Data</div>
-      <strong>ADS, arXiv,<br>FITS, DB</strong>
-    </div>
-  </div>
-  <div class="g4" style="font-size:0.77em;">
-    <div class="card c1">🔍 <strong>Grounded retrieval:</strong> Agent fetches real papers + BibTeX from ADS — no hallucination</div>
-    <div class="card c2">🔗 <strong>Citation chains:</strong> Follow references forward AND backward across papers</div>
-    <div class="card c3">🔄 <strong>Always current:</strong> Live API calls; no training-data staleness</div>
-    <div class="card c5">📁 <strong>Fully local:</strong> MCP runs on your machine — your data stays private</div>
-  </div>
-</section>
+      <section>
+        <span class="stag">Part 3 — MCP: Plugins for AI Agents</span>
+        <h2>What Is MCP? Giving Agents Real-World Tools</h2>
+        <p><strong>Model Context Protocol (MCP)</strong> is an open standard that lets any AI agent call external tools
+          — databases, APIs, file systems — through a consistent interface. Think of it as a <em>plugin system</em> for
+          agents.</p>
+        <div style="display:flex;align-items:center;justify-content:space-around;margin:0.65em 0;gap:0.4em;">
+          <div class="card" style="text-align:center;padding:0.7em 1em;font-size:0.8em;">
+            <div class="sm">Your Prompt</div>
+            <strong>in Copilot Chat<br>or Agent Mode</strong>
+          </div>
+          <span style="color:var(--a1);font-size:1.3em;">▶</span>
+          <div class="card" style="text-align:center;padding:0.7em 1em;font-size:0.8em;">
+            <div class="sm">Copilot Agent</div>
+            <strong>decides which<br>tool to call</strong>
+          </div>
+          <span style="color:var(--a1);font-size:1.3em;">▶</span>
+          <div class="card" style="text-align:center;padding:0.7em 1em;font-size:0.8em;">
+            <div class="sm">MCP Server</div>
+            <strong>local process<br>or remote API</strong>
+          </div>
+          <span style="color:var(--a1);font-size:1.3em;">▶</span>
+          <div class="card" style="text-align:center;padding:0.7em 1em;font-size:0.8em;">
+            <div class="sm">Real Data</div>
+            <strong>ADS, arXiv,<br>FITS, DB</strong>
+          </div>
+        </div>
+        <div class="g4" style="font-size:0.77em;">
+          <div class="card c1">🔍 <strong>Grounded retrieval:</strong> Agent fetches real papers + BibTeX from ADS — no
+            hallucination</div>
+          <div class="card c2">🔗 <strong>Citation chains:</strong> Follow references forward AND backward across papers
+          </div>
+          <div class="card c3">🔄 <strong>Always current:</strong> Live API calls; no training-data staleness</div>
+          <div class="card c5">📁 <strong>Fully local:</strong> MCP runs on your machine — your data stays private</div>
+        </div>
+      </section>
 
-<!-- ═══════════════════════════════════════════════════════
+      <!-- ═══════════════════════════════════════════════════════
      SLIDE 11 — ASTRONOMY MCP SERVERS
      ═══════════════════════════════════════════════════════ -->
-<section>
-  <span class="stag">Part 3 — MCP Servers for Astrophysics</span>
-  <h2>An Emerging Ecosystem: Astronomy MCP Servers</h2>
-  <div class="g2" style="gap:0.55em;">
-    <div class="card c1">
-      <div class="ct">📡 ALMA_MCP</div>
-      <div class="sm b" style="margin-bottom:0.25em;">adamzacharia/ALMA_MCP</div>
-      <div style="font-size:0.8em;">ALMA archive search by target, position, frequency band, resolution, PI/proposal. Natural language → TAP/ADQL queries. Returns analysis-ready results.</div>
-    </div>
-    <div class="card c2">
-      <div class="ct">🔭 astroquery MCP</div>
-      <div class="sm" style="color:var(--a2);margin-bottom:0.25em;">mcpmarket.com/server/astroquery</div>
-      <div style="font-size:0.8em;">Python astroquery library as MCP tools. Access Simbad, VizieR, ESASky, IRSA, MAST, Gaia, NED, and 50+ catalogues via natural language.</div>
-    </div>
-    <div class="card c3">
-      <div class="ct">🌌 astro_mcp (DESI)</div>
-      <div class="sm" style="color:var(--a3);margin-bottom:0.25em;">SandyYuan/astro_mcp</div>
-      <div style="font-size:0.8em;">DESI survey data access plus general astropy tools. Query galaxy spectra, redshift catalogues, photometric data from DESI DR1 and related surveys.</div>
-    </div>
-    <div class="card c5">
-      <div class="ct">🚀 NASA MCP Server</div>
-      <div class="sm" style="color:var(--a5);margin-bottom:0.25em;">ProgramComputer/NASA-MCP-server</div>
-      <div style="font-size:0.8em;">20+ NASA APIs: APOD, EPIC, DONKI (space weather), Mars Rover, NEO, NExScI exoplanet archive, CMR earth/planetary data, TLE orbital elements.</div>
-    </div>
-    <div class="card c1">
-      <div class="ct">🪐 PDS MCP Server</div>
-      <div class="sm b" style="margin-bottom:0.25em;">NASA-PDS/pds-mcp-server</div>
-      <div style="font-size:0.8em;">Official NASA Planetary Data System server. Search and retrieve planetary science datasets, mission data, and PDS4 archives. <strong>Officially maintained.</strong></div>
-    </div>
-    <div class="card c2">
-      <div class="ct">🌍 earthdata-mcp</div>
-      <div class="sm" style="color:var(--a2);margin-bottom:0.25em;">nasa/earthdata-mcp</div>
-      <div style="font-size:0.8em;">Official NASA Earthdata server. Earth observation datasets, CMR catalogue search, granule download, GIBS imagery. <strong>Officially maintained.</strong></div>
-    </div>
-  </div>
-  <div class="wbox" style="font-size:0.7em;margin-top:0.35em;">
-    ⚠️ Community servers vary in maturity — check GitHub stars, last commit date, and test on non-sensitive queries first. NASA-PDS and nasa/earthdata-mcp are officially maintained.
-  </div>
-</section>
+      <section>
+        <span class="stag">Part 3 — MCP Servers for Astrophysics</span>
+        <h2>An Emerging Ecosystem: Astronomy MCP Servers</h2>
+        <div class="g2" style="gap:0.55em;">
+          <div class="card c1">
+            <div class="ct">📡 ALMA_MCP</div>
+            <div class="sm b" style="margin-bottom:0.25em;">adamzacharia/ALMA_MCP</div>
+            <div style="font-size:0.8em;">ALMA archive search by target, position, frequency band, resolution,
+              PI/proposal. Natural language → TAP/ADQL queries. Returns analysis-ready results.</div>
+          </div>
+          <div class="card c2">
+            <div class="ct">🔭 astroquery MCP</div>
+            <div class="sm" style="color:var(--a2);margin-bottom:0.25em;">mcpmarket.com/server/astroquery</div>
+            <div style="font-size:0.8em;">Python astroquery library as MCP tools. Access Simbad, VizieR, ESASky, IRSA,
+              MAST, Gaia, NED, and 50+ catalogues via natural language.</div>
+          </div>
+          <div class="card c3">
+            <div class="ct">🌌 astro_mcp (DESI)</div>
+            <div class="sm" style="color:var(--a3);margin-bottom:0.25em;">SandyYuan/astro_mcp</div>
+            <div style="font-size:0.8em;">DESI survey data access plus general astropy tools. Query galaxy spectra,
+              redshift catalogues, photometric data from DESI DR1 and related surveys.</div>
+          </div>
+          <div class="card c5">
+            <div class="ct">🚀 NASA MCP Server</div>
+            <div class="sm" style="color:var(--a5);margin-bottom:0.25em;">ProgramComputer/NASA-MCP-server</div>
+            <div style="font-size:0.8em;">20+ NASA APIs: APOD, EPIC, DONKI (space weather), Mars Rover, NEO, NExScI
+              exoplanet archive, CMR earth/planetary data, TLE orbital elements.</div>
+          </div>
+          <div class="card c1">
+            <div class="ct">🪐 PDS MCP Server</div>
+            <div class="sm b" style="margin-bottom:0.25em;">NASA-PDS/pds-mcp-server</div>
+            <div style="font-size:0.8em;">Official NASA Planetary Data System server. Search and retrieve planetary
+              science datasets, mission data, and PDS4 archives. <strong>Officially maintained.</strong></div>
+          </div>
+          <div class="card c2">
+            <div class="ct">🌍 earthdata-mcp</div>
+            <div class="sm" style="color:var(--a2);margin-bottom:0.25em;">nasa/earthdata-mcp</div>
+            <div style="font-size:0.8em;">Official NASA Earthdata server. Earth observation datasets, CMR catalogue
+              search, granule download, GIBS imagery. <strong>Officially maintained.</strong></div>
+          </div>
+        </div>
+        <div class="wbox" style="font-size:0.7em;margin-top:0.35em;">
+          ⚠️ Community servers vary in maturity — check GitHub stars, last commit date, and test on non-sensitive
+          queries first. NASA-PDS and nasa/earthdata-mcp are officially maintained.
+        </div>
+      </section>
 
-<!-- ═══════════════════════════════════════════════════════
+      <!-- ═══════════════════════════════════════════════════════
      SLIDE 12 — ADS MCP SERVERS
      ═══════════════════════════════════════════════════════ -->
-<section>
-  <span class="stag">Part 3 — ADS MCP: No More Hallucinated Citations</span>
-  <h2>ADS MCP Servers: Ground Truth for References</h2>
-  <div class="sm" style="margin-bottom:0.45em;">Two community-built MCP servers — free, open-source, need only your ADS API token (free at <a href="https://ui.adsabs.harvard.edu">ui.adsabs.harvard.edu</a>)</div>
-  <div class="g2">
-    <div class="card c1">
-      <div class="ct">⭐ cbyrohl/mcp-server-ads <span style="color:#999;font-weight:400;">— Recommended</span></div>
-      <div style="font-size:0.78em;margin-bottom:0.3em;"><strong>11 tools, most complete</strong></div>
-      <ul style="font-size:0.8em;">
-        <li><code>search_papers</code> — full Solr syntax query</li>
-        <li><code>get_record</code> — full metadata by bibcode</li>
-        <li><code>get_bibtex</code> — export BibTeX directly</li>
-        <li><code>get_citations</code> — who cited this paper?</li>
-        <li><code>get_references</code> — what does it cite?</li>
-        <li><code>citation_metrics</code> — h-index, i10, totals</li>
-        <li><code>manage_library</code> — reading lists</li>
-      </ul>
-    </div>
-    <div class="card c2">
-      <div class="ct">⭐ prtc/nasa-ads-mcp <span style="color:#999;font-weight:400;">— Alternative</span></div>
-      <div style="font-size:0.78em;margin-bottom:0.3em;"><strong>Natural language focus</strong></div>
-      <ul style="font-size:0.8em;">
-        <li>Search papers by keyword / author / year</li>
-        <li>Get abstracts, arXiv IDs, DOIs</li>
-        <li>Export BibTeX for individual papers</li>
-        <li>Citation metrics (h-index etc.)</li>
-        <li>Manage personal ADS libraries</li>
-        <li>Natural language paper discovery</li>
-        <li>Works with Claude Desktop &amp; VS Code</li>
-      </ul>
-    </div>
-  </div>
-  <div class="ibox" style="font-size:0.73em;">
-    <strong>Setup:</strong> <code>pip install</code> / <code>uvx install</code> → add <code>ADS_API_TOKEN</code> env var → add server block to VS Code <code>settings.json</code> → done
-  </div>
-</section>
+      <section>
+        <span class="stag">Part 3 — ADS MCP: No More Hallucinated Citations</span>
+        <h2>ADS MCP Servers: Ground Truth for References</h2>
+        <div class="sm" style="margin-bottom:0.45em;">Two community-built MCP servers — free, open-source, need only
+          your ADS API token (free at <a href="https://ui.adsabs.harvard.edu">ui.adsabs.harvard.edu</a>)</div>
+        <div class="g2">
+          <div class="card c1">
+            <div class="ct">⭐ cbyrohl/mcp-server-ads <span style="color:#999;font-weight:400;">— Recommended</span>
+            </div>
+            <div style="font-size:0.78em;margin-bottom:0.3em;"><strong>11 tools, most complete</strong></div>
+            <ul style="font-size:0.8em;">
+              <li><code>search_papers</code> — full Solr syntax query</li>
+              <li><code>get_record</code> — full metadata by bibcode</li>
+              <li><code>get_bibtex</code> — export BibTeX directly</li>
+              <li><code>get_citations</code> — who cited this paper?</li>
+              <li><code>get_references</code> — what does it cite?</li>
+              <li><code>citation_metrics</code> — h-index, i10, totals</li>
+              <li><code>manage_library</code> — reading lists</li>
+            </ul>
+          </div>
+          <div class="card c2">
+            <div class="ct">⭐ prtc/nasa-ads-mcp <span style="color:#999;font-weight:400;">— Alternative</span></div>
+            <div style="font-size:0.78em;margin-bottom:0.3em;"><strong>Natural language focus</strong></div>
+            <ul style="font-size:0.8em;">
+              <li>Search papers by keyword / author / year</li>
+              <li>Get abstracts, arXiv IDs, DOIs</li>
+              <li>Export BibTeX for individual papers</li>
+              <li>Citation metrics (h-index etc.)</li>
+              <li>Manage personal ADS libraries</li>
+              <li>Natural language paper discovery</li>
+              <li>Works with Claude Desktop &amp; VS Code</li>
+            </ul>
+          </div>
+        </div>
+        <div class="ibox" style="font-size:0.73em;">
+          <strong>Setup:</strong> <code>pip install</code> / <code>uvx install</code> → add <code>ADS_API_TOKEN</code>
+          env var → add server block to VS Code <code>settings.json</code> → done
+        </div>
+      </section>
 
-<!-- ═══════════════════════════════════════════════════════
+      <!-- ═══════════════════════════════════════════════════════
      SLIDE 13 — ADS SETUP
      ═══════════════════════════════════════════════════════ -->
-<section>
-  <span class="stag">Part 3 — ADS MCP: Setup &amp; Example Prompts</span>
-  <h2>Wiring the ADS MCP into VS Code</h2>
-  <div class="g2">
-    <div>
-      <div style="font-size:0.84em;font-weight:700;margin-bottom:0.35em;">Step 1 — VS Code <code>settings.json</code>:</div>
-      <pre><code class="language-json">// .vscode/settings.json
+      <section>
+        <span class="stag">Part 3 — ADS MCP: Setup &amp; Example Prompts</span>
+        <h2>Wiring the ADS MCP into VS Code</h2>
+        <div class="g2">
+          <div>
+            <div style="font-size:0.84em;font-weight:700;margin-bottom:0.35em;">Step 1 — VS Code
+              <code>settings.json</code>:</div>
+            <pre><code class="language-json">// .vscode/settings.json
 "mcp": {
   "servers": {
     "ads": {
@@ -645,172 +989,244 @@
     }
   }
 }</code></pre>
-    </div>
-    <div>
-      <div style="font-size:0.84em;font-weight:700;margin-bottom:0.35em;">Step 2 — Ask the agent (examples):</div>
-      <div class="card c1" style="margin-bottom:0.4em;">💬 "Find papers on ICM sloshing since 2020, return BibTeX"</div>
-      <div class="card c2" style="margin-bottom:0.4em;">💬 "Cite all papers that reference 2003ApJ...590..225C"</div>
-      <div class="card c3" style="margin-bottom:0.4em;">💬 "h-index for author:Markevitch,M"</div>
-      <div class="card c5">💬 "Export .bib for these 5 bibcodes: [list]"</div>
-    </div>
-  </div>
-  <div class="sbox" style="font-size:0.73em;margin-top:0.4em;">
-    ✅ <strong>Result:</strong> agent calls real ADS API → gets verified metadata → zero hallucinated references → you receive correct BibTeX automatically.<br>
-    <em>Without MCP, GPT-4o/Copilot invents plausible-but-wrong bibcodes, authors, and journal names — every time.</em>
-  </div>
-</section>
+          </div>
+          <div>
+            <div style="font-size:0.84em;font-weight:700;margin-bottom:0.35em;">Step 2 — Ask the agent (examples):</div>
+            <div class="card c1" style="margin-bottom:0.4em;">💬 "Find papers on ICM sloshing since 2020, return BibTeX"
+            </div>
+            <div class="card c2" style="margin-bottom:0.4em;">💬 "Cite all papers that reference 2003ApJ...590..225C"
+            </div>
+            <div class="card c3" style="margin-bottom:0.4em;">💬 "h-index for author:Markevitch,M"</div>
+            <div class="card c5">💬 "Export .bib for these 5 bibcodes: [list]"</div>
+          </div>
+        </div>
+        <div class="sbox" style="font-size:0.73em;margin-top:0.4em;">
+          ✅ <strong>Result:</strong> agent calls real ADS API → gets verified metadata → zero hallucinated references →
+          you receive correct BibTeX automatically.<br>
+          <em>Without MCP, GPT-4o/Copilot invents plausible-but-wrong bibcodes, authors, and journal names — every
+            time.</em>
+        </div>
+      </section>
 
-<!-- ═══════════════════════════════════════════════════════
+      <!-- ═══════════════════════════════════════════════════════
      SLIDE 14 — PITFALLS: RESEARCH
      ═══════════════════════════════════════════════════════ -->
-<section>
-  <span class="stag">Part 4 — Pitfalls: What the Research Says</span>
-  <h2>Known Pitfalls of AI Agents in Scientific Research</h2>
-  <div style="font-size:0.82em;margin-bottom:0.35em;">Four recent papers — including one specifically on astrophysics — map where agents actually fail:</div>
-  <div class="pcard">
-    <div class="pref">Huang 2026 — arXiv:2603.29039 — AI Cosplaying as Astrophysicists</div>
-    144 synthetic astrophysicist agents, 2,592 tasks. No AI-assisted policy universally beat unassisted work. Gains are task-specific: AI helps on creative/extractive tasks but <strong>fails catastrophically on derivation-heavy physics</strong>. Performance also depends on which LLM you use.
-  </div>
-  <div class="pcard" style="border-left-color:var(--a2);">
-    <div class="pref" style="color:var(--a2);">Borrett et al. 2026 — arXiv:2604.09621 — Competing with AI Scientists (CMBagent)</div>
-    Multi-agent system (CMBagent) applied to cosmological parameter inference challenge. Fully autonomous exploration did not reach expert-level performance. <strong>Human intervention needed to achieve 1st place.</strong> Semi-autonomous beats fully autonomous for hard science.
-  </div>
-  <div class="pcard" style="border-left-color:var(--a3);">
-    <div class="pref" style="color:var(--a3);">Luo et al. 2025 — arXiv:2509.08713 — The More You Automate, the Less You See</div>
-    Four failure modes: (1) inappropriate benchmark selection, (2) data leakage, (3) metric misuse, (4) post-hoc selection bias. Systems generate synthetic datasets or subsample without documenting it, <strong>inflating reported performance.</strong>
-  </div>
-  <div class="pcard" style="border-left-color:var(--a4);">
-    <div class="pref" style="color:var(--a4);">ReplicationBench 2025 — arXiv:2510.24591 — Can AI Agents Replicate Astrophysics Papers?</div>
-    Best frontier models score <strong>&lt;20%</strong> on replicating real astrophysics results. Failure modes: wrong physical assumptions, incorrect unit handling, misidentified datasets, broken pipeline logic.
-  </div>
-</section>
+      <section>
+        <span class="stag">Part 4 — Pitfalls: What the Research Says</span>
+        <h2>Known Pitfalls of AI Agents in Scientific Research</h2>
+        <div style="font-size:0.82em;margin-bottom:0.35em;">Four recent papers — including one specifically on
+          astrophysics — map where agents actually fail:</div>
+        <div class="pcard">
+          <div class="pref">Huang 2026 — arXiv:2603.29039 — AI Cosplaying as Astrophysicists</div>
+          144 synthetic astrophysicist agents, 2,592 tasks. No AI-assisted policy universally beat unassisted work.
+          Gains are task-specific: AI helps on creative/extractive tasks but <strong>fails catastrophically on
+            derivation-heavy physics</strong>. Performance also depends on which LLM you use.
+        </div>
+        <div class="pcard" style="border-left-color:var(--a2);">
+          <div class="pref" style="color:var(--a2);">Borrett et al. 2026 — arXiv:2604.09621 — Competing with AI
+            Scientists (CMBagent)</div>
+          Multi-agent system (CMBagent) applied to cosmological parameter inference challenge. Fully autonomous
+          exploration did not reach expert-level performance. <strong>Human intervention needed to achieve 1st
+            place.</strong> Semi-autonomous beats fully autonomous for hard science.
+        </div>
+        <div class="pcard" style="border-left-color:var(--a3);">
+          <div class="pref" style="color:var(--a3);">Luo et al. 2025 — arXiv:2509.08713 — The More You Automate, the
+            Less You See</div>
+          Four failure modes: (1) inappropriate benchmark selection, (2) data leakage, (3) metric misuse, (4) post-hoc
+          selection bias. Systems generate synthetic datasets or subsample without documenting it, <strong>inflating
+            reported performance.</strong>
+        </div>
+        <div class="pcard" style="border-left-color:var(--a4);">
+          <div class="pref" style="color:var(--a4);">ReplicationBench 2025 — arXiv:2510.24591 — Can AI Agents Replicate
+            Astrophysics Papers?</div>
+          Best frontier models score <strong>&lt;20%</strong> on replicating real astrophysics results. Failure modes:
+          wrong physical assumptions, incorrect unit handling, misidentified datasets, broken pipeline logic.
+        </div>
+      </section>
 
-<!-- ═══════════════════════════════════════════════════════
+      <!-- ═══════════════════════════════════════════════════════
      SLIDE 15 — EIGHT FAILURE MODES
      ═══════════════════════════════════════════════════════ -->
-<section>
-  <span class="stag">Part 4 — Pitfalls Taxonomy</span>
-  <h2>The Eight Failure Modes to Watch For</h2>
-  <div class="g2" style="gap:0.55em;">
-    <div class="card c4"><div class="ct">🧠 Derivation failures</div><div>Agents confidently produce wrong physics — sign errors, dropped constants, incorrect assumptions. Worse than a wrong answer: they <em>look right</em>.</div></div>
-    <div class="card c3"><div class="ct">📊 Silent data manipulation</div><div>Agent subsamples, filters, or generates synthetic data without telling you. Results appear valid but are not reproducible from the original dataset.</div></div>
-    <div class="card c4"><div class="ct">📚 Hallucinated references</div><div>Even with MCP, agents can fabricate citations if the tool call fails silently or the model falls back on training data. Always spot-check.</div></div>
-    <div class="card c3"><div class="ct">📉 Benchmark / metric misuse</div><div>Agents prefer tasks with strong prior results and avoid benchmarks where their method performs poorly. Introduces subtle publication bias.</div></div>
-    <div class="card c1"><div class="ct">🔄 Task-specificity of gains</div><div>AI helps with creative, extractive, review tasks. It can <strong>hurt</strong> on calculation-heavy, derivation-heavy, and precision-critical tasks.</div></div>
-    <div class="card c5"><div class="ct">👤 Deskilling risk</div><div>Hosseini et al. (2026): Over-reliance erodes entry-level research skills. PhD students who let agents do all debugging lose debugging intuition.</div></div>
-    <div class="card c3"><div class="ct">🔍 Responsibility gaps</div><div>If an agent makes a scientific error, who is responsible? The author always is — but workflows that obscure AI involvement make accountability impossible.</div></div>
-    <div class="card c2"><div class="ct">🪫 Semi-autonomy &gt; full autonomy</div><div>CMBagent study: fully autonomous pipelines underperformed. Human checkpoints at key decision points are essential for hard science.</div></div>
-  </div>
-</section>
+      <section>
+        <span class="stag">Part 4 — Pitfalls Taxonomy</span>
+        <h2>The Eight Failure Modes to Watch For</h2>
+        <div class="g2" style="gap:0.55em;">
+          <div class="card c4">
+            <div class="ct">🧠 Derivation failures</div>
+            <div>Agents confidently produce wrong physics — sign errors, dropped constants, incorrect assumptions. Worse
+              than a wrong answer: they <em>look right</em>.</div>
+          </div>
+          <div class="card c3">
+            <div class="ct">📊 Silent data manipulation</div>
+            <div>Agent subsamples, filters, or generates synthetic data without telling you. Results appear valid but
+              are not reproducible from the original dataset.</div>
+          </div>
+          <div class="card c4">
+            <div class="ct">📚 Hallucinated references</div>
+            <div>Even with MCP, agents can fabricate citations if the tool call fails silently or the model falls back
+              on training data. Always spot-check.</div>
+          </div>
+          <div class="card c3">
+            <div class="ct">📉 Benchmark / metric misuse</div>
+            <div>Agents prefer tasks with strong prior results and avoid benchmarks where their method performs poorly.
+              Introduces subtle publication bias.</div>
+          </div>
+          <div class="card c1">
+            <div class="ct">🔄 Task-specificity of gains</div>
+            <div>AI helps with creative, extractive, review tasks. It can <strong>hurt</strong> on calculation-heavy,
+              derivation-heavy, and precision-critical tasks.</div>
+          </div>
+          <div class="card c5">
+            <div class="ct">👤 Deskilling risk</div>
+            <div>Hosseini et al. (2026): Over-reliance erodes entry-level research skills. PhD students who let agents
+              do all debugging lose debugging intuition.</div>
+          </div>
+          <div class="card c3">
+            <div class="ct">🔍 Responsibility gaps</div>
+            <div>If an agent makes a scientific error, who is responsible? The author always is — but workflows that
+              obscure AI involvement make accountability impossible.</div>
+          </div>
+          <div class="card c2">
+            <div class="ct">🪫 Semi-autonomy &gt; full autonomy</div>
+            <div>CMBagent study: fully autonomous pipelines underperformed. Human checkpoints at key decision points are
+              essential for hard science.</div>
+          </div>
+        </div>
+      </section>
 
-<!-- ═══════════════════════════════════════════════════════
+      <!-- ═══════════════════════════════════════════════════════
      SLIDE 16 — MITIGATIONS
      ═══════════════════════════════════════════════════════ -->
-<section>
-  <span class="stag">Part 4 — Mitigations: Human-in-the-Loop Checkpoints</span>
-  <h2>Mitigation Strategies: Keep Humans in the Loop</h2>
-  <div class="ibox" style="margin-bottom:0.6em;">
-    Hosseini et al. (2026) recommend designating an <strong>'AI validator' role</strong> in each research team — someone who owns responsibility for verifying all AI-assisted contributions before publication.
-  </div>
-  <ol class="steps">
-    <li>
-      <span class="sn">1</span>
-      <div><strong>Define no-go zones for autonomy:</strong> Decide which tasks can the agent do alone (boilerplate code, reformatting, lit search) vs. which MUST have human review (model selection, physical interpretation, statistical thresholds).</div>
-    </li>
-    <li>
-      <span class="sn">2</span>
-      <div><strong>Checkpoint derivation steps:</strong> For any analysis with physics equations, manually re-derive the key steps. If the agent's output can't be checked by hand, the task is too autonomous. ReplicationBench shows agents fail here most.</div>
-    </li>
-    <li>
-      <span class="sn">3</span>
-      <div><strong>Run agents on synthetic data first:</strong> Before unleashing an agent on your real science data, test on a toy dataset with known answers. If the agent doesn't recover ground truth, don't trust it with your precious observations.</div>
-    </li>
-    <li>
-      <span class="sn">4</span>
-      <div><strong>Compare agent output to a naive baseline:</strong> Does the AI-assisted result actually beat what you'd get in 20 minutes yourself? Huang 2026 found many AI modes did not outperform unassisted work.</div>
-    </li>
-    <li>
-      <span class="sn">5</span>
-      <div><strong>Version-control runs; automate quality gates:</strong> Commit data, prompts, config, and output together in Git. pre-commit hooks enforce code style, block files &gt;5 MB, and reject BibTeX entries missing <code>doi=</code>.</div>
-    </li>
-  </ol>
-</section>
+      <section>
+        <span class="stag">Part 4 — Mitigations: Human-in-the-Loop Checkpoints</span>
+        <h2>Mitigation Strategies: Keep Humans in the Loop</h2>
+        <div class="ibox" style="margin-bottom:0.6em;">
+          Hosseini et al. (2026) recommend designating an <strong>'AI validator' role</strong> in each research team —
+          someone who owns responsibility for verifying all AI-assisted contributions before publication.
+        </div>
+        <ol class="steps">
+          <li>
+            <span class="sn">1</span>
+            <div><strong>Define no-go zones for autonomy:</strong> Decide which tasks can the agent do alone
+              (boilerplate code, reformatting, lit search) vs. which MUST have human review (model selection, physical
+              interpretation, statistical thresholds).</div>
+          </li>
+          <li>
+            <span class="sn">2</span>
+            <div><strong>Checkpoint derivation steps:</strong> For any analysis with physics equations, manually
+              re-derive the key steps. If the agent's output can't be checked by hand, the task is too autonomous.
+              ReplicationBench shows agents fail here most.</div>
+          </li>
+          <li>
+            <span class="sn">3</span>
+            <div><strong>Run agents on synthetic data first:</strong> Before unleashing an agent on your real science
+              data, test on a toy dataset with known answers. If the agent doesn't recover ground truth, don't trust it
+              with your precious observations.</div>
+          </li>
+          <li>
+            <span class="sn">4</span>
+            <div><strong>Compare agent output to a naive baseline:</strong> Does the AI-assisted result actually beat
+              what you'd get in 20 minutes yourself? Huang 2026 found many AI modes did not outperform unassisted work.
+            </div>
+          </li>
+          <li>
+            <span class="sn">5</span>
+            <div><strong>Version-control runs; automate quality gates:</strong> Commit data, prompts, config, and output
+              together in Git. pre-commit hooks enforce code style, block files &gt;5 MB, and reject BibTeX entries
+              missing <code>doi=</code>.</div>
+          </li>
+        </ol>
+      </section>
 
-<!-- ═══════════════════════════════════════════════════════
+      <!-- ═══════════════════════════════════════════════════════
      SLIDE 17 — REPRODUCIBILITY PROBLEM
      ═══════════════════════════════════════════════════════ -->
-<section>
-  <span class="stag">Part 5 — Reproducibility: The Problem</span>
-  <h2>The Reproducibility Challenge: AI Adds New Wrinkles</h2>
-  <div class="wbox" style="margin-bottom:0.7em;">
-    ⚠️ <strong>LLM outputs are non-deterministic.</strong> The same prompt can generate different code on different days, with different model versions.
-  </div>
-  <div class="g2">
-    <div class="card c4">
-      <div class="ct">🎲 Non-determinism</div>
-      <p>Even <code>temperature=0</code> doesn't guarantee identical outputs across model versions. Copilot's base model changes silently.</p>
-    </div>
-    <div class="card c3">
-      <div class="ct">🔍 Implicit context</div>
-      <p>Copilot reads your whole repo. The same prompt with a different codebase gives different code. Context is invisible.</p>
-    </div>
-    <div class="card c4">
-      <div class="ct">🏷️ Model versioning</div>
-      <p>GPT-4o of today ≠ GPT-4o of six months ago. Updates happen without notification. <em>'I used Copilot'</em> isn't enough.</p>
-    </div>
-    <div class="card c3">
-      <div class="ct">📝 Undocumented steps</div>
-      <p>If you don't record your prompts, no one — including future-you — can reproduce your AI-assisted analysis.</p>
-    </div>
-  </div>
-  <div class="ibox" style="margin-top:0.5em;">
-    <strong>Core question:</strong> if I used Copilot for my analysis, can someone else reproduce my result?
-    Only if you share the <em>code</em>, the <em>prompts</em>, and the <em>model version</em>.
-  </div>
-</section>
+      <section>
+        <span class="stag">Part 5 — Reproducibility: The Problem</span>
+        <h2>The Reproducibility Challenge: AI Adds New Wrinkles</h2>
+        <div class="wbox" style="margin-bottom:0.7em;">
+          ⚠️ <strong>LLM outputs are non-deterministic.</strong> The same prompt can generate different code on
+          different days, with different model versions.
+        </div>
+        <div class="g2">
+          <div class="card c4">
+            <div class="ct">🎲 Non-determinism</div>
+            <p>Even <code>temperature=0</code> doesn't guarantee identical outputs across model versions. Copilot's base
+              model changes silently.</p>
+          </div>
+          <div class="card c3">
+            <div class="ct">🔍 Implicit context</div>
+            <p>Copilot reads your whole repo. The same prompt with a different codebase gives different code. Context is
+              invisible.</p>
+          </div>
+          <div class="card c4">
+            <div class="ct">🏷️ Model versioning</div>
+            <p>GPT-4o of today ≠ GPT-4o of six months ago. Updates happen without notification. <em>'I used
+                Copilot'</em> isn't enough.</p>
+          </div>
+          <div class="card c3">
+            <div class="ct">📝 Undocumented steps</div>
+            <p>If you don't record your prompts, no one — including future-you — can reproduce your AI-assisted
+              analysis.</p>
+          </div>
+        </div>
+        <div class="ibox" style="margin-top:0.5em;">
+          <strong>Core question:</strong> if I used Copilot for my analysis, can someone else reproduce my result?
+          Only if you share the <em>code</em>, the <em>prompts</em>, and the <em>model version</em>.
+        </div>
+      </section>
 
-<!-- ═══════════════════════════════════════════════════════
+      <!-- ═══════════════════════════════════════════════════════
      SLIDE 18 — BEST PRACTICES
      ═══════════════════════════════════════════════════════ -->
-<section>
-  <span class="stag">Part 5 — Reproducibility: Best Practices</span>
-  <h2>Making AI-Assisted Research Reproducible</h2>
-  <div style="display:grid;grid-template-columns:1fr;gap:0.38em;">
-    <div class="card c1" style="font-size:0.77em;">
-      <div class="ct">1. Commit your prompts to Git</div>
-      <div class="no">✗ Don't rely on Copilot Chat history — it disappears. Don't keep prompts only in your head.</div>
-      <div class="yes">✓ Store a <code>prompts/</code> directory. One <code>.md</code> file per analysis task with date + model version.</div>
-    </div>
-    <div class="card c2" style="font-size:0.77em;">
-      <div class="ct">2. Pin the model version in your disclosure</div>
-      <div class="no">✗ Don't say 'I used Copilot' — unverifiable and insufficient for reproducibility.</div>
-      <div class="yes">✓ Say 'GPT-4o (2026-03), GitHub Copilot Pro, VS Code 1.116'. Be specific.</div>
-    </div>
-    <div class="card c3" style="font-size:0.77em;">
-      <div class="ct">3. The code is the artefact — not the prompt</div>
-      <div class="no">✗ Don't submit code you haven't personally run and validated end-to-end on the actual data.</div>
-      <div class="yes">✓ Commit the generated code. The prompt is provenance. Code must run standalone without AI.</div>
-    </div>
-    <div class="card c5" style="font-size:0.77em;">
-      <div class="ct">4. Share prompts as supplementary material</div>
-      <div class="no">✗ Not yet required by journals — but proactive transparency protects you from future scrutiny.</div>
-      <div class="yes">✓ Emerging best practice: upload <code>PROMPTS.md</code> or <code>prompts/</code> to Zenodo alongside code &amp; data.</div>
-    </div>
-    <div class="card c1" style="font-size:0.77em;">
-      <div class="ct">5. Log AI steps + make your repo citable</div>
-      <div class="no">✗ Don't imply code is human-written if an agent made structural decisions. Don't skip CITATION.cff.</div>
-      <div class="yes">✓ Methods: 'Code scaffold by GitHub Copilot (GPT-4o, Mar 2026); all results verified.' Add <code>CITATION.cff</code> — GitHub shows 'Cite this repository' and Zenodo/Zotero extract metadata automatically.</div>
-    </div>
-  </div>
-</section>
+      <section>
+        <span class="stag">Part 5 — Reproducibility: Best Practices</span>
+        <h2>Making AI-Assisted Research Reproducible</h2>
+        <div style="display:grid;grid-template-columns:1fr;gap:0.38em;">
+          <div class="card c1" style="font-size:0.77em;">
+            <div class="ct">1. Commit your prompts to Git</div>
+            <div class="no">✗ Don't rely on Copilot Chat history — it disappears. Don't keep prompts only in your head.
+            </div>
+            <div class="yes">✓ Store a <code>prompts/</code> directory. One <code>.md</code> file per analysis task with
+              date + model version.</div>
+          </div>
+          <div class="card c2" style="font-size:0.77em;">
+            <div class="ct">2. Pin the model version in your disclosure</div>
+            <div class="no">✗ Don't say 'I used Copilot' — unverifiable and insufficient for reproducibility.</div>
+            <div class="yes">✓ Say 'GPT-4o (2026-03), GitHub Copilot Pro, VS Code 1.116'. Be specific.</div>
+          </div>
+          <div class="card c3" style="font-size:0.77em;">
+            <div class="ct">3. The code is the artefact — not the prompt</div>
+            <div class="no">✗ Don't submit code you haven't personally run and validated end-to-end on the actual data.
+            </div>
+            <div class="yes">✓ Commit the generated code. The prompt is provenance. Code must run standalone without AI.
+            </div>
+          </div>
+          <div class="card c5" style="font-size:0.77em;">
+            <div class="ct">4. Share prompts as supplementary material</div>
+            <div class="no">✗ Not yet required by journals — but proactive transparency protects you from future
+              scrutiny.</div>
+            <div class="yes">✓ Emerging best practice: upload <code>PROMPTS.md</code> or <code>prompts/</code> to Zenodo
+              alongside code &amp; data.</div>
+          </div>
+          <div class="card c1" style="font-size:0.77em;">
+            <div class="ct">5. Log AI steps + make your repo citable</div>
+            <div class="no">✗ Don't imply code is human-written if an agent made structural decisions. Don't skip
+              CITATION.cff.</div>
+            <div class="yes">✓ Methods: 'Code scaffold by GitHub Copilot (GPT-4o, Mar 2026); all results verified.' Add
+              <code>CITATION.cff</code> — GitHub shows 'Cite this repository' and Zenodo/Zotero extract metadata
+              automatically.</div>
+          </div>
+        </div>
+      </section>
 
-<!-- ═══════════════════════════════════════════════════════
+      <!-- ═══════════════════════════════════════════════════════
      SLIDE 19 — PROMPT TEMPLATE
      ═══════════════════════════════════════════════════════ -->
-<section>
-  <span class="stag">Part 5 — Prompt Documentation Template</span>
-  <h2>Template: <code>prompts/xray_spectral_fit.md</code></h2>
-  <pre><code class="language-markdown"># prompts/xray_spectral_fit.md
+      <section>
+        <span class="stag">Part 5 — Prompt Documentation Template</span>
+        <h2>Template: <code>prompts/xray_spectral_fit.md</code></h2>
+        <pre><code class="language-markdown"># prompts/xray_spectral_fit.md
 
 ## Metadata
 - Date: 2026-04-15
@@ -827,339 +1243,500 @@ Return Gamma and norm with 90% confidence. Save chi2 residual as PDF.
 - [x] Runs without errors on test data (spec.pi, back.pi, rmf.rmf)
 - [x] Gamma matches manual XSPEC fit to within 2%
 - [x] All references checked in NASA ADS — no hallucinations found</code></pre>
-  <div class="sbox" style="margin-top:0.4em;font-size:0.78em;">
-    💾 Commit this alongside <code>fit_spectrum.py</code> → full reproducibility provenance lives in your Git history
-  </div>
-</section>
+        <div class="sbox" style="margin-top:0.4em;font-size:0.78em;">
+          💾 Commit this alongside <code>fit_spectrum.py</code> → full reproducibility provenance lives in your Git
+          history
+        </div>
+      </section>
 
-<!-- ═══════════════════════════════════════════════════════
+      <!-- ═══════════════════════════════════════════════════════
      SLIDE 20 — THREE PILLARS
      ═══════════════════════════════════════════════════════ -->
-<section>
-  <span class="stag">Part 6 — Journal Policies: Three Universal Pillars</span>
-  <h2>What All Journals Agree On</h2>
-  <div class="g3" style="margin:0.9em 0;">
-    <div class="card c1" style="text-align:center;padding:1.1em;">
-      <div style="font-size:1.8em;margin-bottom:0.25em;">👤</div>
-      <div class="ct">Human Accountability</div>
-      <p>Authors remain solely responsible for all content, regardless of how AI was used. AI tools cannot satisfy authorship criteria.</p>
-    </div>
-    <div class="card c2" style="text-align:center;padding:1.1em;">
-      <div style="font-size:1.8em;margin-bottom:0.25em;">🔍</div>
-      <div class="ct">Transparency Required</div>
-      <p>Disclose the tool, version, purpose, and section. The threshold is content generation, not volume of use.</p>
-    </div>
-    <div class="card c4" style="text-align:center;padding:1.1em;">
-      <div style="font-size:1.8em;margin-bottom:0.25em;">✍️</div>
-      <div class="ct">No AI Authorship</div>
-      <p>LLMs cannot approve manuscripts, hold copyright, or be accountable. They may not appear in any author list.</p>
-    </div>
-  </div>
-  <div class="ibox" style="font-size:0.78em;">
-    <strong>Universal consensus</strong> — what varies is <em>where</em> to disclose, and whether copy-editing or AI figures are permitted
-  </div>
-</section>
+      <section>
+        <span class="stag">Part 6 — Journal Policies: Three Universal Pillars</span>
+        <h2>What All Journals Agree On</h2>
+        <div class="g3" style="margin:0.9em 0;">
+          <div class="card c1" style="text-align:center;padding:1.1em;">
+            <div style="font-size:1.8em;margin-bottom:0.25em;">👤</div>
+            <div class="ct">Human Accountability</div>
+            <p>Authors remain solely responsible for all content, regardless of how AI was used. AI tools cannot satisfy
+              authorship criteria.</p>
+          </div>
+          <div class="card c2" style="text-align:center;padding:1.1em;">
+            <div style="font-size:1.8em;margin-bottom:0.25em;">🔍</div>
+            <div class="ct">Transparency Required</div>
+            <p>Disclose the tool, version, purpose, and section. The threshold is content generation, not volume of use.
+            </p>
+          </div>
+          <div class="card c4" style="text-align:center;padding:1.1em;">
+            <div style="font-size:1.8em;margin-bottom:0.25em;">✍️</div>
+            <div class="ct">No AI Authorship</div>
+            <p>LLMs cannot approve manuscripts, hold copyright, or be accountable. They may not appear in any author
+              list.</p>
+          </div>
+        </div>
+        <div class="ibox" style="font-size:0.78em;">
+          <strong>Universal consensus</strong> — what varies is <em>where</em> to disclose, and whether copy-editing or
+          AI figures are permitted
+        </div>
+      </section>
 
-<!-- ═══════════════════════════════════════════════════════
+      <!-- ═══════════════════════════════════════════════════════
      SLIDE 21 — JOURNAL TABLE
      ═══════════════════════════════════════════════════════ -->
-<section>
-  <span class="stag">Part 6 — Journal Policy Comparison</span>
-  <h2>How Our Journals Compare</h2>
-  <table>
-    <thead>
-      <tr>
-        <th>Journal / Publisher</th>
-        <th>AI Author?</th>
-        <th>Disclose Where?</th>
-        <th>Copy-Edit Exempt?</th>
-        <th>AI Figures?</th>
-        <th>Strictness</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr>
-        <td><strong>MNRAS</strong> (Oxford/RAS)</td><td>❌ No</td>
-        <td>Methods or Ack.</td><td>Not explicit</td><td>Not explicit</td>
-        <td><span class="am">Moderate</span></td>
-      </tr>
-      <tr>
-        <td><strong>A&amp;A</strong> (EDP Sciences)</td><td>❌ No</td>
-        <td>Methods preferred</td><td>✅ Yes</td><td>Not explicit</td>
-        <td><span class="am">Moderate</span></td>
-      </tr>
-      <tr>
-        <td><strong>ApJ / AJ</strong> (AAS/IOP)</td><td>❌ No</td>
-        <td>Cover letter + Methods</td><td>Not specified</td><td>Not explicit</td>
-        <td><span class="am">Moderate</span></td>
-      </tr>
-      <tr>
-        <td><strong>Nature / Nat. Astron.</strong></td><td>❌ No</td>
-        <td>Methods (required)</td><td>✅ Yes</td><td>❌ Banned</td>
-        <td><span class="r">Strict</span></td>
-      </tr>
-      <tr>
-        <td><strong>Science</strong> (AAAS)</td><td>❌ No</td>
-        <td>Ack. + Methods + prompt</td><td>Not specified</td><td>Not specified</td>
-        <td><span class="r">Very Strict</span></td>
-      </tr>
-      <tr>
-        <td><strong>Springer Nature</strong> (all)</td><td>❌ No</td>
-        <td>Methods (required)</td><td>✅ Yes</td><td>❌ Banned</td>
-        <td><span class="r">Strict</span></td>
-      </tr>
-    </tbody>
-  </table>
-  <div class="sm" style="margin-top:0.45em;">⚠️ Always check the journal's current author guidelines before submitting — policies have been updating every few months.</div>
-</section>
+      <section>
+        <span class="stag">Part 6 — Journal Policy Comparison</span>
+        <h2>How Our Journals Compare</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>Journal / Publisher</th>
+              <th>AI Author?</th>
+              <th>Disclose Where?</th>
+              <th>Copy-Edit Exempt?</th>
+              <th>AI Figures?</th>
+              <th>Strictness</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>MNRAS</strong> (Oxford/RAS)</td>
+              <td>❌ No</td>
+              <td>Methods or Ack.</td>
+              <td>Not explicit</td>
+              <td>Not explicit</td>
+              <td><span class="am">Moderate</span></td>
+            </tr>
+            <tr>
+              <td><strong>A&amp;A</strong> (EDP Sciences)</td>
+              <td>❌ No</td>
+              <td>Methods preferred</td>
+              <td>✅ Yes</td>
+              <td>Not explicit</td>
+              <td><span class="am">Moderate</span></td>
+            </tr>
+            <tr>
+              <td><strong>ApJ / AJ</strong> (AAS/IOP)</td>
+              <td>❌ No</td>
+              <td>Cover letter + Methods</td>
+              <td>Not specified</td>
+              <td>Not explicit</td>
+              <td><span class="am">Moderate</span></td>
+            </tr>
+            <tr>
+              <td><strong>Nature / Nat. Astron.</strong></td>
+              <td>❌ No</td>
+              <td>Methods (required)</td>
+              <td>✅ Yes</td>
+              <td>❌ Banned</td>
+              <td><span class="r">Strict</span></td>
+            </tr>
+            <tr>
+              <td><strong>Science</strong> (AAAS)</td>
+              <td>❌ No</td>
+              <td>Ack. + Methods + prompt</td>
+              <td>Not specified</td>
+              <td>Not specified</td>
+              <td><span class="r">Very Strict</span></td>
+            </tr>
+            <tr>
+              <td><strong>Springer Nature</strong> (all)</td>
+              <td>❌ No</td>
+              <td>Methods (required)</td>
+              <td>✅ Yes</td>
+              <td>❌ Banned</td>
+              <td><span class="r">Strict</span></td>
+            </tr>
+          </tbody>
+        </table>
+        <div class="sm" style="margin-top:0.45em;">⚠️ Always check the journal's current author guidelines before
+          submitting — policies have been updating every few months.</div>
+      </section>
 
-<!-- ═══════════════════════════════════════════════════════
+      <!-- ═══════════════════════════════════════════════════════
      SLIDE 22 — MNRAS & A&A
      ═══════════════════════════════════════════════════════ -->
-<section>
-  <span class="stag">Part 6 — MNRAS &amp; A&amp;A Policies</span>
-  <h2>MNRAS and A&amp;A: Moderate, Practical Policies</h2>
-  <div class="g2">
-    <div class="card c3">
-      <div class="ct">🟡 MNRAS (Oxford / RAS)</div>
-      <ul>
-        <li>AI cannot be listed as author</li>
-        <li>Disclose in Methods <em>OR</em> Acknowledgements</li>
-        <li>Cover letter disclosure also expected</li>
-        <li>No explicit copy-editing exemption (err on side of disclosure)</li>
-        <li>No explicit AI image ban (but integrity rules apply)</li>
-        <li>Oxford Academic screens for NLP tools in submitted author lists</li>
-      </ul>
-    </div>
-    <div class="card c2">
-      <div class="ct">🟢 A&amp;A (EDP Sciences)</div>
-      <ul>
-        <li>AI cannot be listed as author</li>
-        <li>Disclose in Methods section (preferred)</li>
-        <li>Copy-editing AI <strong>EXEMPT</strong> — explicit policy (grammar, clarity, language only)</li>
-        <li>AI-generated code = AI content: must be disclosed</li>
-        <li>Authors verify all AI-assisted content for accuracy</li>
-      </ul>
-      <div class="sbox" style="margin-top:0.4em;">Best journal for AI coding disclosure: most permissive &amp; explicit policy</div>
-    </div>
-  </div>
-</section>
+      <section>
+        <span class="stag">Part 6 — MNRAS &amp; A&amp;A Policies</span>
+        <h2>MNRAS and A&amp;A: Moderate, Practical Policies</h2>
+        <div class="g2">
+          <div class="card c3">
+            <div class="ct">🟡 MNRAS (Oxford / RAS)</div>
+            <ul>
+              <li>AI cannot be listed as author</li>
+              <li>Disclose in Methods <em>OR</em> Acknowledgements</li>
+              <li>Cover letter disclosure also expected</li>
+              <li>No explicit copy-editing exemption (err on side of disclosure)</li>
+              <li>No explicit AI image ban (but integrity rules apply)</li>
+              <li>Oxford Academic screens for NLP tools in submitted author lists</li>
+            </ul>
+          </div>
+          <div class="card c2">
+            <div class="ct">🟢 A&amp;A (EDP Sciences)</div>
+            <ul>
+              <li>AI cannot be listed as author</li>
+              <li>Disclose in Methods section (preferred)</li>
+              <li>Copy-editing AI <strong>EXEMPT</strong> — explicit policy (grammar, clarity, language only)</li>
+              <li>AI-generated code = AI content: must be disclosed</li>
+              <li>Authors verify all AI-assisted content for accuracy</li>
+            </ul>
+            <div class="sbox" style="margin-top:0.4em;">Best journal for AI coding disclosure: most permissive &amp;
+              explicit policy</div>
+          </div>
+        </div>
+      </section>
 
-<!-- ═══════════════════════════════════════════════════════
+      <!-- ═══════════════════════════════════════════════════════
      SLIDE 23 — NATURE & SCIENCE
      ═══════════════════════════════════════════════════════ -->
-<section>
-  <span class="stag">Part 6 — Nature &amp; Science: Strict Policies</span>
-  <h2>Nature and Science: The Strictest Policies</h2>
-  <div class="g2">
-    <div class="card c4">
-      <div class="ct">🔴 Nature / Nature Astronomy</div>
-      <ul>
-        <li>AI cannot be listed as author</li>
-        <li>Disclose in Methods (required) — not in Acknowledgements alone</li>
-        <li>AI-generated <strong>IMAGES are BANNED</strong>: figures, graphical abstracts, all</li>
-        <li>Copy-editing AI exempt (Grammarly-style)</li>
-        <li>Specific tool + version + purpose required</li>
-        <li>Reviewers may NOT upload manuscripts to any AI tool</li>
-      </ul>
-    </div>
-    <div class="card" style="border-left:3px solid #b71c1c;">
-      <div class="ct" style="color:#ef9a9a;">🔴🔴 Science (AAAS) — Harshest</div>
-      <ul>
-        <li>AI-generated text is <strong>BANNED</strong></li>
-        <li>Violations treated as scientific misconduct</li>
-        <li>Full prompt disclosure in Ack. AND Methods (both required)</li>
-        <li>AI tools cannot be cited as sources</li>
-        <li>Cover letter declaration required</li>
-        <li>Most restrictive policy among all top-tier journals</li>
-      </ul>
-    </div>
-  </div>
-  <div class="wbox" style="font-size:0.78em;">
-    🎯 <strong>Targeting Nature / Science?</strong> Use AI only for coding &amp; internal editing — remove all AI prose from the final submission.
-  </div>
-</section>
+      <section>
+        <span class="stag">Part 6 — Nature &amp; Science: Strict Policies</span>
+        <h2>Nature and Science: The Strictest Policies</h2>
+        <div class="g2">
+          <div class="card c4">
+            <div class="ct">🔴 Nature / Nature Astronomy</div>
+            <ul>
+              <li>AI cannot be listed as author</li>
+              <li>Disclose in Methods (required) — not in Acknowledgements alone</li>
+              <li>AI-generated <strong>IMAGES are BANNED</strong>: figures, graphical abstracts, all</li>
+              <li>Copy-editing AI exempt (Grammarly-style)</li>
+              <li>Specific tool + version + purpose required</li>
+              <li>Reviewers may NOT upload manuscripts to any AI tool</li>
+            </ul>
+          </div>
+          <div class="card" style="border-left:3px solid #b71c1c;">
+            <div class="ct" style="color:#ef9a9a;">🔴🔴 Science (AAAS) — Harshest</div>
+            <ul>
+              <li>AI-generated text is <strong>BANNED</strong></li>
+              <li>Violations treated as scientific misconduct</li>
+              <li>Full prompt disclosure in Ack. AND Methods (both required)</li>
+              <li>AI tools cannot be cited as sources</li>
+              <li>Cover letter declaration required</li>
+              <li>Most restrictive policy among all top-tier journals</li>
+            </ul>
+          </div>
+        </div>
+        <div class="wbox" style="font-size:0.78em;">
+          🎯 <strong>Targeting Nature / Science?</strong> Use AI only for coding &amp; internal editing — remove all AI
+          prose from the final submission.
+        </div>
+      </section>
 
-<!-- ═══════════════════════════════════════════════════════
+      <!-- ═══════════════════════════════════════════════════════
      SLIDE 24 — DISCLOSURE TEMPLATES
      ═══════════════════════════════════════════════════════ -->
-<section>
-  <span class="stag">Part 6 — Ready-to-Use Disclosure Templates</span>
-  <h2>Copy-Paste Disclosure Statements</h2>
-  <div class="dbox">
-    <div class="dlabel">Coding only (A&amp;A, MNRAS, ApJ)</div>
-    Python analysis scripts were drafted with assistance from GitHub Copilot (GPT-4o, March 2026). All code was reviewed, tested, and validated by the authors. No AI assistance was used in the preparation of the written text.
-  </div>
-  <div class="dbox">
-    <div class="dlabel">Writing + coding, ADS MCP used (A&amp;A, MNRAS — in Methods)</div>
-    Generative AI (GitHub Copilot, GPT-4o, March 2026) was used to draft sections of the Methods text and to generate analysis code. Literature searches were conducted via NASA ADS; the NASA ADS MCP server (cbyrohl/mcp-server-ads) was used to retrieve and validate references. All AI-generated content was critically reviewed and verified by the authors.
-  </div>
-  <div class="dbox">
-    <div class="dlabel">Minimal editing only (most journals — generally exempt, but safe)</div>
-    The authors used GitHub Copilot (GPT-4o) for grammar and language editing of human-authored text only. No substantive scientific content, analysis code, or references were generated by AI tools.
-  </div>
-  <div class="sm">Adapt the tool name, version, date, and exact purpose to your actual usage. Always verify journal guidelines before submitting.</div>
-</section>
+      <section>
+        <span class="stag">Part 6 — Ready-to-Use Disclosure Templates</span>
+        <h2>Copy-Paste Disclosure Statements</h2>
+        <div class="dbox">
+          <div class="dlabel">Coding only (A&amp;A, MNRAS, ApJ)</div>
+          Python analysis scripts were drafted with assistance from GitHub Copilot (GPT-4o, March 2026). All code was
+          reviewed, tested, and validated by the authors. No AI assistance was used in the preparation of the written
+          text.
+        </div>
+        <div class="dbox">
+          <div class="dlabel">Writing + coding, ADS MCP used (A&amp;A, MNRAS — in Methods)</div>
+          Generative AI (GitHub Copilot, GPT-4o, March 2026) was used to draft sections of the Methods text and to
+          generate analysis code. Literature searches were conducted via NASA ADS; the NASA ADS MCP server
+          (cbyrohl/mcp-server-ads) was used to retrieve and validate references. All AI-generated content was critically
+          reviewed and verified by the authors.
+        </div>
+        <div class="dbox">
+          <div class="dlabel">Minimal editing only (most journals — generally exempt, but safe)</div>
+          The authors used GitHub Copilot (GPT-4o) for grammar and language editing of human-authored text only. No
+          substantive scientific content, analysis code, or references were generated by AI tools.
+        </div>
+        <div class="sm">Adapt the tool name, version, date, and exact purpose to your actual usage. Always verify
+          journal guidelines before submitting.</div>
+      </section>
 
-<!-- ═══════════════════════════════════════════════════════
+      <!-- ═══════════════════════════════════════════════════════
      SLIDE 25 — QUICK REFERENCE
      ═══════════════════════════════════════════════════════ -->
-<section>
-  <span class="stag">Part 6 — Quick Reference Card</span>
-  <h2>Quick Reference: What to Disclose, Where</h2>
-  <table>
-    <thead>
-      <tr><th>Action</th><th>Disclose?</th><th>Where?</th><th>Notes</th></tr>
-    </thead>
-    <tbody>
-      <tr><td>Used Copilot to write analysis code</td><td><span class="g">Yes</span></td><td>Methods</td><td>Core case for us — always disclose</td></tr>
-      <tr><td>Used ADS MCP for reference retrieval</td><td><span class="g">Yes</span></td><td>Methods</td><td>Name the server &amp; token source</td></tr>
-      <tr><td>Used Copilot to draft Methods text</td><td><span class="g">Yes</span></td><td>Methods</td><td>All journals require this</td></tr>
-      <tr><td>Used Copilot for Discussion section</td><td><span class="g">Yes</span></td><td>Methods</td><td>Science AAAS: full prompt required</td></tr>
-      <tr><td>Grammar / spelling / English only</td><td><span class="am">Generally No</span></td><td>—</td><td>A&amp;A &amp; Nature explicit exemption</td></tr>
-      <tr><td>Used Copilot to make figures</td><td><span class="r">Yes + check</span></td><td>Methods + caption</td><td>Nature/Springer: AI figures BANNED</td></tr>
-      <tr><td>Used ADS for literature search (no MCP)</td><td><span class="g">Yes (best pr.)</span></td><td>Methods/Ack.</td><td>Good practice; not yet mandated</td></tr>
-      <tr><td>Used Copilot to respond to referees</td><td><span class="am">Yes (best pr.)</span></td><td>Cover letter</td><td>Emerging norm, protects integrity</td></tr>
-    </tbody>
-  </table>
-</section>
+      <section>
+        <span class="stag">Part 6 — Quick Reference Card</span>
+        <h2>Quick Reference: What to Disclose, Where</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>Action</th>
+              <th>Disclose?</th>
+              <th>Where?</th>
+              <th>Notes</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Used Copilot to write analysis code</td>
+              <td><span class="g">Yes</span></td>
+              <td>Methods</td>
+              <td>Core case for us — always disclose</td>
+            </tr>
+            <tr>
+              <td>Used ADS MCP for reference retrieval</td>
+              <td><span class="g">Yes</span></td>
+              <td>Methods</td>
+              <td>Name the server &amp; token source</td>
+            </tr>
+            <tr>
+              <td>Used Copilot to draft Methods text</td>
+              <td><span class="g">Yes</span></td>
+              <td>Methods</td>
+              <td>All journals require this</td>
+            </tr>
+            <tr>
+              <td>Used Copilot for Discussion section</td>
+              <td><span class="g">Yes</span></td>
+              <td>Methods</td>
+              <td>Science AAAS: full prompt required</td>
+            </tr>
+            <tr>
+              <td>Grammar / spelling / English only</td>
+              <td><span class="am">Generally No</span></td>
+              <td>—</td>
+              <td>A&amp;A &amp; Nature explicit exemption</td>
+            </tr>
+            <tr>
+              <td>Used Copilot to make figures</td>
+              <td><span class="r">Yes + check</span></td>
+              <td>Methods + caption</td>
+              <td>Nature/Springer: AI figures BANNED</td>
+            </tr>
+            <tr>
+              <td>Used ADS for literature search (no MCP)</td>
+              <td><span class="g">Yes (best pr.)</span></td>
+              <td>Methods/Ack.</td>
+              <td>Good practice; not yet mandated</td>
+            </tr>
+            <tr>
+              <td>Used Copilot to respond to referees</td>
+              <td><span class="am">Yes (best pr.)</span></td>
+              <td>Cover letter</td>
+              <td>Emerging norm, protects integrity</td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
 
-<!-- ═══════════════════════════════════════════════════════
+      <!-- ═══════════════════════════════════════════════════════
      SLIDE 26 — DISCUSSION
      ═══════════════════════════════════════════════════════ -->
-<section>
-  <span class="stag">Part 6 — Discussion</span>
-  <h2>Open Questions for Our Department</h2>
-  <div class="ibox" style="margin-bottom:0.7em;">
-    We built one: <strong><a href="https://github.com/GiovanniPicogna/lmu-usm-agent-template">github.com/GiovanniPicogna/lmu-usm-agent-template</a></strong> — who wants to try it on their next paper? What would you add or change?
-  </div>
-  <ol class="steps">
-    <li><span class="sn g">1</span><div>Who in the group has already used Copilot Agent Mode or the ADS MCP? What has worked, what hasn't?</div></li>
-    <li><span class="sn g">2</span><div>Should we standardise on one ADS MCP server (cbyrohl vs prtc) for consistency in citations across papers?</div></li>
-    <li><span class="sn g">3</span><div>How do we handle AI usage by PhD students in authorship discussions — what's our internal policy?</div></li>
-    <li><span class="sn g">4</span><div>Are our institutional IT/GDPR rules clear on which Copilot tier we can use for sensitive data?</div></li>
-    <li><span class="sn g">5</span><div>Who wants to set up an ADS MCP demo together after this session?</div></li>
-  </ol>
-</section>
+      <section>
+        <span class="stag">Part 6 — Discussion</span>
+        <h2>Open Questions for Our Department</h2>
+        <div class="ibox" style="margin-bottom:0.7em;">
+          We built one: <strong><a
+              href="https://github.com/GiovanniPicogna/lmu-usm-agent-template">github.com/GiovanniPicogna/lmu-usm-agent-template</a></strong>
+          — who wants to try it on their next paper? What would you add or change?
+        </div>
+        <ol class="steps">
+          <li><span class="sn g">1</span>
+            <div>Who in the group has already used Copilot Agent Mode or the ADS MCP? What has worked, what hasn't?
+            </div>
+          </li>
+          <li><span class="sn g">2</span>
+            <div>Should we standardise on one ADS MCP server (cbyrohl vs prtc) for consistency in citations across
+              papers?</div>
+          </li>
+          <li><span class="sn g">3</span>
+            <div>How do we handle AI usage by PhD students in authorship discussions — what's our internal policy?</div>
+          </li>
+          <li><span class="sn g">4</span>
+            <div>Are our institutional IT/GDPR rules clear on which Copilot tier we can use for sensitive data?</div>
+          </li>
+          <li><span class="sn g">5</span>
+            <div>Who wants to set up an ADS MCP demo together after this session?</div>
+          </li>
+        </ol>
+      </section>
 
-<!-- ═══════════════════════════════════════════════════════
+      <!-- ═══════════════════════════════════════════════════════
      SLIDE 27 — KEY TAKEAWAYS
      ═══════════════════════════════════════════════════════ -->
-<section data-background-gradient="radial-gradient(ellipse at center, #0d1b2e 0%, #080c14 100%)">
-  <h2 style="text-align:center;border-color:var(--a2);">Key Takeaways</h2>
-  <div class="tgrid">
-    <div class="titem"><span class="ticon">🆓</span><div><div class="ttitle">You have Copilot Pro free</div><div class="tdesc">Agent Mode, MCP support, multi-model Chat — set it up today.</div></div></div>
-    <div class="titem"><span class="ticon">🔍</span><div><div class="ttitle">ADS MCP kills hallucinations</div><div class="tdesc">Add cbyrohl/mcp-server-ads → Copilot fetches real, verified BibTeX.</div></div></div>
-    <div class="titem"><span class="ticon">💻</span><div><div class="ttitle">Custom instructions save time</div><div class="tdesc"><code>.github/copilot-instructions.md</code> teaches Copilot your project once, forever.</div></div></div>
-    <div class="titem"><span class="ticon">🔄</span><div><div class="ttitle">Reproducibility requires prompts</div><div class="tdesc">Record tool, version, date, purpose. Share prompts alongside your code.</div></div></div>
-    <div class="titem"><span class="ticon">📋</span><div><div class="ttitle">Journal policies differ widely</div><div class="tdesc">A&amp;A: permissive. MNRAS: moderate. Nature: strict. Science: text ban.</div></div></div>
-    <div class="titem"><span class="ticon">📎</span><div><div class="ttitle">Default to transparency</div><div class="tdesc">If in doubt whether to disclose: disclose. It protects you and your readers.</div></div></div>
-  </div>
-  <div class="ibox" style="margin-top:0.55em;font-size:0.74em;">
-    🧩 <strong>Fork the group template:</strong> <a href="https://github.com/GiovanniPicogna/lmu-usm-agent-template">lmu-usm-agent-template</a> — custom instructions, six agents (spectral / mcmc / literature / simulation / retrieval + <strong>paper</strong> orchestrator), bundled simulation skills (DustPy · FARGO3D · PLUTO), conda env, pre-commit hooks, and GitHub Pages docs. Covers 5 science domains.
-  </div>
-</section>
+      <section data-background-gradient="radial-gradient(ellipse at center, #0d1b2e 0%, #080c14 100%)">
+        <h2 style="text-align:center;border-color:var(--a2);">Key Takeaways</h2>
+        <div class="tgrid">
+          <div class="titem"><span class="ticon">🆓</span>
+            <div>
+              <div class="ttitle">You have Copilot Pro free</div>
+              <div class="tdesc">Agent Mode, MCP support, multi-model Chat — set it up today.</div>
+            </div>
+          </div>
+          <div class="titem"><span class="ticon">🔍</span>
+            <div>
+              <div class="ttitle">ADS MCP kills hallucinations</div>
+              <div class="tdesc">Add cbyrohl/mcp-server-ads → Copilot fetches real, verified BibTeX.</div>
+            </div>
+          </div>
+          <div class="titem"><span class="ticon">💻</span>
+            <div>
+              <div class="ttitle">Custom instructions save time</div>
+              <div class="tdesc"><code>.github/copilot-instructions.md</code> teaches Copilot your project once,
+                forever.</div>
+            </div>
+          </div>
+          <div class="titem"><span class="ticon">🔄</span>
+            <div>
+              <div class="ttitle">Reproducibility requires prompts</div>
+              <div class="tdesc">Record tool, version, date, purpose. Share prompts alongside your code.</div>
+            </div>
+          </div>
+          <div class="titem"><span class="ticon">📋</span>
+            <div>
+              <div class="ttitle">Journal policies differ widely</div>
+              <div class="tdesc">A&amp;A: permissive. MNRAS: moderate. Nature: strict. Science: text ban.</div>
+            </div>
+          </div>
+          <div class="titem"><span class="ticon">📎</span>
+            <div>
+              <div class="ttitle">Default to transparency</div>
+              <div class="tdesc">If in doubt whether to disclose: disclose. It protects you and your readers.</div>
+            </div>
+          </div>
+        </div>
+        <div class="ibox" style="margin-top:0.55em;font-size:0.74em;">
+          🧩 <strong>Fork the group template:</strong> <a
+            href="https://github.com/GiovanniPicogna/lmu-usm-agent-template">lmu-usm-agent-template</a> — custom
+          instructions, six agents (spectral / mcmc / literature / simulation / retrieval + <strong>paper</strong>
+          orchestrator), bundled simulation skills (DustPy · FARGO3D · PLUTO), conda env, pre-commit hooks, and GitHub
+          Pages docs. Covers 5 science domains.
+        </div>
+      </section>
 
-<!-- ═══════════════════════════════════════════════════════
+      <!-- ═══════════════════════════════════════════════════════
      SLIDE 28 — TEMPLATE DEEP-DIVE (Appendix)
      ═══════════════════════════════════════════════════════ -->
-<section>
-  <span class="stag">Appendix — The LMU/USM Agent Template</span>
-  <h2>Fork It, Configure It, Go</h2>
-  <div class="sm" style="color:var(--a1);margin-bottom:0.45em;"><a href="https://github.com/GiovanniPicogna/lmu-usm-agent-template">github.com/GiovanniPicogna/lmu-usm-agent-template</a></div>
-  <div class="g2">
-    <div class="card c1">
-      <div class="ct">📁 Repo Contents</div>
-      <ul style="font-size:0.78em;">
-        <li>5 domains: disk · cosmo · retrieval · LSS/MW · X-ray</li>
-        <li><code>copilot-instructions.md</code> — your lab's conventions, once</li>
-        <li><code>AGENTS.md</code> — project-specific context per repo</li>
-        <li><code>ARCHITECTURE.md</code> — agent roster &amp; pipeline diagram</li>
-        <li><code>spectral-agent.agent.md</code> — X-ray spectral fitting</li>
-        <li><code>mcmc-agent.agent.md</code> — emcee posteriors, 68% CIs</li>
-        <li><code>literature-agent.agent.md</code> — ADS-verified citations</li>
-        <li><code>simulation-agent.agent.md</code> — FARGO3D/GADGET sims</li>
-        <li><code>retrieval-agent.agent.md</code> — petitRADTRANS retrievals</li>
-        <li><code>paper-agent.agent.md</code> — orchestrates full paper workflow</li>
-        <li>Bundled skills: <code>dustpy</code> · <code>fargo3d</code> · <code>pluto</code> (validated runners)</li>
-        <li><code>envs/base.yml</code> — conda env, pinned versions</li>
-        <li><code>.pre-commit-config.yaml</code> — style + BibTeX <code>doi=</code> checks</li>
-        <li><code>CITATION.cff</code> — GitHub 'Cite this repository'</li>
-      </ul>
-    </div>
-    <div class="card c2">
-      <div class="ct">⚡ Key Features</div>
-      <ul style="font-size:0.78em;">
-        <li>Extensions pre-configured via <code>.vscode/extensions.json</code> — install once, share with team</li>
-        <li>ADS MCP pre-wired — Copilot fetches verified BibTeX, no hallucinated DOIs</li>
-        <li>pre-commit + CI enforce style, file-size limits, and <code>doi=</code> on every commit</li>
-        <li><code>CITATION.cff</code> triggers GitHub's 'Cite this repository' button</li>
-        <li>Zenodo and Zotero extract structured metadata automatically</li>
-        <li>GitHub Pages docs at <a href="https://giovannipicogna.github.io/lmu-usm-agent-template">giovannipicogna.github.io/lmu-usm-agent-template</a></li>
-      </ul>
-    </div>
-  </div>
-</section>
+      <section>
+        <span class="stag">Appendix — The LMU/USM Agent Template</span>
+        <h2>Fork It, Configure It, Go</h2>
+        <div class="sm" style="color:var(--a1);margin-bottom:0.45em;"><a
+            href="https://github.com/GiovanniPicogna/lmu-usm-agent-template">github.com/GiovanniPicogna/lmu-usm-agent-template</a>
+        </div>
+        <div class="g2">
+          <div class="card c1">
+            <div class="ct">📁 Repo Contents</div>
+            <ul style="font-size:0.78em;">
+              <li>5 domains: disk · cosmo · retrieval · LSS/MW · X-ray</li>
+              <li><code>copilot-instructions.md</code> — your lab's conventions, once</li>
+              <li><code>AGENTS.md</code> — project-specific context per repo</li>
+              <li><code>ARCHITECTURE.md</code> — agent roster &amp; pipeline diagram</li>
+              <li><code>spectral-agent.agent.md</code> — X-ray spectral fitting</li>
+              <li><code>mcmc-agent.agent.md</code> — emcee posteriors, 68% CIs</li>
+              <li><code>literature-agent.agent.md</code> — ADS-verified citations</li>
+              <li><code>simulation-agent.agent.md</code> — FARGO3D/GADGET sims</li>
+              <li><code>retrieval-agent.agent.md</code> — petitRADTRANS retrievals</li>
+              <li><code>paper-agent.agent.md</code> — orchestrates full paper workflow</li>
+              <li>Bundled skills: <code>dustpy</code> · <code>fargo3d</code> · <code>pluto</code> (validated runners)
+              </li>
+              <li><code>envs/base.yml</code> — conda env, pinned versions</li>
+              <li><code>.pre-commit-config.yaml</code> — style + BibTeX <code>doi=</code> checks</li>
+              <li><code>CITATION.cff</code> — GitHub 'Cite this repository'</li>
+            </ul>
+          </div>
+          <div class="card c2">
+            <div class="ct">⚡ Key Features</div>
+            <ul style="font-size:0.78em;">
+              <li>Extensions pre-configured via <code>.vscode/extensions.json</code> — install once, share with team
+              </li>
+              <li>ADS MCP pre-wired — Copilot fetches verified BibTeX, no hallucinated DOIs</li>
+              <li>pre-commit + CI enforce style, file-size limits, and <code>doi=</code> on every commit</li>
+              <li><code>CITATION.cff</code> triggers GitHub's 'Cite this repository' button</li>
+              <li>Zenodo and Zotero extract structured metadata automatically</li>
+              <li>GitHub Pages docs at <a
+                  href="https://giovannipicogna.github.io/lmu-usm-agent-template">giovannipicogna.github.io/lmu-usm-agent-template</a>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </section>
 
-<!-- ═══════════════════════════════════════════════════════
+      <!-- ═══════════════════════════════════════════════════════
      SLIDE 29 — 5 DOMAINS (Appendix)
      ═══════════════════════════════════════════════════════ -->
-<section>
-  <span class="stag">Appendix — 5 Science Domains, 1 Template</span>
-  <h2>5 Science Domains, 1 Template</h2>
-  <div class="sm" style="color:var(--a1);margin-bottom:0.45em;"><a href="https://giovannipicogna.github.io/lmu-usm-agent-template">giovannipicogna.github.io/lmu-usm-agent-template</a></div>
-  <table style="margin-bottom:0.6em;">
-    <thead>
-      <tr><th>Domain</th><th>→ Agent</th><th>Key Libraries</th></tr>
-    </thead>
-    <tbody>
-      <tr><td>Disk formation</td><td><code>simulation-agent</code></td><td>dustpy, FARGO3D, radmc3dPy</td></tr>
-      <tr><td>Cosmological sims</td><td><code>simulation-agent</code></td><td>yt, Magneticum, fargopy</td></tr>
-      <tr><td>Atmospheric retrieval</td><td><code>retrieval-agent</code></td><td>petitRADTRANS, dynesty</td></tr>
-      <tr><td>LSS &amp; Milky Way</td><td><code>mcmc-agent</code></td><td>astropy, emcee, nbodykit</td></tr>
-      <tr><td>X-ray spectroscopy</td><td><code>spectral-agent</code></td><td>sherpa, XSPEC, emcee</td></tr>
-    </tbody>
-  </table>
-  <div class="g2" style="font-size:0.82em;">
-    <div class="card c1">
-      <div class="ct">GitHub Pages Docs</div>
-      <ul>
-        <li>All 5 agents with example invocations</li>
-        <li>Skills by domain (K-Dense-AI/scientific-agent-skills)</li>
-        <li>Auto-deployed on every push to <code>main</code> via GitHub Actions</li>
-      </ul>
-    </div>
-    <div class="card c2">
-      <div class="ct">Enable GitHub Pages</div>
-      <p>Settings → Pages → Source: GitHub Actions</p>
-      <p class="sm"><code>copilot-instructions.md §11</code>: domain-specific skill lists for every research area</p>
-    </div>
-  </div>
-</section>
+      <section>
+        <span class="stag">Appendix — 5 Science Domains, 1 Template</span>
+        <h2>5 Science Domains, 1 Template</h2>
+        <div class="sm" style="color:var(--a1);margin-bottom:0.45em;"><a
+            href="https://giovannipicogna.github.io/lmu-usm-agent-template">giovannipicogna.github.io/lmu-usm-agent-template</a>
+        </div>
+        <table style="margin-bottom:0.6em;">
+          <thead>
+            <tr>
+              <th>Domain</th>
+              <th>→ Agent</th>
+              <th>Key Libraries</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Disk formation</td>
+              <td><code>simulation-agent</code></td>
+              <td>dustpy, FARGO3D, radmc3dPy</td>
+            </tr>
+            <tr>
+              <td>Cosmological sims</td>
+              <td><code>simulation-agent</code></td>
+              <td>yt, Magneticum, fargopy</td>
+            </tr>
+            <tr>
+              <td>Atmospheric retrieval</td>
+              <td><code>retrieval-agent</code></td>
+              <td>petitRADTRANS, dynesty</td>
+            </tr>
+            <tr>
+              <td>LSS &amp; Milky Way</td>
+              <td><code>mcmc-agent</code></td>
+              <td>astropy, emcee, nbodykit</td>
+            </tr>
+            <tr>
+              <td>X-ray spectroscopy</td>
+              <td><code>spectral-agent</code></td>
+              <td>sherpa, XSPEC, emcee</td>
+            </tr>
+          </tbody>
+        </table>
+        <div class="g2" style="font-size:0.82em;">
+          <div class="card c1">
+            <div class="ct">GitHub Pages Docs</div>
+            <ul>
+              <li>All 5 agents with example invocations</li>
+              <li>Skills by domain (K-Dense-AI/scientific-agent-skills)</li>
+              <li>Auto-deployed on every push to <code>main</code> via GitHub Actions</li>
+            </ul>
+          </div>
+          <div class="card c2">
+            <div class="ct">Enable GitHub Pages</div>
+            <p>Settings → Pages → Source: GitHub Actions</p>
+            <p class="sm"><code>copilot-instructions.md §11</code>: domain-specific skill lists for every research area
+            </p>
+          </div>
+        </div>
+      </section>
 
-</div><!-- .slides -->
-</div><!-- .reveal -->
+    </div><!-- .slides -->
+  </div><!-- .reveal -->
 
-<script src="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/plugin/highlight/highlight.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/plugin/notes/notes.js"></script>
-<script>
-  Reveal.initialize({
-    hash: true,
-    slideNumber: 'c/t',
-    progress: true,
-    transition: 'slide',
-    transitionSpeed: 'fast',
-    controls: true,
-    controlsLayout: 'bottom-right',
-    center: false,
-    width: 1280,
-    height: 720,
-    margin: 0.04,
-    minScale: 0.2,
-    maxScale: 2.0,
-    plugins: [ RevealHighlight, RevealNotes ]
-  });
-</script>
+  <script src="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/plugin/highlight/highlight.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/plugin/notes/notes.js"></script>
+  <script>
+    Reveal.initialize({
+      hash: true,
+      slideNumber: 'c/t',
+      progress: true,
+      transition: 'slide',
+      transitionSpeed: 'fast',
+      controls: true,
+      controlsLayout: 'bottom-right',
+      center: false,
+      width: 1280,
+      height: 720,
+      margin: 0.04,
+      minScale: 0.2,
+      maxScale: 2.0,
+      plugins: [RevealHighlight, RevealNotes]
+    });
+  </script>
 </body>
+
 </html>

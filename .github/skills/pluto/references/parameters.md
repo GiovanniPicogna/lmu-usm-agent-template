@@ -1,5 +1,21 @@
 # PLUTO Skill — Full Parameter Reference
 
+## Compile parameters (`PLUTOCompileParams`)
+
+Called by `scripts/compile_pluto.py`.
+
+| Name | Type | Default | Constraint | Notes |
+|---|---|---|---|---|
+| `run_dir` | str | **required** | must exist | Path to PLUTO problem directory containing `definitions.h` (or numbered variants) |
+| `pluto_dir` | str | `$PLUTO_DIR` | must exist | Path to PLUTO source tree |
+| `config_num` | int | None | 1 – 99 | If given, copies `definitions_N.h` → `definitions.h` and `pluto_N.ini` → `pluto.ini` before compiling |
+| `arch` | str | auto-detected | — | Makefile arch string from `$PLUTO_DIR/Config/`, e.g. `Darwin.gcc.defs`, `Linux.gcc.defs`. Auto-detected from `platform.system()` if omitted. |
+| `make_jobs` | int | 4 | [1, 64] | Parallel `make -jN` jobs |
+
+---
+
+## Run parameters (`PLUTOParams`)
+
 Called by `scripts/run_pluto.py`. Parameters marked **required** have no
 default; all others fall back to the existing `pluto.ini` value when omitted.
 

@@ -1,8 +1,9 @@
 # PLUTO Skill — Run Examples
 
 All examples use `$PLUTO_DIR/Test_Problems/HD/Disk_Planet/` as the reference
-run directory. It contains `definitions.h`, `init.c`, `eos.c`, `makefile`,
-and two `pluto.ini` variants — a fully self-contained, ready-to-run test case.
+run directory. It contains eight numbered config variants (`definitions_01.h` –
+`definitions_08.h`, `pluto_01.ini` – `pluto_08.ini`) — a fully self-contained,
+ready-to-compile-and-run test case.
 
 ---
 
@@ -12,11 +13,16 @@ and two `pluto.ini` variants — a fully self-contained, ready-to-run test case.
 256 × 768 cells). Planet mass, disk mass, stellar mass, and viscosity are
 all runtime-patchable `[Parameters]`.
 
-**Compile** (from inside the test directory):
+**Compile** (config variant 1, auto-detects host arch):
 ```bash
-cd $PLUTO_DIR/Test_Problems/HD/Disk_Planet
-python $PLUTO_DIR/setup.py          # select modules interactively, or:
-make                                 # if Makefile already exists
+python ~/.agents/skills/pluto/scripts/compile_pluto.py \
+    --run-dir $PLUTO_DIR/Test_Problems/HD/Disk_Planet --config-num 1
+```
+
+JSON form (useful for agents):
+```bash
+python ~/.agents/skills/pluto/scripts/compile_pluto.py \
+    --json '{"run_dir": "$PLUTO_DIR/Test_Problems/HD/Disk_Planet", "config_num": 1}'
 ```
 
 **Run with defaults** (`pluto_01.ini`, `tstop = 2.0` code units):

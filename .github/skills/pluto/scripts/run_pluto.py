@@ -3,8 +3,7 @@
 PLUTO ini patcher and runner with Pydantic v2 parameter validation.
 
 Usage (agent / JSON form):
-    python run_pluto.py \
-        --json '{"run_dir": "runs/disk", "tstop": 500, "parameters": {"ALPHA": 1e-3}}'
+    python run_pluto.py --json '{"run_dir": "runs/disk", "tstop": 500, "parameters": {"ALPHA": 1e-3}}'
 
 Usage (CLI form):
     python run_pluto.py --run-dir runs/disk --tstop 500 --n-procs 4
@@ -31,10 +30,9 @@ from scientific_pydantic.numpy import NDArrayAdapter
 # Pydantic parameter model
 # ---------------------------------------------------------------------------
 
-
 class PLUTOParams(BaseModel):
     run_dir: str
-    output_dir: Optional[str] = None  # defaults to run_dir
+    output_dir: Optional[str] = None          # defaults to run_dir
     tstop: Optional[float] = Field(default=None, gt=0.0)
     cfl: Optional[float] = Field(default=None, ge=0.1, le=0.9)
     first_dt: Optional[float] = Field(default=None, gt=0.0)
@@ -45,9 +43,9 @@ class PLUTOParams(BaseModel):
     restart: Optional[int] = Field(default=None, ge=0)
     # Optional staged-run schedule: PLUTO is called once per checkpoint, with
     # automatic restarts between stops.  Mutually exclusive with `tstop`.
-    checkpoint_times: ty.Optional[
-        ty.Annotated[np.ndarray, NDArrayAdapter(ndim=1, dtype="float64", gt=0.0)]
-    ] = None
+    checkpoint_times: ty.Optional[ty.Annotated[
+        np.ndarray, NDArrayAdapter(ndim=1, dtype="float64", gt=0.0)
+    ]] = None
 
     @field_validator("tstop", "cfl", "first_dt", mode="before")
     @classmethod
@@ -75,14 +73,15 @@ class PLUTOParams(BaseModel):
         if not os.path.isfile(ini):
             raise ValueError(f"pluto.ini not found in run_dir: {self.run_dir!r}")
         if self.tstop is not None and self.checkpoint_times is not None:
-            raise ValueError("Specify either 'tstop' or 'checkpoint_times', not both.")
+            raise ValueError(
+                "Specify either 'tstop' or 'checkpoint_times', not both."
+            )
         return self
 
 
 # ---------------------------------------------------------------------------
 # pluto.ini patcher
 # ---------------------------------------------------------------------------
-
 
 class PLUTOIniPatcher:
     """Line-based patcher for pluto.ini that preserves structure."""
@@ -169,7 +168,6 @@ class PLUTOIniPatcher:
 # Snapshot parser helpers
 # ---------------------------------------------------------------------------
 
-
 def _parse_last_snapshot(run_dir: str) -> dict:
     """Return {'n': int, 't': float, 'rho_max': float, 'rho_min': float}."""
     result = {"n": -1, "t": float("nan"), "rho_max": float("nan"), "rho_min": float("nan")}
@@ -177,7 +175,6 @@ def _parse_last_snapshot(run_dir: str) -> dict:
     # Try HDF5 first
     try:
         import h5py
-
         hdf_files = sorted(Path(run_dir).glob("data.*.hdf5"))
         if hdf_files:
             last = hdf_files[-1]
@@ -199,7 +196,7 @@ def _parse_last_snapshot(run_dir: str) -> dict:
     dbl_out = os.path.join(run_dir, "dbl.out")
     if os.path.isfile(dbl_out):
         with open(dbl_out) as fh:
-            lines = [line for line in fh.readlines() if line.strip()]
+            lines = [l for l in fh.readlines() if l.strip()]
         if lines:
             last_line = lines[-1].split()
             try:
@@ -213,7 +210,6 @@ def _parse_last_snapshot(run_dir: str) -> dict:
 # ---------------------------------------------------------------------------
 # Simulation runner
 # ---------------------------------------------------------------------------
-
 
 def run_pluto_simulation(params: PLUTOParams) -> str:
     ini_path = os.path.join(params.run_dir, "pluto.ini")
@@ -242,7 +238,14 @@ def run_pluto_simulation(params: PLUTOParams) -> str:
         if not os.path.isabs(pluto_exe):
             pluto_exe = os.path.join(params.run_dir, pluto_exe.lstrip("./"))
         if not os.path.isfile(pluto_exe):
-            pluto_exe = shutil.which("pluto") or params.pluto_bin
+            pluto_exe = shutil.which("pluto") or ""
+        if not pluto_exe or not os.path.isfile(pluto_exe):
+            return (
+                f"ERROR: PLUTO binary not found in '{params.run_dir}' and not on PATH.\n"
+                f"Compile first with:\n"
+                f"  python ~/.agents/skills/pluto/scripts/compile_pluto.py"
+                f" --run-dir {params.run_dir} --config-num 1"
+            )
 
         cmd: list[str] = []
         if params.n_procs > 1:
@@ -272,11 +275,12 @@ def run_pluto_simulation(params: PLUTOParams) -> str:
         )
 
     snap = _parse_last_snapshot(output_dir)
-    warnings = [w for w in proc.stderr.splitlines() if "warn" in w.lower()]
+    warnings = [l for l in proc.stderr.splitlines() if "warn" in l.lower()]
     warn_str = "; ".join(warnings[:5]) if warnings else "none"
+    n_stages = 1
 
     return (
-        f"SUCCESS: run_dir={params.run_dir}  wall_clock={t_wall:.1f}s\n"
+        f"SUCCESS: run_dir={params.run_dir}  stages={n_stages}  wall_clock={t_wall:.1f}s\n"
         f"  last_snapshot={snap['n']}  t={snap['t']:.4g} (code units)\n"
         f"  rho_max={snap['rho_max']:.3e}  rho_min={snap['rho_min']:.3e}\n"
         f"  warnings: {warn_str}"
@@ -286,7 +290,6 @@ def run_pluto_simulation(params: PLUTOParams) -> str:
 # ---------------------------------------------------------------------------
 # CLI
 # ---------------------------------------------------------------------------
-
 
 def _build_parser() -> argparse.ArgumentParser:
     p = argparse.ArgumentParser(description="Patch pluto.ini and run PLUTO.")
