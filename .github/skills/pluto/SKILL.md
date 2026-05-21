@@ -19,8 +19,7 @@ argument-hint: "Run directory and task, e.g. 'runs/disk_gap compile config_num=1
 - **Run or resume** a compiled PLUTO simulation
 - **Adjust** `tstop`, `CFL`, `first_dt`, Riemann solver, or any `[Parameters]`
   entry **without** recompiling
-- Do **NOT** use this skill to change grid geometry or physics modules if a
-  compiled binary already exists — those require calling the compile step again
+- Do **NOT** use this skill to change grid geometry or physics modules if a compiled binary already exists — those require calling the compile step again
 
 ## Prerequisites
 
@@ -52,6 +51,11 @@ argument-hint: "Run directory and task, e.g. 'runs/disk_gap compile config_num=1
 ## Run Procedure
 
 1. Collect `run_dir` and any parameter overrides from the user.
+2. Compile policy (default):
+  - Auto-compile if `pluto` binary is missing (`auto_compile=true` by default)
+  - Recompile on demand with `force_compile=true`
+  - If a numbered setup is required, pass `config_num=<N>`
+  - Disable auto-compile only when you are sure the binary is valid: `auto_compile=false`
 2. Call the patch-and-run script:
    ```
    python ~/.agents/skills/pluto/scripts/run_pluto.py \
@@ -62,9 +66,18 @@ argument-hint: "Run directory and task, e.g. 'runs/disk_gap compile config_num=1
    python ~/.agents/skills/pluto/scripts/run_pluto.py \
        --run-dir runs/disk_gap --tstop 500.0 --n-procs 4
    ```
-3. The script backs up `pluto.ini`, patches the requested sections, launches PLUTO,
-   then restores the original `pluto.ini` on exit.
-4. Parse `SUCCESS:` / `ERROR:` prefix.  On error, show the last 15 lines of stderr.
+3. Background mode for long runs:
+  ```
+  python ~/.agents/skills/pluto/scripts/run_pluto.py \
+     --json '{"run_dir": "runs/disk_gap", "tstop": 1000.0, "background": true, "monitor": true, "plot_on_the_fly": true}'
+  ```
+4. The script backs up `pluto.ini`, patches requested sections, launches PLUTO, then restores the original `pluto.ini`.
+5. If `background=true`, parse `STARTED:` output and track:
+  - `pid`
+  - `pluto_run.log`
+  - `pluto_run.pid`
+  - optional `pluto_monitor.log`
+6. Parse `SUCCESS:` / `ERROR:` prefix in foreground mode. On error, show the last 15 lines of stderr.
 
 ## Parameters
 
@@ -93,6 +106,16 @@ argument-hint: "Run directory and task, e.g. 'runs/disk_gap compile config_num=1
 | `n_procs` | int | 1 | [1, 512] | MPI rank count |
 | `pluto_bin` | str | `./pluto` | — | Path to PLUTO executable |
 | `restart` | int | None | ≥ 0 | Restart from snapshot number N (first stage only) |
+| `config_num` | int | None | [1, 99] | Compile variant passed to `compile_pluto.py` when compile is triggered |
+| `auto_compile` | bool | `true` | — | Compile automatically if binary is missing |
+| `force_compile` | bool | `false` | — | Force a recompile before running |
+| `background` | bool | `false` | — | Return immediately after launch; writes PID and log files |
+| `monitor` | bool | `false` | — | Monitor snapshots while PLUTO runs |
+| `watch_interval` | float | `20.0` | [1, 3600] | Polling cadence (seconds) for monitor loop |
+| `plot_on_the_fly` | bool | `false` | — | Render density + velocity plots while snapshots appear |
+| `plot_interval` | float | `30.0` | [1, 3600] | Minimum seconds between plot renders |
+| `plot_output_dir` | str | `<output_dir>/live_plots` | — | Directory for generated monitor plots |
+| `quiver_subsample` | int | `8` | [1, 128] | Vector-field downsampling for quiver overlay |
 
 ## Output
 
@@ -109,6 +132,14 @@ SUCCESS: run_dir=<path>  wall_clock=<N>s
   last_snapshot=<N>  t=<val> (code units)
   rho_max=<val>  rho_min=<val>
   warnings: <any stderr warnings>
+```
+
+Background launch:
+```
+STARTED: pid=<pid> run_dir=<path>
+  log=<output_dir>/pluto_run.log
+  pid_file=<output_dir>/pluto_run.pid
+  monitor_log=<output_dir>/pluto_monitor.log
 ```
 
 ## Common Errors

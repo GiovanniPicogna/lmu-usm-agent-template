@@ -28,7 +28,6 @@ import shutil
 import subprocess
 import sys
 import time
-from pathlib import Path
 from typing import Optional
 
 from pydantic import BaseModel, Field, model_validator
@@ -38,11 +37,12 @@ from pydantic import BaseModel, Field, model_validator
 # Pydantic parameter model
 # ---------------------------------------------------------------------------
 
+
 class PLUTOCompileParams(BaseModel):
     run_dir: str
-    pluto_dir: Optional[str] = None   # falls back to $PLUTO_DIR
+    pluto_dir: Optional[str] = None  # falls back to $PLUTO_DIR
     config_num: Optional[int] = Field(default=None, ge=1, le=99)
-    arch: Optional[str] = None        # e.g. "Darwin.gcc.defs"; auto-detected if None
+    arch: Optional[str] = None  # e.g. "Darwin.gcc.defs"; auto-detected if None
     make_jobs: int = Field(default=4, ge=1, le=64)
 
     @model_validator(mode="after")
@@ -52,9 +52,7 @@ class PLUTOCompileParams(BaseModel):
         if self.pluto_dir is None:
             env_dir = os.environ.get("PLUTO_DIR")
             if env_dir is None:
-                raise ValueError(
-                    "pluto_dir not specified and $PLUTO_DIR env var is not set."
-                )
+                raise ValueError("pluto_dir not specified and $PLUTO_DIR env var is not set.")
             self.pluto_dir = env_dir
         if not os.path.isdir(self.pluto_dir):
             raise ValueError(f"pluto_dir does not exist: {self.pluto_dir!r}")
@@ -63,13 +61,9 @@ class PLUTOCompileParams(BaseModel):
             def_src = os.path.join(self.run_dir, f"definitions_{n:02d}.h")
             ini_src = os.path.join(self.run_dir, f"pluto_{n:02d}.ini")
             if not os.path.isfile(def_src):
-                raise ValueError(
-                    f"definitions_{n:02d}.h not found in run_dir: {self.run_dir!r}"
-                )
+                raise ValueError(f"definitions_{n:02d}.h not found in run_dir: {self.run_dir!r}")
             if not os.path.isfile(ini_src):
-                raise ValueError(
-                    f"pluto_{n:02d}.ini not found in run_dir: {self.run_dir!r}"
-                )
+                raise ValueError(f"pluto_{n:02d}.ini not found in run_dir: {self.run_dir!r}")
         else:
             if not os.path.isfile(os.path.join(self.run_dir, "definitions.h")):
                 raise ValueError(
@@ -77,9 +71,7 @@ class PLUTOCompileParams(BaseModel):
                     "Either copy definitions_N.h manually or pass config_num."
                 )
             if not os.path.isfile(os.path.join(self.run_dir, "pluto.ini")):
-                raise ValueError(
-                    "pluto.ini not found in run_dir and config_num not given."
-                )
+                raise ValueError("pluto.ini not found in run_dir and config_num not given.")
         return self
 
 
@@ -87,13 +79,14 @@ class PLUTOCompileParams(BaseModel):
 # Helpers
 # ---------------------------------------------------------------------------
 
+
 def _detect_arch(pluto_dir: str) -> str:
     """Return the most appropriate .defs filename for the current OS."""
     system = platform.system()
     config_dir = os.path.join(pluto_dir, "Config")
     candidates = {
         "Darwin": ["Darwin.gcc.defs", "Darwin.mpicc.defs"],
-        "Linux":  ["Linux.gcc.defs",  "Linux.mpicc.defs"],
+        "Linux": ["Linux.gcc.defs", "Linux.mpicc.defs"],
     }
     for name in candidates.get(system, []):
         if os.path.isfile(os.path.join(config_dir, name)):
@@ -107,10 +100,7 @@ def _detect_arch(pluto_dir: str) -> str:
 
 def _write_stub_makefile(run_dir: str, pluto_dir: str, arch: str) -> None:
     """Write a minimal stub so setup.py --auto-update picks up ARCH without prompting."""
-    stub = (
-        f"ARCH         = {arch}\n"
-        f"PLUTO_DIR    = {pluto_dir}\n"
-    )
+    stub = f"ARCH         = {arch}\n" f"PLUTO_DIR    = {pluto_dir}\n"
     with open(os.path.join(run_dir, "makefile"), "w") as fh:
         fh.write(stub)
 
@@ -118,6 +108,7 @@ def _write_stub_makefile(run_dir: str, pluto_dir: str, arch: str) -> None:
 # ---------------------------------------------------------------------------
 # Main compile function
 # ---------------------------------------------------------------------------
+
 
 def compile_pluto(params: PLUTOCompileParams) -> str:
     run_dir = params.run_dir
@@ -156,8 +147,7 @@ def compile_pluto(params: PLUTOCompileParams) -> str:
     if setup_proc.returncode != 0:
         return (
             f"ERROR: setup.py --auto-update failed (exit {setup_proc.returncode})\n"
-            f"stderr (last 20 lines):\n"
-            + "\n".join(setup_proc.stderr.splitlines()[-20:])
+            f"stderr (last 20 lines):\n" + "\n".join(setup_proc.stderr.splitlines()[-20:])
         )
 
     # 5. Compile
@@ -173,8 +163,7 @@ def compile_pluto(params: PLUTOCompileParams) -> str:
     if make_proc.returncode != 0:
         return (
             f"ERROR: make failed (exit {make_proc.returncode})\n"
-            f"Last 20 lines of stderr:\n"
-            + "\n".join(make_proc.stderr.splitlines()[-20:])
+            f"Last 20 lines of stderr:\n" + "\n".join(make_proc.stderr.splitlines()[-20:])
         )
 
     # 6. Verify binary was produced
@@ -197,22 +186,26 @@ def compile_pluto(params: PLUTOCompileParams) -> str:
 # CLI
 # ---------------------------------------------------------------------------
 
+
 def _build_parser() -> argparse.ArgumentParser:
-    p = argparse.ArgumentParser(
-        description="Compile a PLUTO problem non-interactively."
+    p = argparse.ArgumentParser(description="Compile a PLUTO problem non-interactively.")
+    p.add_argument(
+        "--json", metavar="JSON", help="JSON string or path to JSON file with all parameters"
     )
-    p.add_argument("--json", metavar="JSON",
-                   help="JSON string or path to JSON file with all parameters")
-    p.add_argument("--run-dir", dest="run_dir",
-                   help="Path to PLUTO problem directory")
-    p.add_argument("--pluto-dir", dest="pluto_dir",
-                   help="Path to PLUTO source tree (default: $PLUTO_DIR)")
-    p.add_argument("--config-num", dest="config_num", type=int,
-                   help="Config variant N: copies definitions_N.h and pluto_N.ini")
-    p.add_argument("--arch",
-                   help="Makefile arch, e.g. Darwin.gcc.defs (auto-detected if omitted)")
-    p.add_argument("--make-jobs", dest="make_jobs", type=int, default=4,
-                   help="Parallel make jobs (default: 4)")
+    p.add_argument("--run-dir", dest="run_dir", help="Path to PLUTO problem directory")
+    p.add_argument(
+        "--pluto-dir", dest="pluto_dir", help="Path to PLUTO source tree (default: $PLUTO_DIR)"
+    )
+    p.add_argument(
+        "--config-num",
+        dest="config_num",
+        type=int,
+        help="Config variant N: copies definitions_N.h and pluto_N.ini",
+    )
+    p.add_argument("--arch", help="Makefile arch, e.g. Darwin.gcc.defs (auto-detected if omitted)")
+    p.add_argument(
+        "--make-jobs", dest="make_jobs", type=int, default=4, help="Parallel make jobs (default: 4)"
+    )
     return p
 
 
@@ -220,8 +213,7 @@ def main() -> None:
     parser = _build_parser()
     args = parser.parse_args()
 
-    raw: dict = {k: v for k, v in vars(args).items()
-                 if v is not None and k != "json"}
+    raw: dict = {k: v for k, v in vars(args).items() if v is not None and k != "json"}
 
     if args.json:
         src = args.json.strip()
