@@ -21,17 +21,17 @@ argument-hint: >
 
 Before executing ANYTHING, answer these five questions in order:
 
-1. **What is the user's actual goal?**  
+1. **What is the user's actual goal?**
    (reach a target time? test a new solver? resume a crashed run?)
-2. **Does a compiled binary already exist in `run_dir`?**  
+2. **Does a compiled binary already exist in `run_dir`?**
    (check for `./pluto` or `./pluto_mpi` before deciding to compile)
-3. **Will the requested change require recompilation?**  
-   (grid geometry, physics module, dimensionality → YES;  
+3. **Will the requested change require recompilation?**
+   (grid geometry, physics module, dimensionality → YES;
     tstop, CFL, solver, [Parameters] values → NO)
-4. **What output files already exist?**  
-   (inspect `*.out` descriptor files and highest `.dbl` / `.h5` index  
+4. **What output files already exist?**
+   (inspect `*.out` descriptor files and highest `.dbl` / `.h5` index
     before choosing restart vs. fresh start)
-5. **Is the change reversible?**  
+5. **Is the change reversible?**
    (always back up `pluto.ini` and `definitions.h` before patching)
 
 Only after answering all five should you call a script.
@@ -58,9 +58,9 @@ run_dir/
 - `definitions.h` changes → **must recompile** — never patch at runtime
 - `pluto.ini` changes → **no recompile needed** — patch safely
 - `[Parameters]` in `pluto.ini` are user-defined names from `init.c` — they vary per problem
-- The restart flag is a **command-line argument**, NOT a `pluto.ini` entry:  
+- The restart flag is a **command-line argument**, NOT a `pluto.ini` entry:
   `./pluto -restart N` (N = snapshot number to restart from)
-- MPI decomposition is specified on the command line:  
+- MPI decomposition is specified on the command line:
   `mpirun -np 4 ./pluto_mpi -no-x2par` (or with `-decomp n1 n2 n3`)
 - Output format (`.dbl`, `.h5`, `.vtk`) is set in `pluto.ini [Output]` — check before reading
 

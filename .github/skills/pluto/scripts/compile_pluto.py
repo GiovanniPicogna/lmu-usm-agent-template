@@ -16,7 +16,6 @@ import argparse
 import json
 import os
 import platform
-import shutil
 import subprocess
 import sys
 import tempfile
@@ -30,25 +29,25 @@ from pydantic import BaseModel, Field, model_validator
 
 # ─── Constants ────────────────────────────────────────────────────────────────
 
-SETUP_TIMEOUT   = 120   # seconds — setup.py should never take longer
-MAKE_TIMEOUT    = 600   # seconds — 10 min is enough for even large problems
-TAIL_LINES      = 25    # lines of output to include in error messages
-SYSCONF_NAME    = "sysconf.out"   # written after successful compile
+SETUP_TIMEOUT = 120  # seconds — setup.py should never take longer
+MAKE_TIMEOUT = 600  # seconds — 10 min is enough for even large problems
+TAIL_LINES = 25  # lines of output to include in error messages
+SYSCONF_NAME = "sysconf.out"  # written after successful compile
 
 
 # ─── Pydantic model ───────────────────────────────────────────────────────────
 
 
 class PLUTOCompileParams(BaseModel):
-    run_dir:      str
-    pluto_dir:    Optional[str] = None   # falls back to $PLUTO_DIR
-    config_num:   Optional[int] = Field(default=None, ge=1, le=99)
-    arch:         Optional[str] = None   # e.g. "Darwin.gcc.defs"; auto if None
-    make_jobs:    int           = Field(default=4, ge=1, le=64)
-    parallel:     bool          = False  # if True, prefer MPI .defs and expect pluto_mpi
-    hdf5:         bool          = False  # if True, prefer HDF5-enabled .defs
-    setup_timeout: int          = Field(default=SETUP_TIMEOUT, ge=10, le=600)
-    make_timeout:  int          = Field(default=MAKE_TIMEOUT,  ge=30, le=3600)
+    run_dir: str
+    pluto_dir: Optional[str] = None  # falls back to $PLUTO_DIR
+    config_num: Optional[int] = Field(default=None, ge=1, le=99)
+    arch: Optional[str] = None  # e.g. "Darwin.gcc.defs"; auto if None
+    make_jobs: int = Field(default=4, ge=1, le=64)
+    parallel: bool = False  # if True, prefer MPI .defs and expect pluto_mpi
+    hdf5: bool = False  # if True, prefer HDF5-enabled .defs
+    setup_timeout: int = Field(default=SETUP_TIMEOUT, ge=10, le=600)
+    make_timeout: int = Field(default=MAKE_TIMEOUT, ge=30, le=3600)
 
     @model_validator(mode="after")
     def resolve_and_validate(self) -> "PLUTOCompileParams":
@@ -116,7 +115,7 @@ def _atomic_copy(src: Path, dst: Path) -> None:
     try:
         with os.fdopen(fd, "wb") as fh:
             fh.write(src.read_bytes())
-        os.replace(tmp_path, dst)   # atomic on POSIX
+        os.replace(tmp_path, dst)  # atomic on POSIX
     except Exception:
         try:
             os.unlink(tmp_path)
@@ -224,18 +223,16 @@ def _write_stub_makefile(run_dir: str, pluto_dir: str, arch: str) -> None:
     re-run the full interactive setup. This means the stub must match exactly
     what setup.py expects, including the variable names ARCH and PLUTO_DIR.
     """
-    stub = (
-        f"ARCH         = {arch}\n"
-        f"PLUTO_DIR    = {pluto_dir}\n"
-    )
+    stub = f"ARCH         = {arch}\n" f"PLUTO_DIR    = {pluto_dir}\n"
     (Path(run_dir) / "makefile").write_text(stub)
 
 
 # ─── sysconf.out writer ───────────────────────────────────────────────────────
 
 
-def _write_sysconf(run_dir: str, arch: str, config_num: Optional[int],
-                   binary: str, parallel: bool) -> None:
+def _write_sysconf(
+    run_dir: str, arch: str, config_num: Optional[int], binary: str, parallel: bool
+) -> None:
     """Record last successful compile so run_pluto.py can read it."""
     content = (
         f"arch        = {arch}\n"
@@ -296,7 +293,7 @@ def _run_or_error(
 
 
 def compile_pluto(params: PLUTOCompileParams) -> str:
-    run_dir   = Path(params.run_dir)
+    run_dir = Path(params.run_dir)
     pluto_dir = params.pluto_dir
 
     protected = [run_dir / "definitions.h", run_dir / "pluto.ini", run_dir / "makefile"]
@@ -306,11 +303,12 @@ def compile_pluto(params: PLUTOCompileParams) -> str:
         if params.config_num is not None:
             n = params.config_num
             for stem, ext, dst_name in [
-                ("definitions", ".h",   "definitions.h"),
-                ("pluto",       ".ini", "pluto.ini"),
+                ("definitions", ".h", "definitions.h"),
+                ("pluto", ".ini", "pluto.ini"),
             ]:
                 src = next(
-                    p for fmt in (f"{stem}_{n:02d}{ext}", f"{stem}_{n}{ext}")
+                    p
+                    for fmt in (f"{stem}_{n:02d}{ext}", f"{stem}_{n}{ext}")
                     if (p := run_dir / fmt).is_file()
                 )
                 _atomic_copy(src, run_dir / dst_name)
@@ -398,38 +396,59 @@ def _build_parser() -> argparse.ArgumentParser:
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog=__doc__,
     )
-    p.add_argument("--json",       metavar="JSON",
-                   help="JSON string or path to JSON file with all parameters")
-    p.add_argument("--run-dir",    dest="run_dir",
-                   help="Path to PLUTO problem directory")
-    p.add_argument("--pluto-dir",  dest="pluto_dir",
-                   help="Path to PLUTO source tree (default: $PLUTO_DIR)")
-    p.add_argument("--config-num", dest="config_num", type=int,
-                   help="Config variant N: copies definitions_N.h and pluto_N.ini")
-    p.add_argument("--arch",
-                   help="Makefile arch token, e.g. Darwin.gcc.defs (auto-detected)")
-    p.add_argument("--make-jobs",  dest="make_jobs", type=int, default=4,
-                   help="Parallel make -jN jobs (default: 4)")
-    p.add_argument("--parallel",   action="store_true", default=False,
-                   help="Prefer MPI .defs file and expect pluto_mpi binary")
-    p.add_argument("--hdf5",       action="store_true", default=False,
-                   help="Prefer HDF5-enabled .defs file")
-    p.add_argument("--setup-timeout", dest="setup_timeout", type=int,
-                   default=SETUP_TIMEOUT,
-                   help=f"Timeout for setup.py in seconds (default: {SETUP_TIMEOUT})")
-    p.add_argument("--make-timeout",  dest="make_timeout",  type=int,
-                   default=MAKE_TIMEOUT,
-                   help=f"Timeout for make in seconds (default: {MAKE_TIMEOUT})")
+    p.add_argument(
+        "--json", metavar="JSON", help="JSON string or path to JSON file with all parameters"
+    )
+    p.add_argument("--run-dir", dest="run_dir", help="Path to PLUTO problem directory")
+    p.add_argument(
+        "--pluto-dir", dest="pluto_dir", help="Path to PLUTO source tree (default: $PLUTO_DIR)"
+    )
+    p.add_argument(
+        "--config-num",
+        dest="config_num",
+        type=int,
+        help="Config variant N: copies definitions_N.h and pluto_N.ini",
+    )
+    p.add_argument("--arch", help="Makefile arch token, e.g. Darwin.gcc.defs (auto-detected)")
+    p.add_argument(
+        "--make-jobs",
+        dest="make_jobs",
+        type=int,
+        default=4,
+        help="Parallel make -jN jobs (default: 4)",
+    )
+    p.add_argument(
+        "--parallel",
+        action="store_true",
+        default=False,
+        help="Prefer MPI .defs file and expect pluto_mpi binary",
+    )
+    p.add_argument(
+        "--hdf5", action="store_true", default=False, help="Prefer HDF5-enabled .defs file"
+    )
+    p.add_argument(
+        "--setup-timeout",
+        dest="setup_timeout",
+        type=int,
+        default=SETUP_TIMEOUT,
+        help=f"Timeout for setup.py in seconds (default: {SETUP_TIMEOUT})",
+    )
+    p.add_argument(
+        "--make-timeout",
+        dest="make_timeout",
+        type=int,
+        default=MAKE_TIMEOUT,
+        help=f"Timeout for make in seconds (default: {MAKE_TIMEOUT})",
+    )
     return p
 
 
 def main() -> None:
     parser = _build_parser()
-    args   = parser.parse_args()
+    args = parser.parse_args()
 
     # Build raw dict from CLI flags (exclude None and the --json field itself)
-    raw: dict = {k: v for k, v in vars(args).items()
-                 if v is not None and k != "json"}
+    raw: dict = {k: v for k, v in vars(args).items() if v is not None and k != "json"}
 
     # --json overrides individual CLI flags
     if args.json:
