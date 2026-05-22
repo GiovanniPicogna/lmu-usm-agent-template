@@ -1,13 +1,26 @@
 #!/usr/bin/env python3
 """
-PLUTO problem compiler — improved v2.
+PLUTO problem compiler.
 Mignone et al. 2007  —  https://plutocode.ph.unito.it
 
 Usage (agent / JSON form):
-    python compile_pluto.py --json '{"run_dir": "/path", "config_num": 1}'
+    python compile_pluto.py --json '{
+        "run_dir": "/path/to/Disk_Planet",
+        "config_num": 1,
+        "with_fargo": true,
+        "with_sb": true
+    }'
+
+    python compile_pluto.py --json '{
+        "run_dir": "/path",
+        "with_chombo": true,
+        "chombo_mpi": true,
+        "parallel": true
+    }'
 
 Usage (CLI form):
-    python compile_pluto.py --run-dir /path/to/Disk_Planet --config-num 1 --make-jobs 8
+    python compile_pluto.py --run-dir /path --config-num 1 --with-fargo --with-sb
+    python compile_pluto.py --run-dir /path --with-chombo --chombo-mpi --parallel
 """
 
 from __future__ import annotations
@@ -44,8 +57,21 @@ class PLUTOCompileParams(BaseModel):
     config_num: Optional[int] = Field(default=None, ge=1, le=99)
     arch: Optional[str] = None  # e.g. "Darwin.gcc.defs"; auto if None
     make_jobs: int = Field(default=4, ge=1, le=64)
-    parallel: bool = False  # if True, prefer MPI .defs and expect pluto_mpi
-    hdf5: bool = False  # if True, prefer HDF5-enabled .defs
+    parallel: bool = False  # prefer MPI .defs; expect pluto_mpi binary
+    hdf5: bool = False  # prefer HDF5-enabled .defs
+
+    # ── Physics module flags (passed to setup.py) ─────────────────────────────
+    # Source: setup.py argument loop (Mignone et al.)
+    # Mutual exclusions (enforced by setup.py; we validate here first):
+    #   --with-chombo  XOR  any of {--with-fd, --with-sb, --with-fargo}
+    #   --with-sb      XOR  --with-fd
+    with_sb: bool = False  # --with-sb         shearing box module
+    with_fargo: bool = False  # --with-fargo       FARGO-MHD module
+    with_fd: bool = False  # --with-fd          finite difference scheme
+    with_chombo: bool = False  # --with-chombo      AMR via Chombo library
+    chombo_mpi: bool = False  # --with-chombo: MPI=TRUE  (Chombo + MPI)
+    with_cr_transport: bool = False  # --with-cr_transport  (undocumented but valid)
+
     setup_timeout: int = Field(default=SETUP_TIMEOUT, ge=10, le=600)
     make_timeout: int = Field(default=MAKE_TIMEOUT, ge=30, le=3600)
 
@@ -64,6 +90,43 @@ class PLUTOCompileParams(BaseModel):
         for label, path in [("run_dir", self.run_dir), ("pluto_dir", self.pluto_dir)]:
             if not os.path.isdir(path):
                 raise ValueError(f"{label} does not exist: {path!r}")
+
+        # ── Physics module mutual exclusions (from setup.py source) ──────────
+        #
+        #   Rule 1: --with-chombo is incompatible with --with-fd, --with-sb, --with-fargo
+        #           (setup.py checks: cmset = {--with-fd,--with-sb,--with-fargo} & argv)
+        #   Rule 2: --with-sb is incompatible with --with-fd
+        #   Rule 3: chombo_mpi=True requires with_chombo=True
+        #
+        if self.with_chombo:
+            conflicts = []
+            if self.with_fd:
+                conflicts.append("with_fd")
+            if self.with_sb:
+                conflicts.append("with_sb")
+            if self.with_fargo:
+                conflicts.append("with_fargo")
+            if conflicts:
+                raise ValueError(
+                    f"with_chombo is incompatible with: {', '.join(conflicts)}. "
+                    "Chombo (AMR) cannot be combined with fd, sb, or fargo modules."
+                )
+
+        if self.with_sb and self.with_fd:
+            raise ValueError(
+                "with_sb (shearing box) and with_fd (finite difference) are "
+                "mutually exclusive — setup.py will exit with an error."
+            )
+
+        if self.chombo_mpi and not self.with_chombo:
+            raise ValueError(
+                "chombo_mpi=True requires with_chombo=True. "
+                "Set with_chombo=True to enable the Chombo AMR module first."
+            )
+
+        # ── chombo_mpi implies parallel build ─────────────────────────────────
+        if self.chombo_mpi:
+            self.parallel = True
 
         # ── numbered config files ─────────────────────────────────────────────
         if self.config_num is not None:
@@ -210,7 +273,68 @@ def _defs_has_parallel(run_dir: str, arch: str, pluto_dir: str) -> bool:
     return False
 
 
-# ─── Stub makefile ────────────────────────────────────────────────────────────
+# ─── setup.py argv builder ────────────────────────────────────────────────────
+
+
+def _build_setup_argv(params: "PLUTOCompileParams") -> list[str]:
+    """
+    Assemble the argument list for setup.py from the module flags in params.
+
+    CRITICAL ordering rules (derived from setup.py source):
+      1. --auto-update must be present (skips interactive arch menu).
+      2. --no-curses must come before module flags (it is a no-op print("")
+         in setup.py but is still parsed in the loop — safe to include).
+      3. --with-chombo MUST be the LAST flag.
+         Reason: setup.py does `break` immediately after matching it,
+         so any flag placed after --with-chombo is silently ignored.
+      4. All other module flags (--with-sb, --with-fargo, --with-fd,
+         --with-cr_transport) come before --with-chombo.
+
+    Mutual exclusions are enforced by the Pydantic validator before this
+    function is called, so we do not re-check them here.
+    """
+    argv = [
+        "--auto-update",
+        "--no-curses",  # no-op in setup.py but harmless; keeps output clean
+    ]
+
+    # Non-Chombo module flags — order among these does not matter
+    if params.with_sb:
+        argv.append("--with-sb")
+    if params.with_fargo:
+        argv.append("--with-fargo")
+    if params.with_fd:
+        argv.append("--with-fd")
+    if params.with_cr_transport:
+        argv.append("--with-cr_transport")  # matches setup.py token exactly
+
+    # --with-chombo MUST be last (setup.py breaks on it)
+    if params.with_chombo:
+        if params.chombo_mpi:
+            # setup.py accepts both "--with-chombo:" and "--with-chombo" in the
+            # same elif branch. The MPI variant is triggered by the colon form
+            # followed by "MPI=TRUE" as a separate argv token.
+            argv.extend(["--with-chombo:", "MPI=TRUE"])
+        else:
+            argv.append("--with-chombo")
+
+    return argv
+
+
+def _active_modules(params: "PLUTOCompileParams") -> list[str]:
+    """Return a sorted list of active module flag names for logging."""
+    active = []
+    if params.with_sb:
+        active.append("--with-sb")
+    if params.with_fargo:
+        active.append("--with-fargo")
+    if params.with_fd:
+        active.append("--with-fd")
+    if params.with_cr_transport:
+        active.append("--with-cr_transport")
+    if params.with_chombo:
+        active.append("--with-chombo:MPI=TRUE" if params.chombo_mpi else "--with-chombo")
+    return active
 
 
 def _write_stub_makefile(run_dir: str, pluto_dir: str, arch: str) -> None:
@@ -231,7 +355,12 @@ def _write_stub_makefile(run_dir: str, pluto_dir: str, arch: str) -> None:
 
 
 def _write_sysconf(
-    run_dir: str, arch: str, config_num: Optional[int], binary: str, parallel: bool
+    run_dir: str,
+    arch: str,
+    config_num: Optional[int],
+    binary: str,
+    parallel: bool,
+    modules: Optional[list[str]] = None,
 ) -> None:
     """Record last successful compile so run_pluto.py can read it."""
     content = (
@@ -239,6 +368,7 @@ def _write_sysconf(
         f"config_num  = {config_num if config_num is not None else 'none'}\n"
         f"binary      = {binary}\n"
         f"parallel    = {str(parallel).lower()}\n"
+        f"modules     = {' '.join(modules) if modules else 'none'}\n"
         f"compiled_at = {time.strftime('%Y-%m-%dT%H:%M:%S')}\n"
     )
     (Path(run_dir) / SYSCONF_NAME).write_text(content)
@@ -319,24 +449,27 @@ def compile_pluto(params: PLUTOCompileParams) -> str:
         # 3. Write stub makefile
         _write_stub_makefile(str(run_dir), pluto_dir, arch)
 
-        # 4. Generate full makefile via setup.py --auto-update
+        # 4. Generate full makefile via setup.py
         #
-        #   --auto-update : reads existing ARCH from makefile stub, skips menus
-        #   --no-curses   : documented in userguide §2.1; suppresses ncurses UI
-        #                   (accepted by setup.py's menu module even if not in the
-        #                   main argument loop — safe to include for all versions)
+        #   We build the argv via _build_setup_argv() which enforces:
+        #     - --auto-update first
+        #     - --no-curses second (no-op but harmless)
+        #     - module flags in any order
+        #     - --with-chombo LAST (setup.py breaks on it — anything after is ignored)
         #
-        #   IMPORTANT: we run with sys.executable (same interpreter as this script)
-        #   because on some systems `python` is Python 2 and setup.py must match.
+        #   IMPORTANT: run with sys.executable so this script and setup.py share
+        #   the same Python interpreter (avoids Python 2 vs 3 mismatch on some systems).
         setup_script = str(Path(pluto_dir) / "setup.py")
         env = {**os.environ, "PLUTO_DIR": pluto_dir}
+        setup_argv = _build_setup_argv(params)
+        modules = _active_modules(params)
 
         ok, msg = _run_or_error(
-            [sys.executable, setup_script, "--auto-update", "--no-curses"],
+            [sys.executable, setup_script] + setup_argv,
             cwd=str(run_dir),
             env=env,
             timeout=params.setup_timeout,
-            label="setup.py --auto-update",
+            label=f"setup.py {' '.join(setup_argv)}",
         )
         if not ok:
             return msg
@@ -374,14 +507,16 @@ def compile_pluto(params: PLUTOCompileParams) -> str:
         )
 
         # 7. Record compile state for run_pluto.py
-        _write_sysconf(str(run_dir), arch, params.config_num, binary_path, is_parallel)
+        _write_sysconf(str(run_dir), arch, params.config_num, binary_path, is_parallel, modules)
 
-    # Successful compile — backups are kept as .bak files for audit
+    # Successful compile — backups are kept for audit
+    modules_str = " ".join(modules) if modules else "none"
     return (
         f"SUCCESS: binary={binary_path}\n"
         f"  arch={arch}  config_num={params.config_num}  "
         f"parallel={is_parallel}  make_jobs={params.make_jobs}  "
         f"wall_clock={wall:.1f}s\n"
+        f"  modules={modules_str}\n"
         f"  pluto_dir={pluto_dir}\n"
         f"  sysconf={run_dir / SYSCONF_NAME}"
     )
@@ -425,6 +560,57 @@ def _build_parser() -> argparse.ArgumentParser:
     )
     p.add_argument(
         "--hdf5", action="store_true", default=False, help="Prefer HDF5-enabled .defs file"
+    )
+
+    # ── Physics module flags ──────────────────────────────────────────────────
+    mod = p.add_argument_group(
+        "physics modules",
+        "Flags passed verbatim to setup.py. Mutual exclusions: "
+        "--with-chombo XOR {--with-fd, --with-sb, --with-fargo}; "
+        "--with-sb XOR --with-fd. "
+        "--with-chombo is always placed LAST in setup.py argv (setup.py breaks on it).",
+    )
+    mod.add_argument(
+        "--with-sb",
+        dest="with_sb",
+        action="store_true",
+        default=False,
+        help="Enable shearing box module (--with-sb)",
+    )
+    mod.add_argument(
+        "--with-fargo",
+        dest="with_fargo",
+        action="store_true",
+        default=False,
+        help="Enable FARGO-MHD module (--with-fargo)",
+    )
+    mod.add_argument(
+        "--with-fd",
+        dest="with_fd",
+        action="store_true",
+        default=False,
+        help="Enable finite difference scheme (--with-fd)",
+    )
+    mod.add_argument(
+        "--with-chombo",
+        dest="with_chombo",
+        action="store_true",
+        default=False,
+        help="Enable AMR via Chombo library (--with-chombo)",
+    )
+    mod.add_argument(
+        "--chombo-mpi",
+        dest="chombo_mpi",
+        action="store_true",
+        default=False,
+        help="Use MPI-enabled Chombo (--with-chombo: MPI=TRUE); implies --with-chombo",
+    )
+    mod.add_argument(
+        "--with-cr-transport",
+        dest="with_cr_transport",
+        action="store_true",
+        default=False,
+        help="Enable cosmic-ray transport module (--with-cr_transport)",
     )
     p.add_argument(
         "--setup-timeout",

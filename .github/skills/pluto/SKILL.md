@@ -74,6 +74,10 @@ User request
     ├─ "change grid / geometry / physics / dimensionality"
     │       └─► COMPILE (must; binary invalid after these changes)
     │
+    ├─ "enable shearing box / FARGO / finite difference / Chombo / AMR"
+    │       └─► COMPILE with appropriate with_* flag(s)
+    │           └─► check mutual exclusions first (see §3a table)
+    │
     ├─ "change tstop / CFL / first_dt / solver / [Parameters]"
     │       └─► PATCH pluto.ini only, then RUN (no compile)
     │
@@ -110,8 +114,8 @@ Compile if ANY of the following are true:
 cp definitions_N.h definitions.h
 cp pluto_N.ini    pluto.ini          # if pluto_N.ini exists
 
-# Step 2: run setup.py to regenerate the makefile
-python $PLUTO_DIR/setup.py --auto-update --no-curses
+# Step 2: run setup.py — argument order matters (see below)
+python $PLUTO_DIR/setup.py --auto-update --no-curses [module flags] [--with-chombo last]
 
 # Step 3: parallel build
 make -j${make_jobs:-4}
@@ -120,21 +124,41 @@ make -j${make_jobs:-4}
 ls -lh pluto pluto_mpi 2>/dev/null
 ```
 
-Script call:
+Script call — examples:
+
 ```bash
-python ~/.agents/skills/pluto/scripts/compile_pluto.py \
-    --run-dir /path/to/problem \
-    --config-num 1 \
-    --make-jobs 4
+# Basic (no physics modules)
+python compile_pluto.py --run-dir runs/disk_planet --config-num 1
+
+# With shearing box + FARGO
+python compile_pluto.py --run-dir runs/disk_sb --with-sb --with-fargo
+
+# With finite difference (incompatible with shearing box)
+python compile_pluto.py --run-dir runs/disk_fd --with-fd
+
+# With Chombo AMR (serial — incompatible with fd/sb/fargo)
+python compile_pluto.py --run-dir runs/disk_amr --with-chombo
+
+# With Chombo AMR + MPI (implies --parallel, expects pluto_mpi)
+python compile_pluto.py --run-dir runs/disk_amr --with-chombo --chombo-mpi --parallel
+
+# JSON form (for agent use)
+python compile_pluto.py --json '{
+    "run_dir": "runs/disk_planet",
+    "config_num": 1,
+    "with_fargo": true,
+    "with_sb": true,
+    "make_jobs": 8
+}'
+
+python compile_pluto.py --json '{
+    "run_dir": "runs/disk_amr",
+    "with_chombo": true,
+    "chombo_mpi": true
+}'
 ```
 
-JSON form:
-```bash
-python ~/.agents/skills/pluto/scripts/compile_pluto.py \
-    --json '{"run_dir": "/path/to/problem", "config_num": 1, "make_jobs": 4}'
-```
-
-**Parse output:** look for `SUCCESS:` or `ERROR:` prefix. On error, show last 20 lines.
+**Parse output:** look for `SUCCESS:` or `ERROR:` prefix. On error, show last 25 lines.
 
 ---
 
@@ -297,7 +321,35 @@ Always report: last snapshot number, last `t` (code units), `rho_max`, `rho_min`
 | `config_num` | int | None | Copy `definitions_N.h` + `pluto_N.ini` before compiling |
 | `arch` | str | auto-detect | Makefile arch token, e.g. `Linux.gcc.defs`, `Darwin.gcc.defs` |
 | `make_jobs` | int | 4 | `-jN` parallelism for `make` |
+| `parallel` | bool | false | Prefer `mpicc.defs`; expect `pluto_mpi` binary |
+| `hdf5` | bool | false | Prefer HDF5-enabled `.defs` |
 | `force_compile` | bool | false | Force rebuild even if binary exists |
+| **`with_sb`** | bool | false | `--with-sb` — shearing box module |
+| **`with_fargo`** | bool | false | `--with-fargo` — FARGO-MHD module |
+| **`with_fd`** | bool | false | `--with-fd` — finite difference scheme |
+| **`with_chombo`** | bool | false | `--with-chombo` — AMR via Chombo library |
+| **`chombo_mpi`** | bool | false | `--with-chombo: MPI=TRUE` — Chombo + MPI; implies `parallel=true` |
+| **`with_cr_transport`** | bool | false | `--with-cr_transport` — cosmic-ray transport (undocumented in `--help` but valid) |
+| `setup_timeout` | int | 120 | Timeout (s) for `setup.py` subprocess |
+| `make_timeout` | int | 600 | Timeout (s) for `make` subprocess |
+
+**Mutual exclusion rules** (enforced before calling `setup.py`):
+
+| Rule | Source |
+|------|--------|
+| `with_chombo` **XOR** `{with_fd, with_sb, with_fargo}` | `setup.py`: `cmset` check → `sys.exit(1)` |
+| `with_sb` **XOR** `with_fd` | `setup.py`: explicit incompatibility check |
+| `chombo_mpi=True` requires `with_chombo=True` | logical dependency |
+
+**Argument ordering in `setup.py` call** (critical — derived from source):
+
+```
+setup.py  --auto-update  --no-curses  [--with-sb]  [--with-fargo]  [--with-fd]
+          [--with-cr_transport]  [--with-chombo [: MPI=TRUE]]
+```
+
+`--with-chombo` **must be last**: `setup.py` executes `break` immediately on
+matching it, so any flag placed after it is silently ignored.
 
 ### Run (`PLUTORunParams`)
 
@@ -403,3 +455,7 @@ STARTED: pid=<pid>  run_dir=<path>
 4. **Never change `[Grid]` in `pluto.ini` at runtime** — grid is set at compile time via `definitions.h` and only the number of grid points can be adjusted; changing geometry requires recompile.
 5. **Never assume `[Parameters]` key names** — they are defined in `init.c` and vary per problem. Always read the existing `pluto.ini` first to discover the actual key names before patching.
 6. **Never launch with `n_procs > 1` using the serial binary `./pluto`** — use `./pluto_mpi` (compiled with MPI support).
+7. **Never combine `with_chombo` with `with_fd`, `with_sb`, or `with_fargo`** — setup.py will exit with a fatal error. Validate before calling setup.py.
+8. **Never combine `with_sb` with `with_fd`** — mutually exclusive in setup.py.
+9. **Never place any flag after `--with-chombo` in the setup.py argv** — setup.py executes `break` on it and silently ignores everything that follows. Always put `--with-chombo` last.
+10. **`chombo_mpi=True` automatically implies `parallel=True`** — do not override this; Chombo's MPI build requires an MPI-enabled `.defs` file and produces `pluto_mpi`.
