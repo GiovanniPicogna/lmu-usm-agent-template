@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 """
-PLUTO problem compiler.
+PLUTO problem compiler — v4.
 Mignone et al. 2007  —  https://plutocode.ph.unito.it
+Based on PLUTO v4.4-patch3 (September 2024).
 
 Usage (agent / JSON form):
     python compile_pluto.py --json '{
@@ -14,13 +15,12 @@ Usage (agent / JSON form):
     python compile_pluto.py --json '{
         "run_dir": "/path",
         "with_chombo": true,
-        "chombo_mpi": true,
-        "parallel": true
+        "chombo_mpi": true
     }'
 
 Usage (CLI form):
     python compile_pluto.py --run-dir /path --config-num 1 --with-fargo --with-sb
-    python compile_pluto.py --run-dir /path --with-chombo --chombo-mpi --parallel
+    python compile_pluto.py --run-dir /path --with-chombo --chombo-mpi
 """
 
 from __future__ import annotations
@@ -57,7 +57,7 @@ class PLUTOCompileParams(BaseModel):
     config_num: Optional[int] = Field(default=None, ge=1, le=99)
     arch: Optional[str] = None  # e.g. "Darwin.gcc.defs"; auto if None
     make_jobs: int = Field(default=4, ge=1, le=64)
-    parallel: bool = False  # prefer MPI .defs; expect pluto_mpi binary
+    parallel: bool = False  # prefer mpicc .defs; sets PARALLEL=TRUE (binary still named ./pluto)
     hdf5: bool = False  # prefer HDF5-enabled .defs
 
     # ── Physics module flags (passed to setup.py) ─────────────────────────────
@@ -219,10 +219,13 @@ def _detect_arch(pluto_dir: str, parallel: bool = False, hdf5: bool = False) -> 
     """
     Pick the most appropriate .defs file from Config/.
 
-    Priority order (highest to lowest):
-      1. Exact match for current OS + MPI if parallel=True
-      2. Exact match for current OS (serial)
+    Priority order:
+      1. Exact OS match + MPI preference if parallel=True
+      2. Exact OS match (serial)
       3. First alphabetical .defs file
+
+    Note: PARALLEL=TRUE in the .defs file causes setup.py to link with mpicc
+    and produce an MPI-capable binary — still named './pluto', not 'pluto_mpi'.
     """
     system = platform.system()
     config_dir = Path(pluto_dir) / "Config"
@@ -233,7 +236,6 @@ def _detect_arch(pluto_dir: str, parallel: bool = False, hdf5: bool = False) -> 
     if not all_defs:
         raise FileNotFoundError(f"No .defs files in {config_dir}")
 
-    # Preference lists for each OS
     prefs: dict[str, list[str]] = {
         "Darwin": [
             "Darwin.mpicc.defs" if parallel else "Darwin.gcc.defs",
@@ -251,26 +253,31 @@ def _detect_arch(pluto_dir: str, parallel: bool = False, hdf5: bool = False) -> 
     for candidate in prefs.get(system, []):
         if candidate in all_defs:
             return candidate
-
-    # Fallback: first available
     return all_defs[0]
 
 
-def _defs_has_parallel(run_dir: str, arch: str, pluto_dir: str) -> bool:
-    """Read the .defs file and check if PARALLEL = TRUE."""
+def _read_defs_flags(arch: str, pluto_dir: str) -> dict[str, bool]:
+    """
+    Read PARALLEL, USE_HDF5, USE_PNG from the chosen .defs file.
+
+    These flags control whether the binary is MPI-capable, HDF5-capable, etc.
+    The binary is ALWAYS named './pluto' regardless of these settings
+    (userguide §1.4: 'for a single processor run ... ./pluto [flags]' /
+     'for a parallel run ... mpirun [...] ./pluto [args]').
+    """
     defs_path = Path(pluto_dir) / "Config" / arch
+    result = {"PARALLEL": False, "USE_HDF5": False, "USE_PNG": False}
     if not defs_path.is_file():
-        # Fall back to the local makefile if present
-        defs_path = Path(run_dir) / "makefile"
-    if not defs_path.is_file():
-        return False
-    text = defs_path.read_text(errors="replace")
-    for line in text.splitlines():
+        return result
+    for line in defs_path.read_text(errors="replace").splitlines():
         stripped = line.strip()
-        if stripped.startswith("PARALLEL") and "=" in stripped:
-            val = stripped.split("=", 1)[1].strip().upper()
-            return val == "TRUE"
-    return False
+        if stripped.startswith("#"):
+            continue
+        for key in result:
+            if stripped.upper().startswith(key) and "=" in stripped:
+                val = stripped.split("=", 1)[1].strip().upper().split()[0]
+                result[key] = val == "TRUE"
+    return result
 
 
 # ─── setup.py argv builder ────────────────────────────────────────────────────
@@ -280,25 +287,26 @@ def _build_setup_argv(params: "PLUTOCompileParams") -> list[str]:
     """
     Assemble the argument list for setup.py from the module flags in params.
 
-    CRITICAL ordering rules (derived from setup.py source):
-      1. --auto-update must be present (skips interactive arch menu).
-      2. --no-curses must come before module flags (it is a no-op print("")
-         in setup.py but is still parsed in the loop — safe to include).
+    CRITICAL ordering rules (from setup.py source code):
+      1. --auto-update must be present (reads ARCH from makefile stub; skips menus).
+      2. --no-curses should come before module flags. Per userguide Table 1.2,
+         it 'disables the curses terminal control feature and uses a shell-based
+         setup instead'. With --auto-update the interactive menu is skipped
+         entirely, so --no-curses is redundant but harmless and safe to include.
       3. --with-chombo MUST be the LAST flag.
-         Reason: setup.py does `break` immediately after matching it,
-         so any flag placed after --with-chombo is silently ignored.
-      4. All other module flags (--with-sb, --with-fargo, --with-fd,
-         --with-cr_transport) come before --with-chombo.
+         Reason: setup.py does `break` immediately after matching it; any flag
+         placed after --with-chombo is silently ignored.
+      4. All other module flags come before --with-chombo.
 
-    Mutual exclusions are enforced by the Pydantic validator before this
-    function is called, so we do not re-check them here.
+    Mutual exclusions are validated by the Pydantic model_validator before
+    this function is called.
     """
     argv = [
         "--auto-update",
-        "--no-curses",  # no-op in setup.py but harmless; keeps output clean
+        "--no-curses",  # switches to shell-based menu; harmless with --auto-update
     ]
 
-    # Non-Chombo module flags — order among these does not matter
+    # Non-Chombo flags — order among these does not matter
     if params.with_sb:
         argv.append("--with-sb")
     if params.with_fargo:
@@ -306,14 +314,11 @@ def _build_setup_argv(params: "PLUTOCompileParams") -> list[str]:
     if params.with_fd:
         argv.append("--with-fd")
     if params.with_cr_transport:
-        argv.append("--with-cr_transport")  # matches setup.py token exactly
+        argv.append("--with-cr_transport")
 
     # --with-chombo MUST be last (setup.py breaks on it)
     if params.with_chombo:
         if params.chombo_mpi:
-            # setup.py accepts both "--with-chombo:" and "--with-chombo" in the
-            # same elif branch. The MPI variant is triggered by the colon form
-            # followed by "MPI=TRUE" as a separate argv token.
             argv.extend(["--with-chombo:", "MPI=TRUE"])
         else:
             argv.append("--with-chombo")
@@ -362,7 +367,14 @@ def _write_sysconf(
     parallel: bool,
     modules: Optional[list[str]] = None,
 ) -> None:
-    """Record last successful compile so run_pluto.py can read it."""
+    """
+    Write our extended sysconf.out for agent state tracking.
+
+    Note: PLUTO's setup.py also writes a sysconf.out containing system info.
+    Per the userguide (§1.3 footnote), that file 'does not have any specific
+    purpose but may be helpful for the user'. We overwrite it with our richer
+    version so run_pluto.py can read the last compile configuration.
+    """
     content = (
         f"arch        = {arch}\n"
         f"config_num  = {config_num if config_num is not None else 'none'}\n"
@@ -426,6 +438,23 @@ def compile_pluto(params: PLUTOCompileParams) -> str:
     run_dir = Path(params.run_dir)
     pluto_dir = params.pluto_dir
 
+    # ── Chombo prerequisite check ─────────────────────────────────────────────
+    # Chombo AMR requires C++ (g++) and Fortran (gfortran) in addition to C
+    # (userguide Table 1.1). Check before attempting the build.
+    if params.with_chombo:
+        missing = []
+        for compiler in ("g++", "gfortran"):
+            proc = subprocess.run([compiler, "--version"], capture_output=True, text=True)
+            if proc.returncode != 0:
+                missing.append(compiler)
+        if missing:
+            return (
+                f"ERROR: Chombo AMR build requires C++ and Fortran compilers. "
+                f"Missing: {', '.join(missing)}. "
+                f"Install with e.g. 'apt install g++ gfortran' or "
+                f"'conda install gxx_linux-64 gfortran_linux-64'."
+            )
+
     protected = [run_dir / "definitions.h", run_dir / "pluto.ini", run_dir / "makefile"]
 
     with _backup_and_restore(protected):
@@ -446,19 +475,28 @@ def compile_pluto(params: PLUTOCompileParams) -> str:
         # 2. Detect / confirm arch
         arch = params.arch or _detect_arch(pluto_dir, params.parallel, params.hdf5)
 
-        # 3. Write stub makefile
+        # 3. Read actual PARALLEL/USE_HDF5 from the .defs file
+        defs_flags = _read_defs_flags(arch, pluto_dir)
+        is_parallel = defs_flags["PARALLEL"]
+        if params.parallel and not is_parallel:
+            print(
+                f"WARNING: parallel=True requested but arch '{arch}' has "
+                f"PARALLEL=FALSE. Pass arch= explicitly to select an mpicc .defs.",
+                file=sys.stderr,
+            )
+
+        # 4. Write stub makefile so --auto-update reads ARCH and PLUTO_DIR
         _write_stub_makefile(str(run_dir), pluto_dir, arch)
 
-        # 4. Generate full makefile via setup.py
+        # 5. Generate full makefile via setup.py
         #
-        #   We build the argv via _build_setup_argv() which enforces:
-        #     - --auto-update first
-        #     - --no-curses second (no-op but harmless)
-        #     - module flags in any order
-        #     - --with-chombo LAST (setup.py breaks on it — anything after is ignored)
+        #   --auto-update: reads ARCH from stub makefile; skips interactive menu
+        #   --no-curses:   switches to shell-based text menu (userguide Table 1.2)
+        #                  redundant with --auto-update but harmless
+        #   module flags:  correct order enforced by _build_setup_argv()
+        #                  --with-chombo MUST be last (setup.py breaks on it)
         #
-        #   IMPORTANT: run with sys.executable so this script and setup.py share
-        #   the same Python interpreter (avoids Python 2 vs 3 mismatch on some systems).
+        #   sys.executable: ensures same Python interpreter (avoids 2/3 mismatch)
         setup_script = str(Path(pluto_dir) / "setup.py")
         env = {**os.environ, "PLUTO_DIR": pluto_dir}
         setup_argv = _build_setup_argv(params)
@@ -474,7 +512,7 @@ def compile_pluto(params: PLUTOCompileParams) -> str:
         if not ok:
             return msg
 
-        # 5. Compile
+        # 6. Compile
         t0 = time.monotonic()
         ok, msg = _run_or_error(
             ["make", f"-j{params.make_jobs}"],
@@ -487,29 +525,21 @@ def compile_pluto(params: PLUTOCompileParams) -> str:
         if not ok:
             return msg
 
-        # 6. Find binary — check for both serial and MPI variants
-        binary_path: Optional[str] = None
-        for candidate in ("pluto_mpi", "pluto"):  # prefer MPI if both exist
-            p = run_dir / candidate
-            if p.is_file():
-                binary_path = str(p)
-                break
-
-        if binary_path is None:
+        # 7. Verify binary.
+        #
+        #    PLUTO ALWAYS produces a binary named './pluto' regardless of whether
+        #    PARALLEL=TRUE was set (userguide §1.4). There is NO 'pluto_mpi'.
+        #    MPI support is baked in at compile time via CC=mpicc in the .defs.
+        binary_path = str(run_dir / "pluto")
+        if not (run_dir / "pluto").is_file():
             return (
-                "ERROR: make reported success but no 'pluto' or 'pluto_mpi' binary "
-                f"found in {run_dir}. Check make output:\n{_tail(msg)}"
+                "ERROR: make reported success but './pluto' not found "
+                f"in {run_dir}. Check make output:\n{_tail(msg)}"
             )
 
-        # Infer whether this is a parallel build (for sysconf.out)
-        is_parallel = "pluto_mpi" in binary_path or _defs_has_parallel(
-            str(run_dir), arch, pluto_dir
-        )
-
-        # 7. Record compile state for run_pluto.py
+        # 8. Record compile state for agent state tracking
         _write_sysconf(str(run_dir), arch, params.config_num, binary_path, is_parallel, modules)
 
-    # Successful compile — backups are kept for audit
     modules_str = " ".join(modules) if modules else "none"
     return (
         f"SUCCESS: binary={binary_path}\n"
@@ -556,7 +586,8 @@ def _build_parser() -> argparse.ArgumentParser:
         "--parallel",
         action="store_true",
         default=False,
-        help="Prefer MPI .defs file and expect pluto_mpi binary",
+        help="Prefer MPI .defs file (sets PARALLEL=TRUE via CC=mpicc). "
+        "Binary is still named './pluto' (not 'pluto_mpi').",
     )
     p.add_argument(
         "--hdf5", action="store_true", default=False, help="Prefer HDF5-enabled .defs file"

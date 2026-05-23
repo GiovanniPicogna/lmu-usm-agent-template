@@ -1,316 +1,413 @@
 ---
 name: pluto
 description: >
-  Compile, configure, and run PLUTO (HD/MHD/RHD/RMHD) simulations.
-  Use when the user mentions: PLUTO code, pluto.ini, definitions.h,
-  PLUTO simulation, tstop, CFL, Riemann solver, .dbl/.h5/.vtk output,
-  snapshot, restart, compile PLUTO, make PLUTO, pyPLUTO, plutoplot,
-  MHD wind, disc simulation, init.c, setup.py, PLUTO_DIR.
-  Do NOT use for non-PLUTO CFD codes (Athena, RAMSES, FARGO, GADGET).
+  Compile, configure, and run PLUTO v4.4 (HD/MHD/RHD/RMHD/ResRMHD) simulations.
+  Use when the user mentions: PLUTO code, pluto.ini, definitions.h, PLUTO simulation,
+  tstop, CFL, Riemann solver, .dbl/.h5/.vtk output, snapshot, restart, compile PLUTO,
+  make PLUTO, pyPLUTO, plutoplot, MHD wind, disc simulation, init.c, setup.py, PLUTO_DIR.
+  Do NOT use for non-PLUTO CFD codes (Athena, RAMSES, FARGO3D, GADGET).
 argument-hint: >
   Run directory + task, e.g.:
   'runs/disk_planet  compile  config_num=1'
   'runs/disk_planet  tstop=500  ALPHA=1e-3  n_procs=4'
   'runs/disk_planet  restart=12  tstop=800'
+  'runs/disk_amr  compile  with_chombo=true  chombo_mpi=true'
 ---
 
 # PLUTO Simulation Skill
-# Mignone et al. 2007 — https://plutocode.ph.unito.it
-
-## 0. Chain-of-Thought Checklist (run mentally before every action)
-
-Before executing ANYTHING, answer these five questions in order:
-
-1. **What is the user's actual goal?**
-   (reach a target time? test a new solver? resume a crashed run?)
-2. **Does a compiled binary already exist in `run_dir`?**
-   (check for `./pluto` or `./pluto_mpi` before deciding to compile)
-3. **Will the requested change require recompilation?**
-   (grid geometry, physics module, dimensionality → YES;
-    tstop, CFL, solver, [Parameters] values → NO)
-4. **What output files already exist?**
-   (inspect `*.out` descriptor files and highest `.dbl` / `.h5` index
-    before choosing restart vs. fresh start)
-5. **Is the change reversible?**
-   (always back up `pluto.ini` and `definitions.h` before patching)
-
-Only after answering all five should you call a script.
+# Mignone et al. 2007, ApJS 170, 228 — https://plutocode.ph.unito.it
+# Based on PLUTO v4.4-patch3 (September 2024)
 
 ---
 
-## 1. PLUTO Architecture — What the Agent Must Know
+## 0. Chain-of-Thought Checklist
+
+Answer these five questions **before executing anything**:
+
+1. What is the user's actual goal? (reach a target time / test a solver / resume a crash)
+2. Does a compiled `./pluto` binary already exist in `run_dir`?
+3. Will the requested change require recompilation?
+   - YES → physics module, geometry, dimensionality, reconstruction order, EOS, divB method
+   - NO  → tstop, CFL, CFL_max_var, first_dt, solver, [Parameters] values, output intervals
+4. What output files already exist? Check `*.out` descriptor files and highest `.dbl` index.
+5. Is the change reversible? Always back up `pluto.ini` and `definitions.h` before patching.
+
+---
+
+## 1. System Requirements (from userguide Table 1.1)
+
+|                        | Static serial | Static parallel | AMR serial | AMR parallel |
+|------------------------|:---:|:---:|:---:|:---:|
+| Python (> 2.0)         | ✅ | ✅ | ✅ | ✅ |
+| C compiler             | ✅ | ✅ | ✅ | ✅ |
+| C++ compiler           | —  | —  | ✅ | ✅ |
+| Fortran compiler       | —  | —  | ✅ | ✅ |
+| GNU make               | ✅ | ✅ | ✅ | ✅ |
+| MPI library            | —  | ✅ | —  | ✅ |
+| Chombo library (≥3.2)  | —  | —  | ✅ | ✅ |
+| HDF5 library           | opt | opt | ✅ | ✅ |
+| PNG library            | opt | opt | —  | —  |
+
+**CRITICAL**: Chombo/AMR builds require C++ and Fortran compilers in addition to C.
+Check for `g++` and `gfortran` before attempting a Chombo compile.
+
+---
+
+## 2. PLUTO Directory & File Architecture
 
 ```
-run_dir/
-├── definitions.h        ← physics module, dimensionality, geometry (COMPILE-TIME)
-├── definitions_N.h      ← numbered variants; copy → definitions.h before compiling
-├── init.c               ← initial/boundary conditions (COMPILE-TIME)
-├── pluto.ini            ← grid, solver, output, [Parameters] (RUNTIME — patchable)
-├── pluto_N.ini          ← numbered ini variants (paired with definitions_N.h)
-├── pluto                ← compiled binary (serial)
-├── pluto_mpi            ← compiled binary (MPI parallel)
-├── *.out                ← descriptor files (grid info, variable names, file offsets)
-├── *.dbl / *.h5 / *.vtk ← snapshot data files
-└── sysconf.out          ← records last compile configuration
+run_dir/                         ← your local working directory
+├── definitions.h                ← COMPILE-TIME: physics, geometry, dimensions, EOS …
+├── definitions_N.h              ← numbered variants; copy → definitions.h before compiling
+├── init.c                       ← COMPILE-TIME: initial & boundary conditions
+├── pluto.ini                    ← RUNTIME (patchable): grid, solver, output, [Parameters]
+├── pluto_N.ini                  ← numbered ini variants, paired with definitions_N.h
+├── makefile                     ← generated by setup.py from a .defs arch file
+├── local_make                   ← optional: add user .c/.h files to the build
+├── ./pluto                      ← compiled binary (BOTH serial and MPI — always same name)
+├── sysconf.out                  ← written by setup.py; contains arch info (informational only)
+├── *.out                        ← descriptor files: dbl.out, flt.out, vtk.out …
+│                                   (record every snapshot: n, t, dt, nstep, filenames)
+├── *.dbl / *.flt / *.vtk        ← static grid snapshot data
+├── *.dbl.h5 / *.flt.h5          ← HDF5 snapshot data
+├── pluto.0.log                  ← parallel mode log (processor 0 only by default)
+└── chk.nnnn.hdf5                ← Chombo-AMR checkpoint files (restart targets)
 ```
 
 **CRITICAL rules:**
-- `definitions.h` changes → **must recompile** — never patch at runtime
-- `pluto.ini` changes → **no recompile needed** — patch safely
-- `[Parameters]` in `pluto.ini` are user-defined names from `init.c` — they vary per problem
-- The restart flag is a **command-line argument**, NOT a `pluto.ini` entry:
-  `./pluto -restart N` (N = snapshot number to restart from)
-- MPI decomposition is specified on the command line:
-  `mpirun -np 4 ./pluto_mpi -no-x2par` (or with `-decomp n1 n2 n3`)
-- Output format (`.dbl`, `.h5`, `.vtk`) is set in `pluto.ini [Output]` — check before reading
+- `definitions.h` changes → **must recompile**. Never patch at runtime.
+- `pluto.ini` changes → **no recompile needed**. Patch safely, back up first.
+- The binary is **always named `./pluto`** regardless of whether PARALLEL=TRUE.
+  MPI-capability is determined by whether `CC=mpicc` was used during compilation,
+  not by the binary name. There is no `pluto_mpi`.
+- `[Parameters]` in `pluto.ini` are user-defined names from `init.c` — they vary
+  per problem. Always read existing `pluto.ini` to discover actual key names.
+- Header files (`*.h`) must **NOT** be copied to the working directory
+  (§1.5 of userguide). Only `.c` source files can be locally overridden.
+- `sysconf.out` is written by setup.py as informational output. It has no runtime
+  significance to PLUTO itself, but we write an extended version for agent state tracking.
 
 ---
 
-## 2. Decision Tree: Compile vs. Run vs. Patch
+## 3. Decision Tree
 
 ```
 User request
     │
-    ├─ "change grid / geometry / physics / dimensionality"
-    │       └─► COMPILE (must; binary invalid after these changes)
+    ├─ "change physics / geometry / dimensionality / EOS / reconstruction / divB"
+    │       └─► COMPILE (mandatory; binary is invalid after these changes)
     │
     ├─ "enable shearing box / FARGO / finite difference / Chombo / AMR"
     │       └─► COMPILE with appropriate with_* flag(s)
-    │           └─► check mutual exclusions first (see §3a table)
+    │           Check mutual exclusions (§4 table) BEFORE calling setup.py
     │
-    ├─ "change tstop / CFL / first_dt / solver / [Parameters]"
-    │       └─► PATCH pluto.ini only, then RUN (no compile)
+    ├─ "change tstop / CFL / CFL_max_var / first_dt / solver / [Parameters]"
+    │       └─► PATCH pluto.ini → RUN (no compile needed)
     │
     ├─ "resume / restart / continue"
-    │       └─► find highest snapshot N in run_dir
-    │           └─► RUN with -restart N
+    │       └─► inspect dbl.out → find last snapshot N → RUN with -restart N
+    │           (for HDF5 restarts use -h5restart N)
+    │           (fluid-only restart for particle runs: -frestart N)
     │
-    ├─ "compile config N" or "definitions_N.h"
+    ├─ "compile config N" or mentions "definitions_N.h"
     │       └─► COMPILE with config_num=N
     │
     └─ binary missing?
-            └─► auto-compile, then RUN
+            └─► auto-compile (honoring config_num if set), then RUN
 ```
 
 ---
 
-## 3. Compile Procedure
+## 4. Compile: setup.py Flags
 
-### 3a. When to compile
+### 4a. When to compile
 
-Compile if ANY of the following are true:
-- No `./pluto` or `./pluto_mpi` binary exists in `run_dir`
-- `force_compile=true` was requested
-- `definitions.h` was changed (geometry, physics module, dimensionality,
-  number of passive scalars, EOS, divergence cleaning method, AMR on/off)
-- `config_num` differs from what `sysconf.out` records
+Compile if ANY of the following:
+- No `./pluto` binary in `run_dir`
+- `force_compile=true` requested
+- `definitions.h` changed (geometry, physics, dimensionality, reconstruction,
+  number of tracers/scalars, EOS, divB cleaning, AMR on/off)
+- `config_num` differs from what our `sysconf.out` records
 
 **Do NOT compile** if only `pluto.ini` values or `[Parameters]` changed.
 
-### 3b. Compile steps
+### 4b. Available setup.py flags (from userguide Table 1.2 + source)
 
-```bash
-# Step 1 (if config_num=N): copy numbered variant
-cp definitions_N.h definitions.h
-cp pluto_N.ini    pluto.ini          # if pluto_N.ini exists
+| Flag | Effect | Mutual exclusions |
+|------|--------|-------------------|
+| `--auto-update` | Skip interactive menu; read ARCH from existing makefile stub | None |
+| `--no-curses` | Use shell-based text menu instead of ncurses UI | None |
+| `--with-sb` | Enable shearing box module (§10.1) | incompatible with `--with-fd` |
+| `--with-fargo` | Enable FARGO-MHD orbital advection (§10.2) | incompatible with `--with-chombo` |
+| `--with-fd` | Enable finite difference scheme (§10.4) | incompatible with `--with-sb`, `--with-chombo` |
+| `--with-chombo` | Enable AMR via Chombo library (Chapter 13) | incompatible with `--with-fd`, `--with-sb`, `--with-fargo` |
+| `--with-chombo: MPI=TRUE` | Chombo + MPI parallel AMR | same as above |
+| `--with-cr_transport` | Cosmic-ray transport (undocumented in `--help`, valid in source) | None |
 
-# Step 2: run setup.py — argument order matters (see below)
-python $PLUTO_DIR/setup.py --auto-update --no-curses [module flags] [--with-chombo last]
+**CRITICAL ordering**: `--with-chombo` must be the **last** flag in the argv list.
+`setup.py` executes `break` immediately on matching it — anything after is ignored.
 
-# Step 3: parallel build
-make -j${make_jobs:-4}
-
-# Step 4: verify binary exists
-ls -lh pluto pluto_mpi 2>/dev/null
+Assembled argv order:
+```
+--auto-update  --no-curses  [--with-sb]  [--with-fargo]  [--with-fd]
+[--with-cr_transport]  [--with-chombo [: MPI=TRUE]]
 ```
 
-Script call — examples:
+### 4c. Compile procedure
 
 ```bash
-# Basic (no physics modules)
-python compile_pluto.py --run-dir runs/disk_planet --config-num 1
+# Step 1 (if config_num=N): copy numbered variant (try _01 then _1 padding)
+cp definitions_01.h definitions.h
+cp pluto_01.ini    pluto.ini
 
-# With shearing box + FARGO
+# Step 2: write stub makefile (ARCH + PLUTO_DIR) so --auto-update picks it up
+echo "ARCH      = Linux.gcc.defs" > makefile
+echo "PLUTO_DIR = /path/to/PLUTO" >> makefile
+
+# Step 3: regenerate full makefile + compile
+python $PLUTO_DIR/setup.py --auto-update --no-curses [module flags]
+make -j4
+
+# Step 4: verify binary
+ls -lh ./pluto   # always named 'pluto', never 'pluto_mpi'
+```
+
+Script call:
+```bash
+python compile_pluto.py --run-dir runs/disk_planet --config-num 1 --make-jobs 4
 python compile_pluto.py --run-dir runs/disk_sb --with-sb --with-fargo
+python compile_pluto.py --run-dir runs/disk_amr --with-chombo --chombo-mpi
 
-# With finite difference (incompatible with shearing box)
-python compile_pluto.py --run-dir runs/disk_fd --with-fd
-
-# With Chombo AMR (serial — incompatible with fd/sb/fargo)
-python compile_pluto.py --run-dir runs/disk_amr --with-chombo
-
-# With Chombo AMR + MPI (implies --parallel, expects pluto_mpi)
-python compile_pluto.py --run-dir runs/disk_amr --with-chombo --chombo-mpi --parallel
-
-# JSON form (for agent use)
+# JSON form
 python compile_pluto.py --json '{
     "run_dir": "runs/disk_planet",
     "config_num": 1,
     "with_fargo": true,
-    "with_sb": true,
-    "make_jobs": 8
-}'
-
-python compile_pluto.py --json '{
-    "run_dir": "runs/disk_amr",
-    "with_chombo": true,
-    "chombo_mpi": true
+    "with_sb": true
 }'
 ```
 
-**Parse output:** look for `SUCCESS:` or `ERROR:` prefix. On error, show last 25 lines.
-
 ---
 
-## 4. pluto.ini Patch Procedure
+## 5. pluto.ini Patch Procedure
 
 **Always back up before patching:**
 ```bash
 cp pluto.ini pluto.ini.bak.$(date +%Y%m%d_%H%M%S)
 ```
 
-`pluto.ini` has named sections in square brackets. Patch only the relevant key:
+### Patchable fields by block
 
+**`[Time]`** — all patchable at runtime:
 ```ini
-[Time]
-tstop          500.0        # ← patch this
-first_dt       1.e-4
-CFL            0.4          # ← or this
-
-[Solver]
-Solver         roe           # ← or this (hll, hllc, roe, tvdlf, etc.)
-
-[Parameters]
-ALPHA          1.e-3        # ← user-defined; name comes from init.c
-MPLANET        1.0
+CFL            0.4        # Courant number: must be < 1 (exact limit depends on TIME_STEPPING)
+CFL_max_var    1.1        # max ratio dt^n / dt^{n-1} (time step growth limiter)
+CFL_par        0.3        # parabolic CFL for STS (optional; default 0.8/Ndim)
+rmax_par       40.0       # max ratio dt/dt_par for STS (optional; default 100)
+tstop          1.0        # integration end time; must be > 0
+tfreeze        1.0        # freeze fluid at t > tfreeze (particles still run; optional)
+first_dt       1.e-4      # initial timestep; typical 1e-6 to 1e-3
 ```
 
-**Geometry / grid block** (`[Grid]`) — **NEVER patch at runtime**; requires recompile.
+**`[Solver]`** — patchable at runtime:
+```ini
+Solver   tvdlf            # see solver table below
+RadSolver hll             # radiation solver (only if RADIATION module compiled in)
+```
+
+**`[Parameters]`** — patchable at runtime:
+```ini
+ALPHA    1.e-3            # names defined in init.c; count must match definitions.h exactly
+MPLANET  1.0
+```
+
+**`[Static Grid Output]`** — patchable:
+```ini
+output_dir  ./            # must exist before run; default is current dir
+log_dir     ./Log_Files   # parallel log file directory (optional)
+dbl         1.0  -1  single_file     # time_interval  step_interval  single/multiple_file
+flt        -1.0  -1  single_file     # negative = suppress
+vtk        -1.0  -1  single_file
+dbl.h5      1.0  -1                  # HDF5 double (restartable with -h5restart)
+flt.h5     -1.0  -1
+tab        -1.0  -1
+ppm        -1.0  -1
+png        -1.0  -1
+log         1                        # log every N steps
+```
+
+**`[Grid]`** — **NEVER patch at runtime**: grid geometry is compile-time.
+
+**`[Chombo Refinement]`** — Chombo AMR parameters (only when compiled with --with-chombo):
+```ini
+Levels          4
+Ref_ratio       2 2 2 2 2
+Regrid_interval 2 2 2 2
+Refine_thresh   0.3
+Tag_buffer_size 3
+Block_factor    4
+Max_grid_size   32
+Fill_ratio      0.75
+```
+
+### Riemann solver availability (userguide Table 4.1)
+
+| Solver | HD | RHD | MHD | RMHD | ResRMHD | RADIATION |
+|--------|----|-----|-----|------|---------|-----------|
+| two_shock | ✅ | ✅ | — | — | — | — |
+| roe | ✅ | — | ✅ | — | — | — |
+| ausm+ | ✅ | — | — | — | — | — |
+| hlld | — | — | ✅ | ✅ | — | — |
+| mhllc | — | — | — | — | ✅ | — |
+| hllc | ✅ | ✅ | ✅ | ✅ | — | ✅ |
+| gforce | — | — | ✅ | ✅ | — | — |
+| hll | ✅ | ✅ | ✅ | ✅ | — | ✅ |
+| tvdlf | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+
+When in doubt or with high-Mach/low-density problems: use `hll` or `tvdlf`.
 
 ---
 
-## 5. Run Procedure
+## 6. Run Procedure
 
-### 5a. Determine restart vs. fresh start
+### 6a. Determine restart vs fresh start
 
 ```bash
-# Find highest existing snapshot
+# Find last snapshot from the descriptor file (ground truth)
+tail -5 dbl.out      # columns: n  t  dt  nstep  [file info]
+# OR scan for highest-numbered file
 ls *.dbl 2>/dev/null | sort -V | tail -1
-# or check the .out descriptor:
-tail -1 dbl.out   # format: snapshot_num  time  dt  nstep  ...  filename(s)
 ```
 
 If snapshots exist and user wants to continue → use `-restart N`.
 
-### 5b. Assemble the command line
+### 6b. Command-line reference (userguide Table 1.3)
 
 ```bash
-# Serial fresh start:
+# Serial, fresh start:
 ./pluto
 
-# Serial restart from snapshot 12:
+# Serial, restart from snapshot 12 (reads .dbl files):
 ./pluto -restart 12
 
-# MPI fresh start, 4 procs:
-mpirun -np 4 ./pluto_mpi
+# Serial, restart from HDF5 snapshot 12 (reads .dbl.h5 files):
+./pluto -h5restart 12
 
-# MPI restart, explicit decomposition (x1=2, x2=2 procs):
-mpirun -np 4 ./pluto_mpi -restart 12 -decomp 2 2
+# Fluid-only restart (suppress particle restart):
+./pluto -frestart 12
 
-# Use alternative ini file:
+# MPI parallel, fresh start, 4 processors:
+mpirun -np 4 ./pluto
+
+# MPI parallel, restart, user-defined decomposition (n1=2, n2=2):
+mpirun -np 4 ./pluto -restart 12 -dec 2 2
+
+# Suppress decomposition along one axis:
+mpirun -np 4 ./pluto -no-x2par
+
+# Alternative ini file:
 ./pluto -i custom.ini
 
-# Grid-only mode (no computation, useful for sanity-check):
-./pluto --makegrid
+# Grid-only (sanity check, no computation):
+./pluto -makegrid
+
+# Stop after N steps:
+./pluto -maxsteps 840
+
+# Override x1 resolution (aspect ratio preserved):
+./pluto -xres 256
+
+# Suppress all disk output:
+./pluto -no-write
+
+# Jet problems (exclude zero-pressure-gradient region):
+./pluto -x1jet
 ```
 
-### 5c. Script call
+**Note on `-dec`**: the flag is `-dec` (not `-decomp`). Product of n1×n2×n3 must equal
+the total number of MPI processes or PLUTO will error.
+
+**Note on Chombo-AMR restarts**: use `-restart N` which reads `chk.nnnn.hdf5`
+checkpoint files, not `.dbl` files.
+
+### 6c. Script call
 
 ```bash
-python ~/.agents/skills/pluto/scripts/run_pluto.py \
-    --json '{
-      "run_dir":    "runs/disk_planet",
-      "tstop":      500.0,
-      "cfl":        0.3,
-      "parameters": {"ALPHA": 1e-3, "MPLANET": 1.0},
-      "n_procs":    4,
-      "restart":    12,
-      "background": false
-    }'
+python run_pluto.py --json '{
+  "run_dir":    "runs/disk_planet",
+  "tstop":      500.0,
+  "cfl":        0.3,
+  "parameters": {"ALPHA": 1e-3, "MPLANET": 1.0},
+  "n_procs":    4,
+  "restart":    12
+}'
 ```
 
-Background / long run:
+Background / long run with monitoring:
 ```bash
-python ~/.agents/skills/pluto/scripts/run_pluto.py \
-    --json '{
-      "run_dir":         "runs/disk_planet",
-      "tstop":           1000.0,
-      "background":      true,
-      "monitor":         true,
-      "plot_on_the_fly": true,
-      "watch_interval":  30.0
-    }'
+python run_pluto.py --json '{
+  "run_dir":         "runs/disk_planet",
+  "tstop":           1000.0,
+  "background":      true,
+  "monitor":         true,
+  "plot_on_the_fly": true
+}'
 ```
 
 ---
 
-## 6. Staged / Checkpoint Runs
+## 7. Post-Run Diagnostics
 
-Use `checkpoint_times` (not `tstop`) to run in stages — useful for saving intermediate
-states or changing parameters mid-run. **Mutually exclusive with `tstop`.**
-
-```json
-{
-  "run_dir": "runs/disk_planet",
-  "checkpoint_times": [100, 250, 500, 1000],
-  "parameters": {"ALPHA": 1e-3}
-}
-```
-
-The script restarts from the previous checkpoint at each stage automatically.
-Each stage appends to the existing output (PLUTO's default behaviour).
-
----
-
-## 7. Output Reading — Sanity Check After Every Run
-
-After a run completes, always read and report the last snapshot diagnostics:
+After every run, always check:
 
 ```bash
-# Read the .out descriptor to find last snapshot:
-tail -5 dbl.out        # columns: n  t  dt  nstep  [file_info]
-tail -5 tabulated.dat  # runtime diagnostics (if enabled in pluto.ini)
-grep "PLUTO" pluto_run.log | tail -10   # scan for warnings
+# Ground truth: last snapshot metadata
+tail -5 dbl.out       # n  t  dt  nstep  filename(s)
 
-# Check for common pathologies:
-grep -i "nan\|inf\|negative\|overflow\|diverge" pluto_run.log | head -20
+# Serial log
+tail -20 pluto.0.log  # or screen output in serial mode
+
+# Parallel logs
+tail -5 pluto.0.log
+
+# Check for instability markers
+grep -i "nan\|inf\|negative\|overflow\|! error\|! warning" pluto.0.log | head -20
+
+# Runtime diagnostics (if analysis() writes them)
+tail -5 tabulated.dat
 ```
 
-**Raise a warning (do not silently proceed) if any of:**
-- `rho_min < 0` or `NaN` in any variable
-- Wall-clock time per snapshot > 10× the first few snapshots (CFL crash incoming)
-- `dt` decreasing monotonically for > 5 consecutive snapshots (instability)
-- Any `WARNING` or `! Fatal` line in the log
+**Raise a warning and do not silently proceed if:**
+- Any `NaN` or `Inf` in any field
+- `rho_min < 0` (negative density → unphysical)
+- Mach number growing unboundedly between steps (log reports large Mach values)
+- `dt` decreasing monotonically over >5 consecutive steps (stability breakdown)
+- Any line matching `! Fatal` or `! Error` in the log
 
-### Post-run analysis — recommend PyPLUTO
+**Plausibility bounds for common problems:**
+- Galaxy cluster temperature: kT = 1–15 keV
+- Disc midplane density contrast: ρ_max/ρ_min < 1e6 (warn if larger)
+- AGN/power-law photon index: Γ = 1.0–3.0
+- Stellar wind Mach number at outer boundary: < 20 (problem-dependent)
+
+### Post-run analysis — pyPLUTO (official, pip-installable)
 
 ```python
-# PyPLUTO (new, official — arXiv:2501.09748, pip install pypluto):
-import pyPLUTO as pp
+import pyPLUTO as pp          # pip install pypluto  (arXiv:2501.09748)
 d = pp.Load(12, w_dir="runs/disk_planet/", datatype="dbl")
 # d.rho, d.vx1, d.vx2, d.Bx3, d.x1, d.x2 ...
 
-# plutoplot (alternative, lightweight):
+# Alternative: plutoplot (lightweight)
 import plutoplot as ppt
 sim = ppt.Simulation("runs/disk_planet/")
-frame = sim[12]   # snapshot 12; frame.rho, frame.grid.x1, etc.
+frame = sim[12]   # snapshot 12
 ```
 
-Always report: last snapshot number, last `t` (code units), `rho_max`, `rho_min`.
+Always report: last snapshot N, last t (code units), rho_max, rho_min, dt_last.
 
 ---
 
-## 8. Parameters Reference Table
+## 8. Parameters Reference
 
 ### Compile (`PLUTOCompileParams`)
 
@@ -318,144 +415,135 @@ Always report: last snapshot number, last `t` (code units), `rho_max`, `rho_min`
 |-----------|------|---------|-------------|
 | `run_dir` | str | **required** | Path to PLUTO problem directory |
 | `pluto_dir` | str | `$PLUTO_DIR` | PLUTO source tree root |
-| `config_num` | int | None | Copy `definitions_N.h` + `pluto_N.ini` before compiling |
-| `arch` | str | auto-detect | Makefile arch token, e.g. `Linux.gcc.defs`, `Darwin.gcc.defs` |
+| `config_num` | int | None | Copy `definitions_N.h` + `pluto_N.ini` (tries `_01` and `_1` padding) |
+| `arch` | str | auto-detect | `.defs` arch token, e.g. `Linux.gcc.defs` |
 | `make_jobs` | int | 4 | `-jN` parallelism for `make` |
-| `parallel` | bool | false | Prefer `mpicc.defs`; expect `pluto_mpi` binary |
-| `hdf5` | bool | false | Prefer HDF5-enabled `.defs` |
+| `parallel` | bool | false | Prefer `mpicc.defs`; sets `PARALLEL=TRUE` in the `.defs` |
+| `hdf5` | bool | false | Prefer HDF5-enabled `.defs`; sets `USE_HDF5=TRUE` |
 | `force_compile` | bool | false | Force rebuild even if binary exists |
-| **`with_sb`** | bool | false | `--with-sb` — shearing box module |
-| **`with_fargo`** | bool | false | `--with-fargo` — FARGO-MHD module |
-| **`with_fd`** | bool | false | `--with-fd` — finite difference scheme |
-| **`with_chombo`** | bool | false | `--with-chombo` — AMR via Chombo library |
-| **`chombo_mpi`** | bool | false | `--with-chombo: MPI=TRUE` — Chombo + MPI; implies `parallel=true` |
-| **`with_cr_transport`** | bool | false | `--with-cr_transport` — cosmic-ray transport (undocumented in `--help` but valid) |
+| `with_sb` | bool | false | `--with-sb` — shearing box module |
+| `with_fargo` | bool | false | `--with-fargo` — FARGO-MHD orbital advection |
+| `with_fd` | bool | false | `--with-fd` — finite difference scheme |
+| `with_chombo` | bool | false | `--with-chombo` — AMR via Chombo library |
+| `chombo_mpi` | bool | false | `--with-chombo: MPI=TRUE` — implies `parallel=true` |
+| `with_cr_transport` | bool | false | `--with-cr_transport` (valid but undocumented in `--help`) |
 | `setup_timeout` | int | 120 | Timeout (s) for `setup.py` subprocess |
 | `make_timeout` | int | 600 | Timeout (s) for `make` subprocess |
 
-**Mutual exclusion rules** (enforced before calling `setup.py`):
+**Mutual exclusion rules:**
 
-| Rule | Source |
-|------|--------|
-| `with_chombo` **XOR** `{with_fd, with_sb, with_fargo}` | `setup.py`: `cmset` check → `sys.exit(1)` |
-| `with_sb` **XOR** `with_fd` | `setup.py`: explicit incompatibility check |
-| `chombo_mpi=True` requires `with_chombo=True` | logical dependency |
-
-**Argument ordering in `setup.py` call** (critical — derived from source):
-
-```
-setup.py  --auto-update  --no-curses  [--with-sb]  [--with-fargo]  [--with-fd]
-          [--with-cr_transport]  [--with-chombo [: MPI=TRUE]]
-```
-
-`--with-chombo` **must be last**: `setup.py` executes `break` immediately on
-matching it, so any flag placed after it is silently ignored.
+| Rule | Enforced by |
+|------|-------------|
+| `with_chombo` XOR `{with_fd, with_sb, with_fargo}` | setup.py `sys.exit(1)` + our validator |
+| `with_sb` XOR `with_fd` | setup.py `sys.exit(1)` + our validator |
+| `chombo_mpi=True` requires `with_chombo=True` | our validator |
 
 ### Run (`PLUTORunParams`)
 
-| Parameter | Type | Default | Constraint | Description |
-|-----------|------|---------|------------|-------------|
-| `run_dir` | str | **required** | must exist | Problem directory with compiled binary |
-| `output_dir` | str | `run_dir` | — | Where snapshots are written |
-| `tstop` | float | keep existing | > 0 | End time; **mutually exclusive** with `checkpoint_times` |
-| `checkpoint_times` | list[float] | None | all > 0, ascending | Staged end-times; **mutually exclusive** with `tstop` |
-| `cfl` | float | keep existing | [0.1, 0.9] | CFL safety factor |
-| `first_dt` | float | keep existing | > 0 | First timestep size |
-| `solver` | str | keep existing | — | Riemann solver: `roe`, `hll`, `hllc`, `tvdlf`, `ct` (MHD) |
-| `parameters` | dict | `{}` | — | `[Parameters]` key-value pairs (problem-specific names) |
-| `n_procs` | int | 1 | [1, 512] | MPI rank count; requires `./pluto_mpi` binary |
-| `decomp` | list[int] | None | product = n_procs | Explicit MPI decomposition [n1, n2, n3] |
-| `pluto_bin` | str | `./pluto` | — | Binary path; auto-switches to `./pluto_mpi` if n_procs > 1 |
-| `ini_file` | str | `pluto.ini` | — | Alternative ini file (`-i` flag) |
-| `restart` | int | None | ≥ 0 | Restart from snapshot N |
-| `config_num` | int | None | [1, 99] | Config variant for auto-compile |
-| `auto_compile` | bool | true | — | Compile automatically if binary missing |
-| `force_compile` | bool | false | — | Force recompile before running |
-| `background` | bool | false | — | Launch and return immediately |
-| `monitor` | bool | false | — | Poll snapshots while running |
-| `watch_interval` | float | 20.0 | [1, 3600] | Polling cadence (seconds) |
-| `plot_on_the_fly` | bool | false | — | Render density + velocity plots during run |
-| `plot_interval` | float | 30.0 | [1, 3600] | Minimum seconds between renders |
-| `plot_output_dir` | str | `<output_dir>/live_plots` | — | Directory for monitor plots |
-| `quiver_subsample` | int | 8 | [1, 128] | Downsampling factor for velocity quiver |
+| Parameter | Type | Default | Notes |
+|-----------|------|---------|-------|
+| `run_dir` | str | **required** | Must exist with compiled `./pluto` |
+| `output_dir` | str | `run_dir` | Where snapshots are written |
+| `tstop` | float | keep | > 0; **mutually exclusive** with `checkpoint_times` |
+| `checkpoint_times` | list[float] | None | Staged end-times; **mutually exclusive** with `tstop` |
+| `cfl` | float | keep | [0.1, 0.9] |
+| `cfl_max_var` | float | keep | > 1.0; maximum time step growth |
+| `first_dt` | float | keep | > 0 |
+| `solver` | str | keep | Must be valid for the compiled physics module (see §5 table) |
+| `parameters` | dict | `{}` | `[Parameters]` key-value pairs; names from `init.c` |
+| `n_procs` | int | 1 | MPI rank count; uses `mpirun -np N ./pluto` |
+| `decomp` | list[int] | None | `-dec n1 [n2] [n3]`; product must equal `n_procs` |
+| `ini_file` | str | `pluto.ini` | Alternative ini via `-i fname` |
+| `restart` | int | None | `-restart N`; reads `.dbl` files |
+| `h5restart` | int | None | `-h5restart N`; reads `.dbl.h5` files |
+| `frestart` | int | None | `-frestart N`; fluid-only restart |
+| `maxsteps` | int | None | `-maxsteps N`; stop after N steps |
+| `xres` | int | None | `-xres N`; override x1 resolution |
+| `no_write` | bool | false | `-no-write`; suppress all disk output |
+| `config_num` | int | None | Config variant for auto-compile |
+| `auto_compile` | bool | true | Compile if binary missing |
+| `force_compile` | bool | false | Force recompile |
+| `background` | bool | false | Launch and return immediately |
+| `monitor` | bool | false | Poll snapshots while running |
+| `watch_interval` | float | 20.0 | [1, 3600] seconds |
+| `plot_on_the_fly` | bool | false | Render plots during run |
+| `plot_interval` | float | 30.0 | [1, 3600] seconds |
+| `plot_output_dir` | str | `<output_dir>/live_plots` | Directory for monitor plots |
+| `quiver_subsample` | int | 8 | [1, 128] velocity field downsampling |
 
 ---
 
-## 9. Output Format
+## 9. Output Descriptor Files
 
-### Compile success
+PLUTO writes `dbl.out`, `flt.out`, `vtk.out` etc. after each snapshot. These are the
+**ground truth** for restart decisions. Format per line:
 ```
-SUCCESS: binary=<path>
-  arch=<arch>  config_num=<N|none>  make_jobs=<N>  wall_clock=<N>s
-  pluto_dir=<path>
+N  t  dt  nstep  single_file  endian  var1 var2 ... varN
 ```
+Where N is the snapshot index used with `-restart N`.
 
-### Run success
-```
-SUCCESS: run_dir=<path>  wall_clock=<N>s
-  last_snapshot=<N>  t=<val> (code units)
-  rho_max=<val>  rho_min=<val>
-  dt_last=<val>  nstep=<N>
-  warnings: <any stderr warnings, or "none">
-```
-
-### Background launch
-```
-STARTED: pid=<pid>  run_dir=<path>
-  log=<output_dir>/pluto_run.log
-  pid_file=<output_dir>/pluto_run.pid
-  monitor_log=<output_dir>/pluto_monitor.log  (if monitor=true)
-```
+For Chombo-AMR, checkpoint files are `chk.nnnn.hdf5` and plot files are `data.nnnn.hdf5`.
+Restart with `-restart N` (not `-h5restart`; Chombo-AMR treats both the same).
 
 ---
 
-## 10. Error Handling
+## 10. Physics Module Reference (compile-time, definitions.h)
 
-| Error message | Root cause | Fix |
-|---------------|-----------|-----|
-| `PLUTO binary not found` | Not compiled yet | Run compile step; or set `auto_compile=true` |
+| `PHYSICS` token | Description | Cite |
+|----------------|-------------|------|
+| `HD` | Classical hydrodynamics (Euler equations) | Mignone+2007 |
+| `MHD` | Ideal/resistive MHD | Mignone+2007 |
+| `RHD` | Special relativistic HD | Mignone+2007 |
+| `RMHD` | Special relativistic MHD | Mignone+2007 |
+| `ResRMHD` | Relativistic resistive MHD | Mignone+2019 (MNRAS 486) |
+
+**Geometry options** (compile-time):
+`CARTESIAN`, `CYLINDRICAL` (r,z — 1D or 2D only), `POLAR` (r,φ,z), `SPHERICAL` (r,θ,φ)
+
+**Citation requirements** (from Terms & Conditions):
+- Static grid: Mignone et al. ApJS 2007, 170, 228
+- AMR (`--with-chombo`): Mignone et al. ApJS 2012, 198, 7
+- MHD-PIC module: Mignone et al. ApJ 2018, 859, 13
+- RADIATION module (rel. HD/MHD): Melon Fuksman & Mignone ApJS 2019, 242, 20
+- RADIATION module (non-rel.): Melon Fuksman et al. ApJ 2021, 906, 78
+
+---
+
+## 11. Error Handling
+
+| Error | Root cause | Fix |
+|-------|-----------|-----|
+| `./pluto not found` | Not compiled | Compile first; check `auto_compile=true` |
 | `pluto.ini not found` | Wrong `run_dir` | Verify path; check for `pluto_N.ini` variants |
 | `definitions.h not found` | Missing header | Pass `config_num` or copy manually |
-| `setup.py --auto-update failed` | Bad `$PLUTO_DIR` or Python 2 vs 3 mismatch | Check env var; try `python3 $PLUTO_DIR/setup.py` |
-| `make failed` | Missing gcc / make | Install build tools; check compiler error |
-| `Specify either tstop or checkpoint_times` | Both fields provided | Remove one |
+| `setup.py failed (exit 1)` | Incompatible flags or bad arch | Check mutual exclusions; verify `$PLUTO_DIR`; show stdout+stderr |
+| `make failed` | Missing gcc/mpicc/g++/gfortran | Install compilers; for Chombo need C++ and Fortran too |
 | `MPI launch failed` | `mpirun` not on PATH | Check `which mpirun`; try `n_procs=1` |
-| `cfl must be in [0.1, 0.9]` | Out-of-range CFL | Use 0.3–0.4 as safe default |
-| `scientific_pydantic not found` | Missing dependency | `pip install scientific-pydantic` |
-| `NaN / negative density in log` | Numerical instability | Reduce CFL; switch to more diffusive solver (e.g. `hll`); check `first_dt` |
-| `restart file not found` | Snapshot N doesn't exist | Check `dbl.out` for valid snapshot indices |
-| `decomp product ≠ n_procs` | Decomposition mismatch | Ensure n1 × n2 × n3 = n_procs |
+| `cfl out of range` | CFL ≥ 1 or < 0.1 | Use 0.3–0.4; RK2+parabolic needs CFL ≲ 0.4 |
+| `[Parameters] count mismatch` | ini count ≠ definitions.h count | Count USER_DEF_PARAMETERS in definitions.h; ensure ini matches exactly |
+| `NaN / negative density` | Numerical instability | Reduce CFL; switch to `hll` or `tvdlf`; reduce `first_dt` |
+| `restart file not found` | Snapshot N doesn't exist | Check `dbl.out` for valid indices |
+| `dec product ≠ n_procs` | Decomposition mismatch | Ensure n1×n2×n3 = n_procs |
+| `C++ compiler not found` | Chombo build, missing g++ | Install `g++`; Chombo requires C++ and Fortran |
+| `setup.py timeout` | Interactive menu opened | Increase `setup_timeout`; verify stub makefile ARCH is valid |
 
 ---
 
-## 11. Physics Module Quick Reference
+## 12. Safety Rules — Never Violate
 
-(from `definitions.h` — COMPILE-TIME, cannot be changed at runtime)
-
-| Module | `PHYSICS` token | Typical use |
-|--------|----------------|-------------|
-| Classical HD | `HD` | Disc, wind, shock problems |
-| Classical MHD | `MHD` | Magnetised disc, jet, ISM |
-| Relativistic HD | `RHD` | Relativistic jets, GRB |
-| Relativistic MHD | `RMHD` | GRMHD-adjacent problems |
-
-**Geometry options** (also compile-time):
-`CARTESIAN`, `CYLINDRICAL`, `POLAR`, `SPHERICAL`
-
-**Riemann solvers** (runtime-switchable in `pluto.ini`):
-`tvdlf` (most robust), `hll`, `hllc`, `roe` (most accurate), `ct` (MHD only)
-
----
-
-## 12. Safety Rules — Agent Must Never Violate
-
-1. **Never modify `definitions.h` without immediately triggering a recompile.**
-2. **Never overwrite an existing `pluto.ini` without first making a timestamped backup.**
-3. **Never start a fresh run in a directory that has existing snapshots without explicit user confirmation** — this would overwrite results. Instead: ask whether to restart from the last snapshot or clean the directory.
-4. **Never change `[Grid]` in `pluto.ini` at runtime** — grid is set at compile time via `definitions.h` and only the number of grid points can be adjusted; changing geometry requires recompile.
-5. **Never assume `[Parameters]` key names** — they are defined in `init.c` and vary per problem. Always read the existing `pluto.ini` first to discover the actual key names before patching.
-6. **Never launch with `n_procs > 1` using the serial binary `./pluto`** — use `./pluto_mpi` (compiled with MPI support).
-7. **Never combine `with_chombo` with `with_fd`, `with_sb`, or `with_fargo`** — setup.py will exit with a fatal error. Validate before calling setup.py.
-8. **Never combine `with_sb` with `with_fd`** — mutually exclusive in setup.py.
-9. **Never place any flag after `--with-chombo` in the setup.py argv** — setup.py executes `break` on it and silently ignores everything that follows. Always put `--with-chombo` last.
-10. **`chombo_mpi=True` automatically implies `parallel=True`** — do not override this; Chombo's MPI build requires an MPI-enabled `.defs` file and produces `pluto_mpi`.
+1. **Never modify `definitions.h` without recompiling.** Geometry, physics, and
+   dimensionality changes are invisible to a pre-existing binary.
+2. **Never overwrite `pluto.ini` without a timestamped backup.**
+3. **Never start a fresh run when snapshots already exist without explicit user confirmation.**
+   Ask: restart from last snapshot, or clean the directory first?
+4. **Never patch `[Grid]` in `pluto.ini` at runtime.** Grid geometry is compile-time.
+5. **Never assume `[Parameters]` key names.** Read the existing `pluto.ini` first;
+   the count must match `USER_DEF_PARAMETERS` in `definitions.h` exactly.
+6. **Never place any flag after `--with-chombo` in setup.py argv.** setup.py breaks
+   on it and silently ignores everything following.
+7. **Never combine `with_chombo` with `{with_fd, with_sb, with_fargo}`.**
+8. **Never combine `with_sb` with `with_fd`.**
+9. **Never look for a binary named `pluto_mpi`.** PLUTO always produces `./pluto`.
+   MPI support is baked in at compile time via `CC=mpicc`; the binary name never changes.
+10. **Never copy header files (`*.h`) to the working directory.** Only `.c` source files
+    can safely be placed locally to override PLUTO/Src versions (§1.5 of userguide).
