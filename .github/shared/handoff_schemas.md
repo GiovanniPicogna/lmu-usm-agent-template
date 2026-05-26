@@ -177,8 +177,8 @@ Consumed by `@interpretation-agent` or `@mcmc-agent`.
 ## InterpretationHandoff/v1
 
 Emitted by `@interpretation-agent` after physical interpretation and Human Gate 2.
-Consumed by `@paper-agent` (if `next_action: write`) or `@hypothesis-agent`
-(if `next_action: iterate`).
+Consumed by `@hypothesis-agent` (if `next_action: iterate`) or directly returned to user
+(if `next_action: stop`).
 
 ```json
 {
@@ -206,13 +206,11 @@ Consumed by `@paper-agent` (if `next_action: write`) or `@hypothesis-agent`
 ```
 
 **Validation rules:**
-- `human_gate_2_confirmed` must be `true` before passing to `@paper-agent`.
-  If `false`, `@paper-agent` must refuse and report.
-- `plausibility_flags` must be empty before `next_action: write`.
-  Active plausibility flags block manuscript writing.
+- `human_gate_2_confirmed` must be `true` before the user makes a final decision.
+- `plausibility_flags` must be empty or explicitly acknowledged by the user before stopping work.
 - `findings` must contain at least 1 entry with `literature_refs`.
 - `hypothesis_match: refuted` requires `next_action: iterate` or `stop`.
-  Never combine `refuted` with `write`.
+  Never stop on refuted hypotheses without iteration.
 
 ---
 
@@ -295,7 +293,7 @@ Consumed by `@mcmc-agent` for posterior refinement.
 ## MCMCHandoff/v1
 
 Emitted by `@mcmc-agent` after convergence is confirmed.
-Returned to `@paper-agent` or the user.
+Returned to the user or `@hypothesis-agent` for iteration.
 
 ```json
 {

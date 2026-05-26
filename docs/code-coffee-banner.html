@@ -315,6 +315,10 @@
     <div class="n-tag hot">IRON RULE reliability design</div>
     <div class="n-tag new">Structured agent handoff schemas</div>
     <div class="n-tag">ARCHITECTURE.md pipeline diagram</div>
+    <div class="n-tag hot">9-stage multi-agent research pipeline</div>
+    <div class="n-tag new">Two mandatory human gates</div>
+    <div class="n-tag hot">radmc3d · yt · sherpa skills added</div>
+    <div class="n-tag new">SLURM / PBS HPC job generation</div>
     <div class="n-tag">MNRAS · A&amp;A · ApJ · Nature · Science</div>
   </div>
 
@@ -350,11 +354,12 @@
       <div class="d-card-number">02 ·</div>
       <h3>Specialist agents for our domains</h3>
       <p>
-        Six domain-specific agents:
-        <strong>@literature-agent</strong>, @simulation-agent,
-        @retrieval-agent, @spectral-agent, @mcmc-agent,
-        and the new <strong>@paper-agent</strong> orchestrator.
-        Each understands our codes, unit conventions, and sanity checks.
+        Five analysis agents (<strong>@literature-agent</strong>, @simulation-agent,
+        @retrieval-agent, @spectral-agent, @mcmc-agent) plus a full
+        <strong>9-stage research pipeline</strong> orchestrated by @pipeline-agent
+        with @hypothesis-agent, @analytical-agent, @setup-agent,
+        @analysis-agent, and @interpretation-agent.
+        Two mandatory human gates prevent automated decisions.
       </p>
     </div>
 
@@ -394,13 +399,24 @@
       <p>
         Every analysis agent carries <strong>IRON RULEs</strong>, anti-patterns,
         and <strong>[DATA&nbsp;MISSING]</strong> hard-stops. Structured
-        <strong>handoff&nbsp;schemas</strong> (Simulation/Spectral/MCMC)
+        <strong>handoff&nbsp;schemas</strong> (8 schemas: HypothesisHandoff through MCMCHandoff)
         make inter-agent data contracts explicit and machine-checkable.
       </p>
     </div>
 
-    <div class="d-card" style="--accent: var(--blue)">
+    <div class="d-card" style="--accent: var(--gold)">
       <div class="d-card-number">07 ·</div>
+      <h3>From science question to interpretation — automated</h3>
+      <p>
+        The <strong>@pipeline-agent</strong> coordinates all 9 stages:
+        literature → hypothesis → analytical pre-analysis → setup → simulate
+        → analyse → interpret, with <strong>two human gates</strong> and
+        optional SLURM/PBS HPC script generation.
+      </p>
+    </div>
+
+    <div class="d-card" style="--accent: var(--blue)">
+      <div class="d-card-number">08 ·</div>
       <h3>This is a community draft — shape it now</h3>
       <p>
         Version 1.0 will be out on the 1st of June, but it's only as good as the group's
@@ -411,23 +427,36 @@
 
   </div>
 
-  <!-- AGENTS PILL ROW -->
-  <div class="section-title">Specialist Agents in This Release</div>
+  <!-- PIPELINE AGENTS ROW -->
+  <div class="section-title">Pipeline Orchestration Agents</div>
+  <div class="agents-row" style="margin-bottom: 28px;">
+    <span class="agent-pill" style="--c: var(--gold)">@pipeline-agent</span>
+    <span class="agent-pill" style="--c: var(--blue)">@hypothesis-agent</span>
+    <span class="agent-pill" style="--c: var(--purple)">@analytical-agent</span>
+    <span class="agent-pill" style="--c: var(--green)">@setup-agent</span>
+    <span class="agent-pill" style="--c: var(--red)">@analysis-agent</span>
+    <span class="agent-pill" style="--c: var(--muted)">@interpretation-agent</span>
+  </div>
+
+  <!-- SPECIALIST AGENTS ROW -->
+  <div class="section-title">Specialist Agents</div>
   <div class="agents-row" style="margin-bottom: 28px;">
     <span class="agent-pill" style="--c: var(--blue)">@literature-agent</span>
     <span class="agent-pill" style="--c: var(--purple)">@simulation-agent</span>
     <span class="agent-pill" style="--c: var(--green)">@retrieval-agent</span>
     <span class="agent-pill" style="--c: var(--red)">@spectral-agent</span>
     <span class="agent-pill" style="--c: var(--gold)">@mcmc-agent</span>
-    <span class="agent-pill" style="--c: var(--muted)">@paper-agent</span>
   </div>
 
   <!-- SKILLS PILL ROW -->
-  <div class="section-title">Bundled Simulation Skills</div>
+  <div class="section-title">Bundled Simulation &amp; Analysis Skills</div>
   <div class="agents-row" style="margin-bottom: 44px;">
     <span class="agent-pill" style="--c: var(--green)">dustpy</span>
     <span class="agent-pill" style="--c: var(--blue)">fargo3d</span>
     <span class="agent-pill" style="--c: var(--purple)">pluto</span>
+    <span class="agent-pill" style="--c: var(--gold)">radmc3d</span>
+    <span class="agent-pill" style="--c: var(--red)">yt</span>
+    <span class="agent-pill" style="--c: var(--muted)">sherpa</span>
   </div>
 
   <!-- OPEN QUESTIONS -->

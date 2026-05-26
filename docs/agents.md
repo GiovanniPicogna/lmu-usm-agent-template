@@ -239,7 +239,7 @@ Physical interpretation of numerical results. Cross-checks findings against
 analytical theory and ADS literature (`@literature-agent` required).
 Performs domain-specific physical plausibility checks. Decides next action
 (`iterate | write | stop`) and enforces **Human Gate 2** — asks the user to
-confirm before triggering `@paper-agent`.
+confirm before finalizing the decision.
 
 ```
 @interpretation-agent  Interpret the gap depth results from

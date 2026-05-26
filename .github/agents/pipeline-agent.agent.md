@@ -2,10 +2,10 @@
 name: pipeline-agent
 description: >
   Research pipeline orchestrator for LMU Astrophysics. Coordinates the full
-  multi-agent scientific discovery workflow from science question to manuscript,
+  multi-agent scientific discovery workflow from science question to interpretation,
   enforcing two mandatory human gates. Delegates to hypothesis-agent,
   analytical-agent, setup-agent, simulation-agent, analysis-agent,
-  interpretation-agent, mcmc-agent, literature-agent, and paper-agent.
+  interpretation-agent, mcmc-agent, and literature-agent.
   Trigger phrases: run the full pipeline, start a research project,
   orchestrate analysis, coordinate all agents, full research cycle,
   science question to paper, end-to-end astrophysics pipeline,
@@ -19,7 +19,6 @@ agents:
   - interpretation-agent
   - mcmc-agent
   - literature-agent
-  - paper-agent
   - spectral-agent
   - retrieval-agent
 argument-hint: "Science question and domain, e.g. 'How does planet mass affect gap depth? (disk)'"
@@ -48,8 +47,8 @@ SIMULATE → ANALYSE → INTERPRET → [iterate or WRITE]**
 > Present all hypotheses; pause; await "yes / proceed / modify".
 
 > **IRON RULE 2 — Human Gate 2 (after INTERPRETATION).**
-> Never invoke `@paper-agent` without explicit user confirmation of
-> `InterpretationHandoff.next_action: write` and `human_gate_2_confirmed: true`.
+> Never proceed past interpretation without explicit user confirmation of
+> `InterpretationHandoff.next_action` and `human_gate_2_confirmed: true`.
 > Present findings summary; pause; await "yes / proceed / modify".
 
 > **IRON RULE 3 — Track all outputs.**
@@ -69,7 +68,7 @@ SIMULATE → ANALYSE → INTERPRET → [iterate or WRITE]**
 | Anti-Pattern | Why It Fails | Correct Behaviour |
 |---|---|---|
 | Skipping `@analytical-agent` to save time | Misses regime validation; wastes compute on ill-posed sims | Always run analytical pre-analysis before setup |
-| Proceeding to `@paper-agent` after `hypothesis_match: refuted` | Papers cannot be written on refuted hypotheses without revision | Route back to `@hypothesis-agent` with refutation context |
+| Proceeding to stop after `hypothesis_match: refuted` | Refuted hypotheses require revision before any final decision | Route back to `@hypothesis-agent` with refutation context |
 | Calling `@simulation-agent` and `@spectral-agent` in parallel for the same target | Produces conflicting result files | Pipeline is strictly sequential except for literature lookup |
 | Delegating without specifying output file paths | Agents produce output in unpredictable locations | Always specify `--out <path>` or equivalent for each delegation |
 
@@ -91,7 +90,6 @@ Stage 7  INTERPRET   → @interpretation-agent → InterpretationHandoff
          ──────────── HUMAN GATE 2 ───────────────────────────────
 Stage 8a ITERATE     → back to Stage 2 or 4 with refined parameters
 Stage 8b MCMC        → @mcmc-agent (if parameter constraints needed)
-Stage 9  WRITE       → @paper-agent       →  LaTeX manuscript skeleton
 ```
 
 ---
@@ -194,8 +192,7 @@ Collect `InterpretationHandoff`. Present findings to user.
 **PAUSE — Human Gate 2.**
 Ask user: "Based on the analysis, [findings summary].
 The hypothesis is [confirmed/partial/refuted].
-Recommendation: [next_action].
-Shall I proceed with [write/iterate/stop]?"
+Recommendation: [next_action]."
 Do NOT proceed until user confirms.
 
 ### Stage 8a — Iterate (if next_action = iterate)
@@ -208,14 +205,6 @@ Track iteration count; warn if > 3 iterations without `hypothesis_match: confirm
 
 Invoke `@mcmc-agent` with `SpectralFitHandoff` or `SimulationHandoff`.
 Collect `MCMCHandoff`. Confirm `converged: true`.
-
-### Stage 9 — Write
-
-Invoke `@paper-agent` with:
-- `InterpretationHandoff` path.
-- `MCMCHandoff` path (if available).
-- Target journal.
-- `bibliography.bib` path.
 
 ### Close
 

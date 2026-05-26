@@ -48,7 +48,10 @@ at LMU Munich.
 │   │   ├── references/
 │   │   │   ├── parameters.md       #   Full parameter table
 │   │   │   └── examples.md         #   Step-by-step run examples
-│   │   └── scripts/run_pluto.py    #   Patches pluto.ini, launches simulation
+│   │   └── scripts/run_pluto.py        #   Patches pluto.ini, launches simulation
+│              compile_pluto.py    #   Compiles PLUTO from source with sysconf
+│              physics_config_writer.py  #  Generates physics config JSON
+│              plot_pluto.py       #   Publication-quality snapshot plots
 │   ├── radmc3d/
 │   │   ├── SKILL.md                #   RADMC-3D: radiative transfer, synthetic ALMA images
 │   │   └── references/
@@ -347,7 +350,7 @@ constraints that must hold even in long conversations (context rot).
 | `@analytical-agent` | Use `astropy.units` — no magic number conversions; flag nonlinear regime explicitly |
 | `@setup-agent` | Never call `sbatch`/`qsub`; never overwrite existing configs; read cluster details from `AGENTS.md` |
 | `@analysis-agent` | Never proceed if `sanity_passed: false`; SHA256-hash all output files |
-| `@interpretation-agent` | No findings without ADS support; Gate 2 is mandatory before `@paper-agent` |
+| `@interpretation-agent` | No findings without ADS support; Gate 2 is mandatory before user decision |
 | `@simulation-agent` | No hallucinated numbers; read-only by default; test before batch |
 | `@spectral-agent` | No hallucinated fit results; C-stat on low counts; model changes need confirmation |
 | `@mcmc-agent` | 68% intervals (not 90%); never overwrite chains; convergence before reporting |
@@ -392,8 +395,8 @@ Eight schemas are currently defined:
 | `SimulationHandoff/v1` | `@simulation-agent` | `@analysis-agent`, `@mcmc-agent` |
 | `SpectralFitHandoff/v1` | `@spectral-agent` | `@analysis-agent`, `@mcmc-agent` |
 | `AnalysisHandoff/v1` | `@analysis-agent` | `@interpretation-agent` |
-| `InterpretationHandoff/v1` | `@interpretation-agent` | `@paper-agent` (Gate 2) or `@hypothesis-agent` (iterate) |
-| `MCMCHandoff/v1` | `@mcmc-agent` | `@paper-agent`, user |
+| `InterpretationHandoff/v1` | `@interpretation-agent` | `@hypothesis-agent` (iterate) or user (stop) |
+| `MCMCHandoff/v1` | `@mcmc-agent` | user |
 
 Each schema includes a `sanity_passed` / `validated` / `converged` gate: the
 receiving agent will refuse to proceed if the gate is `false`.

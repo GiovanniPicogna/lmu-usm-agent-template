@@ -22,7 +22,6 @@ what data flows between them, and what quality gates govern each stage.
 
 | Agent | File | Role | Handoff schema |
 |---|---|---|---|
-| `@paper-agent` | `paper-agent.agent.md` | Manuscript assembly — delegates sub-tasks to specialist agents | — |
 | `@literature-agent` | `literature-agent.agent.md` | ADS search + BibTeX retrieval | — (appends to `bibliography.bib`) |
 | `@simulation-agent` | `simulation-agent.agent.md` | Launch + post-process FARGO3D / PLUTO / DustPy / Magneticum | [`SimulationHandoff/v1`](.github/shared/handoff_schemas.md#simulationhandoffv1) |
 | `@spectral-agent` | `spectral-agent.agent.md` | X-ray spectral fitting (Sherpa / PyXSPEC) | [`SpectralFitHandoff/v1`](.github/shared/handoff_schemas.md#spectralfithandoffv1) |
@@ -52,11 +51,7 @@ flowchart TD
     AN -->|AnalysisHandoff/v1| I[@interpretation-agent]
     I -->|InterpretationHandoff/v1| GATE2{{⚠ Human Gate 2\nConfirm write / iterate}}
     GATE2 -->|next_action: iterate| H
-    GATE2 -->|next_action: write| PA[@paper-agent]
     GATE2 -->|next_action: stop| DONE([Done])
-    PA --> M[@mcmc-agent]
-    PA --> L
-    L -->|bibliography.bib| PA
 
     style GATE1 fill:#f9f,stroke:#a00,color:#000
     style GATE2 fill:#f9f,stroke:#a00,color:#000
@@ -75,8 +70,7 @@ flowchart TD
 | 6 SIMULATE | `@simulation-agent` / `@retrieval-agent` / `@spectral-agent` | Binary/HDF5 outputs in `data/` |
 | 7 ANALYSE | `@analysis-agent` | Figures in `plots/` + `AnalysisHandoff` JSON |
 | 8 INTERPRET | `@interpretation-agent` | `results/interpretation/<task_id>_<date>.json` |
-| **Gate 2** | User | Confirm write / iterate / stop |
-| 9 WRITE / ITERATE | `@paper-agent` or loop | LaTeX manuscript or new iteration |
+| **Gate 2** | User | Confirm iterate / stop |
 
 ---
 
@@ -84,7 +78,7 @@ flowchart TD
 
 ```mermaid
 flowchart TD
-    U([User / @paper-agent]) --> L[@literature-agent]
+    U([User]) --> L[@literature-agent]
     U --> S[@simulation-agent]
     U --> R[@retrieval-agent]
     U --> X[@spectral-agent]

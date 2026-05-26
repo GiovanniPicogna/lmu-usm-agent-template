@@ -55,8 +55,6 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   downstream agents.
 - Bundled simulation launch skills: `dustpy`, `fargo3d`, `pluto`
   with Pydantic-validated runner scripts and `SUCCESS` / `ERROR` protocol.
-- `paper-agent.agent.md` — orchestrator agent for multi-agent paper-writing
-  workflows.
 
 ### Changed
 - `README.md` — "Agent reliability design" section added; skill table and

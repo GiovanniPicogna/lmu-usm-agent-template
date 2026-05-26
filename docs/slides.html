@@ -771,8 +771,9 @@
               </ul>
             </div>
             <div class="card c2">
-              <div class="ct">🔬 Local (6 agents)</div>
-              <div>spectral · mcmc · literature · simulation · retrieval · <strong>paper</strong></div>
+              <div class="ct">🔬 Local (11 agents)</div>
+              <div>spectral · mcmc · literature · simulation · retrieval</div>
+              <div style="font-size:0.82em;margin-top:0.3em;">+ pipeline · hypothesis · analytical · setup · analysis · interpretation</div>
             </div>
           </div>
           <div>
@@ -1597,9 +1598,9 @@ Return Gamma and norm with 90% confidence. Save chi2 residual as PDF.
         <div class="ibox" style="margin-top:0.55em;font-size:0.74em;">
           🧩 <strong>Fork the group template:</strong> <a
             href="https://github.com/GiovanniPicogna/lmu-usm-agent-template">lmu-usm-agent-template</a> — custom
-          instructions, six agents (spectral / mcmc / literature / simulation / retrieval + <strong>paper</strong>
-          orchestrator), bundled simulation skills (DustPy · FARGO3D · PLUTO), conda env, pre-commit hooks, and GitHub
-          Pages docs. Covers 5 science domains.
+          instructions, eleven agents including a full 9-stage research pipeline orchestrator (hypothesis → analytical
+          → setup → simulate → analyse → interpret) with two human gates, bundled simulation skills (DustPy · FARGO3D
+          · PLUTO · RADMC-3D · yt · Sherpa), conda env, pre-commit hooks, and GitHub Pages docs. Covers 5 science domains.
         </div>
       </section>
 
@@ -1619,15 +1620,19 @@ Return Gamma and norm with 90% confidence. Save chi2 residual as PDF.
               <li>5 domains: disk · cosmo · retrieval · LSS/MW · X-ray</li>
               <li><code>copilot-instructions.md</code> — your lab's conventions, once</li>
               <li><code>AGENTS.md</code> — project-specific context per repo</li>
-              <li><code>ARCHITECTURE.md</code> — agent roster &amp; pipeline diagram</li>
-              <li><code>spectral-agent.agent.md</code> — X-ray spectral fitting</li>
+              <li><code>ARCHITECTURE.md</code> — agent roster &amp; 9-stage pipeline diagram</li>
+              <li><code>pipeline-agent.agent.md</code> — 9-stage research pipeline orchestrator</li>
+              <li><code>hypothesis-agent.agent.md</code> — ranked hypothesis generation + ADS</li>
+              <li><code>analytical-agent.agent.md</code> — SymPy pre-analysis &amp; scale estimates</li>
+              <li><code>setup-agent.agent.md</code> — config files + SLURM/PBS job scripts</li>
+              <li><code>analysis-agent.agent.md</code> — simulation post-processing &amp; figures</li>
+              <li><code>interpretation-agent.agent.md</code> — physical interpretation, Gate 2</li>
+              <li><code>spectral-agent.agent.md</code> — X-ray spectral fitting (Sherpa)</li>
               <li><code>mcmc-agent.agent.md</code> — emcee posteriors, 68% CIs</li>
               <li><code>literature-agent.agent.md</code> — ADS-verified citations</li>
               <li><code>simulation-agent.agent.md</code> — FARGO3D/GADGET sims</li>
               <li><code>retrieval-agent.agent.md</code> — petitRADTRANS retrievals</li>
-              <li><code>paper-agent.agent.md</code> — orchestrates full paper workflow</li>
-              <li>Bundled skills: <code>dustpy</code> · <code>fargo3d</code> · <code>pluto</code> (validated runners)
-              </li>
+              <li>Skills: <code>dustpy</code> · <code>fargo3d</code> · <code>pluto</code> · <code>radmc3d</code> · <code>yt</code> · <code>sherpa</code></li>
               <li><code>envs/base.yml</code> — conda env, pinned versions</li>
               <li><code>.pre-commit-config.yaml</code> — style + BibTeX <code>doi=</code> checks</li>
               <li><code>CITATION.cff</code> — GitHub 'Cite this repository'</li>

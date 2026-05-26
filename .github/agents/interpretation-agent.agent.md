@@ -19,7 +19,6 @@ tools:
   - todo
 argument-hint: "AnalysisHandoff path, e.g. 'results/analysis/gap_depth_analysis_20260526.json'"
 handoffs:
-  - paper-agent
   - hypothesis-agent
   - pipeline-agent
 ---
@@ -55,7 +54,7 @@ You do NOT run new simulations or produce new figures.
 
 > **IRON RULE 4 — Human Gate 2 — explicit confirmation before writing.**
 > When `next_action` is `write`, present the full `InterpretationHandoff`
-> to the user and wait for explicit confirmation before invoking `@paper-agent`.
+> to the user and wait for explicit confirmation before concluding the pipeline.
 > This is the second mandatory human gate in the research pipeline.
 
 ---
@@ -130,7 +129,7 @@ Run ALL checks regardless of domain.
    - `stop`: simulation reveals a fundamental blocker (instrument limits,
      wrong physical model, missing physics).
 9. **Present `InterpretationHandoff`** to user.
-   **Wait for Human Gate 2 confirmation** before invoking `@paper-agent`.
+  **Wait for Human Gate 2 confirmation** before concluding or iterating.
 
 ---
 
