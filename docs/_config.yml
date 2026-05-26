@@ -16,6 +16,7 @@ header_pages:
   - agents.md
   - skills.md
   - quickstart.md
+  - slides.html
 
 exclude:
   - "*.un~"

@@ -1,3 +1,8 @@
+---
+layout: none
+title: Slides
+nav_order: 5
+---
 <!DOCTYPE html>
 <html lang="en">
 
@@ -696,7 +701,8 @@
             <div style="font-size:0.8em;">
               <p><strong>You:</strong> <em>Why do chi2 residuals diverge at low freq?</em></p>
               <p><strong>Copilot:</strong> Your spectrum may have a spectral break. Try a BPL model with
-                <code>nu_break</code> as free param.</p>
+                <code>nu_break</code> as free param.
+              </p>
             </div>
           </div>
           <div class="card c3">
@@ -773,7 +779,8 @@
             <div class="card c2">
               <div class="ct">🔬 Local (11 agents)</div>
               <div>spectral · mcmc · literature · simulation · retrieval</div>
-              <div style="font-size:0.82em;margin-top:0.3em;">+ pipeline · hypothesis · analytical · setup · analysis · interpretation</div>
+              <div style="font-size:0.82em;margin-top:0.3em;">+ pipeline · hypothesis · analytical · setup · analysis ·
+                interpretation</div>
             </div>
           </div>
           <div>
@@ -803,7 +810,8 @@
           <div class="card c1">
             <div class="ct">Level 1: General Agent Instructions</div>
             <div class="sm" style="margin-bottom:0.35em;">Set once, apply to every session.<br>File:
-              <code>.github/copilot-instructions.md</code></div>
+              <code>.github/copilot-instructions.md</code>
+            </div>
             <ul>
               <li>Preferred language &amp; style (Python 3.11+, docstrings)</li>
               <li>Scientific conventions (astropy units, SI unless noted)</li>
@@ -816,7 +824,8 @@
           <div class="card c2">
             <div class="ct">Level 2: Project-Specific Instructions</div>
             <div class="sm" style="margin-bottom:0.35em;">Per-project, per-paper context.<br>File:
-              <code>AGENTS.md</code> (repo root)</div>
+              <code>AGENTS.md</code> (repo root)
+            </div>
             <ul>
               <li>Dataset description (XMM-Newton EPIC-pn, obs ID, filter)</li>
               <li>Specific model assumptions (TBabs*powerlaw, fixed nH)</li>
@@ -975,7 +984,8 @@
         <div class="g2">
           <div>
             <div style="font-size:0.84em;font-weight:700;margin-bottom:0.35em;">Step 1 — VS Code
-              <code>settings.json</code>:</div>
+              <code>settings.json</code>:
+            </div>
             <pre><code class="language-json">// .vscode/settings.json
 "mcp": {
   "servers": {
@@ -1216,7 +1226,8 @@
               CITATION.cff.</div>
             <div class="yes">✓ Methods: 'Code scaffold by GitHub Copilot (GPT-4o, Mar 2026); all results verified.' Add
               <code>CITATION.cff</code> — GitHub shows 'Cite this repository' and Zenodo/Zotero extract metadata
-              automatically.</div>
+              automatically.
+            </div>
           </div>
         </div>
       </section>
@@ -1600,7 +1611,8 @@ Return Gamma and norm with 90% confidence. Save chi2 residual as PDF.
             href="https://github.com/GiovanniPicogna/lmu-usm-agent-template">lmu-usm-agent-template</a> — custom
           instructions, eleven agents including a full 9-stage research pipeline orchestrator (hypothesis → analytical
           → setup → simulate → analyse → interpret) with two human gates, bundled simulation skills (DustPy · FARGO3D
-          · PLUTO · RADMC-3D · yt · Sherpa), conda env, pre-commit hooks, and GitHub Pages docs. Covers 5 science domains.
+          · PLUTO · RADMC-3D · yt · Sherpa), conda env, pre-commit hooks, and GitHub Pages docs. Covers 5 science
+          domains.
         </div>
       </section>
 
@@ -1632,7 +1644,8 @@ Return Gamma and norm with 90% confidence. Save chi2 residual as PDF.
               <li><code>literature-agent.agent.md</code> — ADS-verified citations</li>
               <li><code>simulation-agent.agent.md</code> — FARGO3D/GADGET sims</li>
               <li><code>retrieval-agent.agent.md</code> — petitRADTRANS retrievals</li>
-              <li>Skills: <code>dustpy</code> · <code>fargo3d</code> · <code>pluto</code> · <code>radmc3d</code> · <code>yt</code> · <code>sherpa</code></li>
+              <li>Skills: <code>dustpy</code> · <code>fargo3d</code> · <code>pluto</code> · <code>radmc3d</code> ·
+                <code>yt</code> · <code>sherpa</code></li>
               <li><code>envs/base.yml</code> — conda env, pinned versions</li>
               <li><code>.pre-commit-config.yaml</code> — style + BibTeX <code>doi=</code> checks</li>
               <li><code>CITATION.cff</code> — GitHub 'Cite this repository'</li>
@@ -1704,8 +1717,8 @@ Return Gamma and norm with 90% confidence. Save chi2 residual as PDF.
           <div class="card c1">
             <div class="ct">GitHub Pages Docs</div>
             <ul>
-              <li>All 5 agents with example invocations</li>
-              <li>Skills by domain (K-Dense-AI/scientific-agent-skills)</li>
+              <li><a href="https://giovannipicogna.github.io/lmu-usm-agent-template/agents">agents page</a> — all 11 agents with example invocations</li>
+              <li><a href="https://giovannipicogna.github.io/lmu-usm-agent-template/skills">skills page</a> — bundled skills by domain</li>
               <li>Auto-deployed on every push to <code>main</code> via GitHub Actions</li>
             </ul>
           </div>
