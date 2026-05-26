@@ -7,21 +7,80 @@ what data flows between them, and what quality gates govern each stage.
 
 ## Agent roster
 
+### Research pipeline agents (new)
+
 | Agent | File | Role | Handoff schema |
 |---|---|---|---|
-| `@paper-agent` | `paper-agent.agent.md` | Orchestrator — delegates sub-tasks to all specialist agents and assembles the manuscript | — |
+| `@pipeline-agent` | `pipeline-agent.agent.md` | Full 9-stage research pipeline orchestrator; enforces both human gates | — |
+| `@hypothesis-agent` | `hypothesis-agent.agent.md` | Science question → ranked testable hypotheses via 3-round internal debate | [`HypothesisHandoff/v1`](.github/shared/handoff_schemas.md#hypothesishandoffv1) |
+| `@analytical-agent` | `analytical-agent.agent.md` | Analytical / linear / perturbative pre-analysis; benchmarks for simulation comparison | [`AnalyticalHandoff/v1`](.github/shared/handoff_schemas.md#analyticalhandoffv1) |
+| `@setup-agent` | `setup-agent.agent.md` | Translate `AnalyticalHandoff` to validated simulation configs + optional SLURM/PBS scripts | [`SimConfigHandoff/v1`](.github/shared/handoff_schemas.md#simconfighandoffv1) |
+| `@analysis-agent` | `analysis-agent.agent.md` | Post-process simulation outputs + compare against analytical benchmarks | [`AnalysisHandoff/v1`](.github/shared/handoff_schemas.md#analysishandoffv1) |
+| `@interpretation-agent` | `interpretation-agent.agent.md` | Physical interpretation + ADS comparison + next-action decision | [`InterpretationHandoff/v1`](.github/shared/handoff_schemas.md#interpretationhandoffv1) |
+
+### Specialist agents (pre-existing)
+
+| Agent | File | Role | Handoff schema |
+|---|---|---|---|
+| `@paper-agent` | `paper-agent.agent.md` | Manuscript assembly — delegates sub-tasks to specialist agents | — |
 | `@literature-agent` | `literature-agent.agent.md` | ADS search + BibTeX retrieval | — (appends to `bibliography.bib`) |
-| `@simulation-agent` | `simulation-agent.agent.md` | Launch + post-process FARGO3D / PLUTO / DustPy / Magneticum | [`SimulationHandoff`](.github/shared/handoff_schemas.md#simulationhandoff) |
-| `@spectral-agent` | `spectral-agent.agent.md` | X-ray spectral fitting (Sherpa / PyXSPEC) | [`SpectralFitHandoff`](.github/shared/handoff_schemas.md#spectralfithandoff) |
+| `@simulation-agent` | `simulation-agent.agent.md` | Launch + post-process FARGO3D / PLUTO / DustPy / Magneticum | [`SimulationHandoff/v1`](.github/shared/handoff_schemas.md#simulationhandoffv1) |
+| `@spectral-agent` | `spectral-agent.agent.md` | X-ray spectral fitting (Sherpa / PyXSPEC) | [`SpectralFitHandoff/v1`](.github/shared/handoff_schemas.md#spectralfithandoffv1) |
 | `@retrieval-agent` | `retrieval-agent.agent.md` | Atmospheric retrievals (petitRADTRANS / dynesty) | — (writes HDF5 to `results/fits/`) |
-| `@mcmc-agent` | `mcmc-agent.agent.md` | Posterior sampling + corner plots | [`MCMCHandoff`](.github/shared/handoff_schemas.md#mcmchandoff) |
+| `@mcmc-agent` | `mcmc-agent.agent.md` | Posterior sampling + corner plots | [`MCMCHandoff/v1`](.github/shared/handoff_schemas.md#mcmchandoffv1) |
 
 All agents share the group baseline in `.github/copilot-instructions.md`
 and project-specific context in `AGENTS.md`.
 
 ---
 
-## Pipeline stages
+## Research pipeline (full 9-stage)
+
+The full research pipeline is orchestrated by `@pipeline-agent`.
+Two mandatory **human gates** prevent automated progression without user confirmation.
+
+```mermaid
+flowchart TD
+    U([User]) --> P[@pipeline-agent]
+    P --> L[@literature-agent]
+    P --> H[@hypothesis-agent]
+    H -->|HypothesisHandoff/v1| GATE1{{⚠ Human Gate 1\nConfirm top hypothesis}}
+    GATE1 --> A[@analytical-agent]
+    A -->|AnalyticalHandoff/v1| S[@setup-agent]
+    S -->|SimConfigHandoff/v1| SIM["@simulation-agent\n@retrieval-agent\n@spectral-agent"]
+    SIM -->|SimulationHandoff / SpectralFitHandoff| AN[@analysis-agent]
+    AN -->|AnalysisHandoff/v1| I[@interpretation-agent]
+    I -->|InterpretationHandoff/v1| GATE2{{⚠ Human Gate 2\nConfirm write / iterate}}
+    GATE2 -->|next_action: iterate| H
+    GATE2 -->|next_action: write| PA[@paper-agent]
+    GATE2 -->|next_action: stop| DONE([Done])
+    PA --> M[@mcmc-agent]
+    PA --> L
+    L -->|bibliography.bib| PA
+
+    style GATE1 fill:#f9f,stroke:#a00,color:#000
+    style GATE2 fill:#f9f,stroke:#a00,color:#000
+```
+
+### Stage summary
+
+| Stage | Agent | Output |
+|---|---|---|
+| 1 QUESTION | `@pipeline-agent` | Creates `prompts/<task_id>_<date>.md` |
+| 2 LITERATURE | `@literature-agent` | Appends to `paper/bibliography.bib` |
+| 3 HYPOTHESIS | `@hypothesis-agent` | `results/hypotheses/<task_id>_<date>.json` |
+| **Gate 1** | User | Confirm top hypothesis |
+| 4 ANALYTICAL | `@analytical-agent` | `results/analytical/<task_id>_<date>.py` + JSON |
+| 5 SETUP | `@setup-agent` | Config files in `data/runs/<task_id>/` + optional SLURM/PBS script |
+| 6 SIMULATE | `@simulation-agent` / `@retrieval-agent` / `@spectral-agent` | Binary/HDF5 outputs in `data/` |
+| 7 ANALYSE | `@analysis-agent` | Figures in `plots/` + `AnalysisHandoff` JSON |
+| 8 INTERPRET | `@interpretation-agent` | `results/interpretation/<task_id>_<date>.json` |
+| **Gate 2** | User | Confirm write / iterate / stop |
+| 9 WRITE / ITERATE | `@paper-agent` or loop | LaTeX manuscript or new iteration |
+
+---
+
+## Legacy pipeline stages (pre-pipeline-agent)
 
 ```mermaid
 flowchart TD

@@ -233,6 +233,7 @@ relevant task.
 | `database-lookup` | querying SIMBAD, VizieR, ALMA archive, ExoFOP |
 | `exploratory-data-analysis` | first look at a new simulation output or data file |
 | `scientific-schematics` | disk structure diagrams, gap morphology schematics |
+| `radmc3d` | radiative transfer post-processing, synthetic ALMA images, SED, scattered-light maps |
 
 *Cosmological simulations*
 
@@ -241,6 +242,7 @@ relevant task.
 | `networkx` | building merger trees or substructure graphs |
 | `umap-learn` | dimensionality reduction for halo/galaxy populations |
 | `scikit-learn` | classification / regression on simulation catalogues |
+| `yt` | volumetric analysis, projection maps, thermodynamic profiles of SPH/AMR snapshots |
 
 *Atmospheric retrievals & high-res spectroscopy*
 
@@ -256,6 +258,13 @@ relevant task.
 |-------|-------------|
 | `imaging-data-commons` | accessing NCI / public X-ray / CT imaging datasets |
 | `pydicom` | reading DICOM files from medical / detector calibration data |
+| `sherpa` | X-ray spectral fitting, TBabs\*apec models, C-stat, confidence contours |
+
+*Simulation pre-analysis (all domains)*
+
+| Skill | Invoke when… |
+|-------|-------------|
+| `sympy` | analytical dispersion relations, stability criteria, linear perturbation theory, scaling laws |
 
 ### Using a skill
 

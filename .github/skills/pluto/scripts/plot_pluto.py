@@ -38,31 +38,38 @@ import os
 import sys
 import warnings
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, List, Optional, Union
 
 import numpy as np
 
 # ── Axis-label maps per geometry ─────────────────────────────────────────────
 
 _AXIS_LABELS = {
-    "CARTESIAN":   {1: "x",   2: "y",   3: "z"},
-    "POLAR":       {1: "r",   2: r"$\phi$",  3: "z"},
-    "SPHERICAL":   {1: "r",   2: r"$\theta$", 3: r"$\phi$"},
-    "CYLINDRICAL": {1: "r",   2: "z",   3: r"$\phi$"},
+    "CARTESIAN": {1: "x", 2: "y", 3: "z"},
+    "POLAR": {1: "r", 2: r"$\phi$", 3: "z"},
+    "SPHERICAL": {1: "r", 2: r"$\theta$", 3: r"$\phi$"},
+    "CYLINDRICAL": {1: "r", 2: "z", 3: r"$\phi$"},
 }
 
 _COLORMAPS = {
-    "rho":  "viridis",  "Density": "viridis",
-    "prs":  "inferno",  "Pressure": "inferno",
-    "vx1":  "RdBu_r",   "vx2": "RdBu_r",   "vx3": "RdBu_r",
-    "Bx1":  "PuOr_r",   "Bx2": "PuOr_r",   "Bx3": "PuOr_r",
-    "tr1":  "plasma",   "tr2": "plasma",
+    "rho": "viridis",
+    "Density": "viridis",
+    "prs": "inferno",
+    "Pressure": "inferno",
+    "vx1": "RdBu_r",
+    "vx2": "RdBu_r",
+    "vx3": "RdBu_r",
+    "Bx1": "PuOr_r",
+    "Bx2": "PuOr_r",
+    "Bx3": "PuOr_r",
+    "tr1": "plasma",
+    "tr2": "plasma",
     "_speed": "cividis",
     "_default": "viridis",
 }
 
-_SYMLOG_VARS = {"vx1", "vx2", "vx3", "Bx1", "Bx2", "Bx3"}   # signed; use symlog
-_LOG_VARS    = {"rho", "prs", "Density", "Pressure"}           # positive; use log
+_SYMLOG_VARS = {"vx1", "vx2", "vx3", "Bx1", "Bx2", "Bx3"}  # signed; use symlog
+_LOG_VARS = {"rho", "prs", "Density", "Pressure"}  # positive; use log
 
 
 def _cmap_for(varname: str) -> str:
@@ -71,6 +78,7 @@ def _cmap_for(varname: str) -> str:
 
 # ── pyPLUTO loader ───────────────────────────────────────────────────────────
 
+
 def _load_snapshot(run_dir: str, snap_n: int, datatype: str = "dbl"):
     """
     Load a PLUTO snapshot.  Returns pyPLUTO Data object or raises.
@@ -78,6 +86,7 @@ def _load_snapshot(run_dir: str, snap_n: int, datatype: str = "dbl"):
     """
     try:
         import pyPLUTO as pp
+
         try:
             return pp.Load(snap_n, w_dir=run_dir, datatype=datatype)
         except TypeError:
@@ -109,13 +118,14 @@ def _get_coords(d, geometry: str) -> tuple[np.ndarray, np.ndarray]:
     x2 = getattr(d, "x2", None)
     if x1 is None:
         # Try alternative attribute names
-        x1 = getattr(d, "X1", getattr(d, "r",  np.arange(10)))
+        x1 = getattr(d, "X1", getattr(d, "r", np.arange(10)))
     if x2 is None:
         x2 = getattr(d, "X2", getattr(d, "phi", np.arange(10)))
     return np.asarray(x1), np.asarray(x2)
 
 
 # ── Snapshot index helpers ────────────────────────────────────────────────────
+
 
 def _all_snapshot_indices(run_dir: str, datatype: str) -> list[int]:
     """Return sorted list of all snapshot indices from dbl.out or file glob."""
@@ -137,11 +147,11 @@ def _all_snapshot_indices(run_dir: str, datatype: str) -> list[int]:
 
     # Fallback: file glob
     patterns = {
-        "dbl":    "*.dbl",
-        "flt":    "*.flt",
+        "dbl": "*.dbl",
+        "flt": "*.flt",
         "dbl.h5": "*.dbl.h5",
         "flt.h5": "*.flt.h5",
-        "vtk":    "*.vtk",
+        "vtk": "*.vtk",
     }
     pat = patterns.get(datatype, "*.dbl")
     files = sorted(Path(run_dir).glob(pat))
@@ -163,6 +173,7 @@ def _last_snapshot_index(run_dir: str, datatype: str) -> int:
 
 # ── Unit helpers ──────────────────────────────────────────────────────────────
 
+
 def _unit_label(key: str, unit_length_cm: Optional[float]) -> str:
     """Return a human-readable axis unit label."""
     if unit_length_cm is None:
@@ -183,6 +194,7 @@ def _unit_label(key: str, unit_length_cm: Optional[float]) -> str:
 
 
 # ── Core plot function ────────────────────────────────────────────────────────
+
 
 def plot_snapshot(
     *,
@@ -211,10 +223,10 @@ def plot_snapshot(
     """
     try:
         import matplotlib
+
         matplotlib.use("Agg" if not show else "TkAgg")
         import matplotlib.pyplot as plt
         import matplotlib.colors as mcolors
-        from matplotlib.ticker import LogFormatter
     except ImportError:
         raise ImportError("matplotlib is required: pip install matplotlib")
 
@@ -222,7 +234,7 @@ def plot_snapshot(
     x1, x2 = _get_coords(d, geometry)
 
     ax_labels = _AXIS_LABELS.get(geometry, {1: "x1", 2: "x2", 3: "x3"})
-    unit_sfx  = _unit_label("length", unit_length_cm) if physical_axes else " [code]"
+    unit_sfx = _unit_label("length", unit_length_cm) if physical_axes else " [code]"
 
     os.makedirs(output_dir or Path(run_dir) / "plots", exist_ok=True)
     out_dir = output_dir or str(Path(run_dir) / "plots")
@@ -251,7 +263,7 @@ def plot_snapshot(
         do_symlog = (varname in _SYMLOG_VARS) and not do_log
 
         cmap = colormap or _cmap_for(varname)
-        fs   = figsize or [6.0, 5.0]
+        fs = figsize or [6.0, 5.0]
 
         fig, ax = plt.subplots(figsize=fs, dpi=dpi)
 
@@ -270,13 +282,13 @@ def plot_snapshot(
             ax.set_xlabel(ax_labels.get(1, "x1") + unit_sfx, fontsize=11)
             ax.set_ylabel(varname, fontsize=11)
             ax.set_title(f"{varname}  |  n={snap_n}", fontsize=12)
-        _save_and_close = lambda: None  # noqa: E731
 
         if arr.ndim == 2:
             if do_symlog:
                 norm = mcolors.SymLogNorm(
                     linthresh=max(np.abs(plot_arr).max() * 1e-3, 1e-30),
-                    vmin=plot_arr.min(), vmax=plot_arr.max(),
+                    vmin=plot_arr.min(),
+                    vmax=plot_arr.max(),
                 )
                 pcm = ax.pcolormesh(X1, X2, plot_arr, cmap=cmap, norm=norm, shading="auto")
             elif do_log:
@@ -302,20 +314,25 @@ def plot_snapshot(
                     iy = slice(0, ny, qs)
                     ix = slice(0, nx, qs)
                     ax.quiver(
-                        X1[iy, ix], X2[iy, ix],
-                        vx1_2d[iy, ix], vx2_2d[iy, ix],
-                        color="white", alpha=0.65, scale_units="xy",
+                        X1[iy, ix],
+                        X2[iy, ix],
+                        vx1_2d[iy, ix],
+                        vx2_2d[iy, ix],
+                        color="white",
+                        alpha=0.65,
+                        scale_units="xy",
                         width=0.002,
                     )
 
             ax.set_xlabel(ax_labels.get(1, "x1") + unit_sfx, fontsize=11)
             ax.set_ylabel(ax_labels.get(2, "x2") + unit_sfx, fontsize=11)
-            ax.set_title(f"{varname}  |  n={snap_n}  t={getattr(d,'t',float('nan')):.4g}",
-                         fontsize=12)
+            ax.set_title(
+                f"{varname}  |  n={snap_n}  t={getattr(d, 't', float('nan')):.4g}", fontsize=12
+            )
             ax.set_aspect("auto")
 
         fig.tight_layout()
-        stem    = f"{varname}_n{snap_n:05d}"
+        stem = f"{varname}_n{snap_n:05d}"
         outpath = str(Path(out_dir) / f"{stem}.{fmt}")
         fig.savefig(outpath, dpi=dpi, bbox_inches="tight")
         if fmt != "png":
@@ -333,37 +350,39 @@ def plot_snapshot(
 
 try:
     from pydantic import BaseModel, Field, model_validator
+
     HAS_PYDANTIC = True
 except ImportError:
     HAS_PYDANTIC = False
 
 if HAS_PYDANTIC:
+
     class PLUTOPlotParams(BaseModel):
-        run_dir:          str
-        snap:             Union[int, List[int], str] = "last"
-        variables:        List[str]                  = Field(default_factory=lambda: ["rho"])
-        datatype:         str                        = "dbl"
-        physics_config:   str                        = "physics_config.md"
+        run_dir: str
+        snap: Union[int, List[int], str] = "last"
+        variables: List[str] = Field(default_factory=lambda: ["rho"])
+        datatype: str = "dbl"
+        physics_config: str = "physics_config.md"
 
         # Geometry & units (overridden by physics_config.md if present)
-        geometry:         str                        = "CARTESIAN"
-        unit_length_cm:   Optional[float]            = None
-        unit_density_cgs: Optional[float]            = None
-        unit_velocity_cgs: Optional[float]           = None
-        physical_axes:    bool                       = True
+        geometry: str = "CARTESIAN"
+        unit_length_cm: Optional[float] = None
+        unit_density_cgs: Optional[float] = None
+        unit_velocity_cgs: Optional[float] = None
+        physical_axes: bool = True
 
         # Visual
-        velocity_overlay: bool                       = False
-        quiver_subsample: int                        = Field(default=8, ge=1, le=128)
-        log_scale:        Optional[Union[bool, List[bool]]] = None
-        colormap:         Optional[str]              = None
-        figsize:          Optional[List[float]]      = None
-        show:             bool                       = False
+        velocity_overlay: bool = False
+        quiver_subsample: int = Field(default=8, ge=1, le=128)
+        log_scale: Optional[Union[bool, List[bool]]] = None
+        colormap: Optional[str] = None
+        figsize: Optional[List[float]] = None
+        show: bool = False
 
         # Output
-        output_dir:       str                        = ""
-        format:           str                        = "pdf"
-        dpi:              int                        = Field(default=300, ge=72, le=1200)
+        output_dir: str = ""
+        format: str = "pdf"
+        dpi: int = Field(default=300, ge=72, le=1200)
 
         @model_validator(mode="after")
         def load_physics_config(self) -> "PLUTOPlotParams":
@@ -380,6 +399,7 @@ if HAS_PYDANTIC:
                 try:
                     sys.path.insert(0, str(Path(__file__).parent))
                     from physics_config_writer import read_physics_config
+
                     cfg = read_physics_config(self.run_dir)
                     if "GEOMETRY" in cfg and self.geometry == "CARTESIAN":
                         self.geometry = cfg["GEOMETRY"]
@@ -395,6 +415,7 @@ if HAS_PYDANTIC:
 
 
 # ── Main entry point ──────────────────────────────────────────────────────────
+
 
 def _resolve_snaps(snap_arg: Union[int, list, str], run_dir: str, datatype: str) -> list[int]:
     if isinstance(snap_arg, int):
@@ -464,42 +485,39 @@ def _build_parser() -> argparse.ArgumentParser:
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog=__doc__,
     )
-    p.add_argument("--json",         metavar="JSON",
-                   help="JSON string or path to JSON file with all parameters")
-    p.add_argument("--run-dir",      dest="run_dir")
-    p.add_argument("--snap",         nargs="+",
-                   help="Snapshot index(es), 'last', or 'all'")
-    p.add_argument("--variables",    nargs="+",     dest="variables",
-                   help="Variable names: rho vx1 vx2 Bx1 prs …")
-    p.add_argument("--datatype",     dest="datatype", default="dbl",
-                   help="dbl, flt, dbl.h5, flt.h5, vtk (default: dbl)")
-    p.add_argument("--physics-config", dest="physics_config",
-                   default="physics_config.md")
-    p.add_argument("--geometry",     dest="geometry")
-    p.add_argument("--no-physical-axes", dest="physical_axes",
-                   action="store_false", default=True)
-    p.add_argument("--velocity-overlay", dest="velocity_overlay",
-                   action="store_true")
+    p.add_argument(
+        "--json", metavar="JSON", help="JSON string or path to JSON file with all parameters"
+    )
+    p.add_argument("--run-dir", dest="run_dir")
+    p.add_argument("--snap", nargs="+", help="Snapshot index(es), 'last', or 'all'")
+    p.add_argument(
+        "--variables", nargs="+", dest="variables", help="Variable names: rho vx1 vx2 Bx1 prs …"
+    )
+    p.add_argument(
+        "--datatype",
+        dest="datatype",
+        default="dbl",
+        help="dbl, flt, dbl.h5, flt.h5, vtk (default: dbl)",
+    )
+    p.add_argument("--physics-config", dest="physics_config", default="physics_config.md")
+    p.add_argument("--geometry", dest="geometry")
+    p.add_argument("--no-physical-axes", dest="physical_axes", action="store_false", default=True)
+    p.add_argument("--velocity-overlay", dest="velocity_overlay", action="store_true")
     p.add_argument("--quiver-subsample", dest="quiver_subsample", type=int)
-    p.add_argument("--log",          dest="log_scale", action="store_true",
-                   default=None)
-    p.add_argument("--colormap",     dest="colormap")
-    p.add_argument("--output-dir",   dest="output_dir")
-    p.add_argument("--format",       dest="format", default="pdf",
-                   choices=["pdf", "png", "svg"])
-    p.add_argument("--dpi",          type=int, dest="dpi", default=300)
-    p.add_argument("--show",         action="store_true")
+    p.add_argument("--log", dest="log_scale", action="store_true", default=None)
+    p.add_argument("--colormap", dest="colormap")
+    p.add_argument("--output-dir", dest="output_dir")
+    p.add_argument("--format", dest="format", default="pdf", choices=["pdf", "png", "svg"])
+    p.add_argument("--dpi", type=int, dest="dpi", default=300)
+    p.add_argument("--show", action="store_true")
     return p
 
 
 def main() -> None:
     parser = _build_parser()
-    args   = parser.parse_args()
+    args = parser.parse_args()
 
-    raw: dict[str, Any] = {
-        k: v for k, v in vars(args).items()
-        if v is not None and k != "json"
-    }
+    raw: dict[str, Any] = {k: v for k, v in vars(args).items() if v is not None and k != "json"}
 
     # Normalise --snap
     if "snap" in raw and isinstance(raw["snap"], list):
@@ -529,20 +547,23 @@ def main() -> None:
     else:
         # Pydantic not available — run without validation
         snap_arg = raw.get("snap", "last")
-        snaps    = _resolve_snaps(snap_arg, raw["run_dir"], raw.get("datatype", "dbl"))
-        out_dir  = raw.get("output_dir", str(Path(raw["run_dir"]) / "plots"))
+        snaps = _resolve_snaps(snap_arg, raw["run_dir"], raw.get("datatype", "dbl"))
+        out_dir = raw.get("output_dir", str(Path(raw["run_dir"]) / "plots"))
         paths: list[str] = []
         for n in snaps:
-            paths.extend(plot_snapshot(
-                run_dir=raw["run_dir"], snap_n=n,
-                variables=raw.get("variables", ["rho"]),
-                geometry=raw.get("geometry", "CARTESIAN"),
-                datatype=raw.get("datatype", "dbl"),
-                velocity_overlay=raw.get("velocity_overlay", False),
-                output_dir=out_dir,
-                fmt=raw.get("format", "pdf"),
-                dpi=raw.get("dpi", 300),
-            ))
+            paths.extend(
+                plot_snapshot(
+                    run_dir=raw["run_dir"],
+                    snap_n=n,
+                    variables=raw.get("variables", ["rho"]),
+                    geometry=raw.get("geometry", "CARTESIAN"),
+                    datatype=raw.get("datatype", "dbl"),
+                    velocity_overlay=raw.get("velocity_overlay", False),
+                    output_dir=out_dir,
+                    fmt=raw.get("format", "pdf"),
+                    dpi=raw.get("dpi", 300),
+                )
+            )
         result = f"SUCCESS: {len(paths)} plot(s) → {out_dir}"
 
     print(result)

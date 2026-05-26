@@ -5,6 +5,217 @@ Reference: [`ARCHITECTURE.md`](../../ARCHITECTURE.md).
 
 ---
 
+## HypothesisHandoff/v1
+
+Emitted by `@hypothesis-agent` after a completed three-round debate.
+Consumed by `@analytical-agent`.
+
+```json
+{
+  "schema": "HypothesisHandoff/v1",
+  "science_goal": "<string — user's exact research question>",
+  "domain": "<disk | cosmological | retrieval | xray | lss>",
+  "hypotheses": [
+    {
+      "id": "<int>",
+      "description": "<string — one-sentence physical mechanism>",
+      "predicted_observables": ["<string — quantity with units>"],
+      "parameters": {
+        "<name>": {"value_or_range": "<string>", "unit": "<string>"}
+      },
+      "novelty_score": "<float 0–1>",
+      "feasibility_score": "<float 0–1>",
+      "literature_refs": ["<ADS bibcode>"]
+    }
+  ],
+  "priority_rank": ["<int — hypothesis id ordered by priority>"],
+  "top_hypothesis_id": "<int>",
+  "debate_rounds": 3,
+  "warnings": ["<string>"]
+}
+```
+
+**Validation rules:**
+- `hypotheses` must contain at least 1 and at most 5 entries.
+- Every hypothesis must have at least 1 `predicted_observables` entry with units.
+- Every hypothesis must have at least 1 `literature_refs` ADS bibcode retrieved
+  via `@literature-agent` in the same session.
+- `domain` must match one of the five supported values exactly.
+
+---
+
+## AnalyticalHandoff/v1
+
+Emitted by `@analytical-agent` after domain-specific analytical pre-analysis.
+Consumed by `@setup-agent`.
+
+```json
+{
+  "schema": "AnalyticalHandoff/v1",
+  "domain": "<disk | cosmological | retrieval | xray | lss>",
+  "science_goal": "<string>",
+  "hypothesis_ref": "<int — top_hypothesis_id from HypothesisHandoff>",
+  "characteristic_scales": {
+    "<name>": {
+      "value": "<float>",
+      "unit": "<string>",
+      "formula": "<string — e.g. 'r_H = a*(q/3)^(1/3)'>",
+      "ref_bibcode": "<string | null>"
+    }
+  },
+  "stability_criteria": [
+    {
+      "name": "<string>",
+      "criterion": "<string — expression and threshold>",
+      "satisfied": "<bool>",
+      "margin": "<float — how far from the threshold>",
+      "ref_bibcode": "<string>"
+    }
+  ],
+  "predicted_observables": [
+    {
+      "name": "<string>",
+      "value": "<float>",
+      "unit": "<string>",
+      "uncertainty": "<float>",
+      "formula_ref": "<string>"
+    }
+  ],
+  "linear_regime": "<bool>",
+  "nonlinear_trigger": "<string | null — description of why linear theory breaks down>",
+  "parameter_recommendations": {
+    "<param>": "<string — recommended value or range with justification>"
+  },
+  "benchmark_script": "<string | null — path to .py evaluation script>",
+  "warnings": ["<string>"]
+}
+```
+
+**Validation rules:**
+- `linear_regime: false` requires a non-null `nonlinear_trigger`.
+- `characteristic_scales` must include at least 2 entries.
+- `stability_criteria` must include at least 1 entry.
+- `predicted_observables` must correspond to `HypothesisHandoff.hypotheses[hypothesis_ref].predicted_observables`.
+
+---
+
+## SimConfigHandoff/v1
+
+Emitted by `@setup-agent` after simulation configuration and optional HPC script generation.
+Consumed by `@simulation-agent`, `@retrieval-agent`, or `@spectral-agent`.
+
+```json
+{
+  "schema": "SimConfigHandoff/v1",
+  "domain": "<disk | cosmological | retrieval | xray | lss>",
+  "task_id": "<string — snake_case label>",
+  "hypothesis_ref": "<int>",
+  "analytical_ref": "<string | null — path to AnalyticalHandoff JSON>",
+  "code": "<PLUTO | FARGO3D | DustPy | petitRADTRANS | Sherpa | GADGET>",
+  "code_version": "<string — git hash or release tag; read from environment>",
+  "config_path": "<string — absolute path to main config file>",
+  "physics_params": {},
+  "skill_invoked": "<string | null — path to skill script used>",
+  "hpc_mode": "<bool>",
+  "slurm_script_path": "<string | null>",
+  "scheduler": "<slurm | pbs | null>",
+  "n_cores": "<int>",
+  "walltime_h": "<float>",
+  "run_cmd": "<string | null — local run command; null if hpc_mode>",
+  "validated": "<bool>",
+  "warnings": ["<string>"]
+}
+```
+
+**Validation rules:**
+- `validated` must be `true` before handing off. If physics sanity checks fail, stop.
+- If `hpc_mode: true`, `slurm_script_path` must be non-null and the script must exist.
+- `run_cmd` must be null when `hpc_mode: true` (never run locally and on HPC simultaneously).
+- `code_version` must not be the string `"unknown"` — read from the environment.
+
+---
+
+## AnalysisHandoff/v1
+
+Emitted by `@analysis-agent` after post-processing simulation outputs.
+Consumed by `@interpretation-agent` or `@mcmc-agent`.
+
+```json
+{
+  "schema": "AnalysisHandoff/v1",
+  "domain": "<disk | cosmological | retrieval | xray | lss>",
+  "task_id": "<string>",
+  "output_dir": "<string>",
+  "sim_config_ref": "<string — path to SimConfigHandoff JSON>",
+  "diagnostics": {
+    "<key>": {"value": "<float>", "unit": "<string>", "snapshot": "<int | null>"}
+  },
+  "plot_paths": ["<string>"],
+  "data_hash": "<string — SHA256 of primary output file(s)>",
+  "analytical_comparison": {
+    "<metric>": {
+      "analytical": "<float>",
+      "numerical": "<float>",
+      "unit": "<string>",
+      "agreement_pct": "<float>"
+    }
+  },
+  "sanity_passed": "<bool>",
+  "warnings": ["<string>"]
+}
+```
+
+**Validation rules:**
+- `sanity_passed` must be `true` before handing off to `@interpretation-agent`.
+  If `false`, the agent must report the failure and stop.
+- `plot_paths` must be non-empty; each path must exist on disk.
+- `data_hash` must be computed from actual output files (not predicted).
+- `analytical_comparison` must be populated if an `AnalyticalHandoff` was available.
+
+---
+
+## InterpretationHandoff/v1
+
+Emitted by `@interpretation-agent` after physical interpretation and Human Gate 2.
+Consumed by `@paper-agent` (if `next_action: write`) or `@hypothesis-agent`
+(if `next_action: iterate`).
+
+```json
+{
+  "schema": "InterpretationHandoff/v1",
+  "domain": "<disk | cosmological | retrieval | xray | lss>",
+  "task_id": "<string>",
+  "science_goal": "<string>",
+  "findings": [
+    {
+      "statement": "<string>",
+      "evidence": "<string — refers to AnalysisHandoff diagnostic key>",
+      "confidence": "<high | medium | low>",
+      "literature_refs": ["<ADS bibcode>"]
+    }
+  ],
+  "hypothesis_match": "<confirmed | partial | refuted>",
+  "analytical_agreement_summary": "<string>",
+  "plausibility_flags": ["<string>"],
+  "caveats": ["<string>"],
+  "followup_suggestions": ["<string>"],
+  "next_action": "<iterate | write | stop>",
+  "human_gate_2_confirmed": "<bool>",
+  "warnings": ["<string>"]
+}
+```
+
+**Validation rules:**
+- `human_gate_2_confirmed` must be `true` before passing to `@paper-agent`.
+  If `false`, `@paper-agent` must refuse and report.
+- `plausibility_flags` must be empty before `next_action: write`.
+  Active plausibility flags block manuscript writing.
+- `findings` must contain at least 1 entry with `literature_refs`.
+- `hypothesis_match: refuted` requires `next_action: iterate` or `stop`.
+  Never combine `refuted` with `write`.
+
+---
+
 ## SimulationHandoff/v1
 
 Emitted by `@simulation-agent` after a successful simulation run or analysis.
