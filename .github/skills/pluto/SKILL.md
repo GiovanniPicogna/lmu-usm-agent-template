@@ -1,7 +1,7 @@
 ---
 name: pluto
 description: >
-  Compile, configure, and run PLUTO v4.4 (HD/MHD/RHD/RMHD/ResRMHD) simulations.
+  Compile, configure, and run PLUTO (HD/MHD/RHD/RMHD/ResRMHD) simulations.
   Trigger on: PLUTO, pluto.ini, definitions.h, init.c, setup.py, PLUTO_DIR,
   tstop, CFL, Riemann solver, .dbl/.h5/.vtk, snapshot, restart, make PLUTO,
   pyPLUTO, MHD disc/wind/jet, shearing box, FARGO, AMR, Chombo, FARGO3D.
@@ -19,7 +19,7 @@ argument-hint: >
   'runs/disk restart=12 tstop=800'  |  'runs/amr compile with_chombo=true chombo_mpi=true'
 ---
 
-# PLUTO Skill  —  v5
+# PLUTO Skill
 # Mignone et al. 2007, ApJS 170 228  •  https://plutocode.ph.unito.it
 # Covers PLUTO v4.4-patch3 (September 2024)
 
@@ -28,7 +28,7 @@ argument-hint: >
 ## STEP 0 — Pre-flight checklist  *(answer before any action)*
 
 1. **Goal**: reach a target time / test solver / resume crash / parameter sweep?
-2. **Binary**: does `./pluto` exist in `run_dir`?  (it is always named `./pluto`)
+2. **Binary**: does `./pluto` exist in `run_dir`?
 3. **Recompile?** YES if physics/geometry/dimensionality/module changed.  NO if only pluto.ini values changed.
 4. **Snapshots**: inspect `dbl.out` — highest N for restart, not `ls *.dbl`.
 5. **Reversible?** Back up `pluto.ini` + `definitions.h` before any patch.

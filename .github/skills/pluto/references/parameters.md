@@ -1,135 +1,193 @@
 # PLUTO Skill — Full Parameter Reference
-# Based on PLUTO v4.4-patch3 and compile_pluto_v4 / run_pluto_v4
+# Based on PLUTO v4.4-patch3  •  See SKILL.md for routing and physics context
+
+---
+
+## File map
+
+| File | Role |
+|------|------|
+| `SKILL.md` | Routing, physics context, safety rules, quick-ref |
+| `parameters.md` | **This file** — full parameter tables |
+| `examples.md` | Ready-to-run workflows |
+| `compile_pluto.py` | Compile script |
+| `run_pluto.py` | Run + patch script |
+| `plot_pluto.py` | Post-run plotting script |
+| `physics_config.md` | Written by compile script; records compile-time settings |
 
 ---
 
 ## Compile parameters (`PLUTOCompileParams`)
 
-Called by `scripts/compile_pluto.py`.
+Called by `compile_pluto.py`.
+
+### Location & toolchain
 
 | Name | Type | Default | Constraint | Notes |
-|---|---|---|---|---|
-| `run_dir` | str | **required** | must exist | Path to PLUTO problem directory containing `definitions.h` (or numbered variants) |
-| `pluto_dir` | str | `$PLUTO_DIR` | must exist | Path to PLUTO source tree |
-| `config_num` | int | None | 1–99 | If given, copies `definitions_N.h` → `definitions.h` and `pluto_N.ini` → `pluto.ini`; tries zero-padded (`_01`) then bare (`_1`) |
-| `arch` | str | auto-detected | — | `.defs` arch token from `$PLUTO_DIR/Config/`, e.g. `Darwin.gcc.defs`, `Linux.gcc.defs`, `Linux.mpicc.defs`. Auto-detected from `platform.system()` if omitted. |
-| `make_jobs` | int | 4 | [1, 64] | Parallel `make -jN` jobs |
-| `parallel` | bool | false | — | Prefer MPI `.defs` file (`Linux.mpicc.defs`); sets `PARALLEL=TRUE` via `CC=mpicc`. Binary is **still named `./pluto`** (never `pluto_mpi`). |
-| `hdf5` | bool | false | — | Prefer HDF5-enabled `.defs` file. Required for `.dbl.h5` / `.flt.h5` output. |
-| `force_compile` | bool | false | — | Force rebuild even if `./pluto` already exists |
-| `setup_timeout` | int | 120 | [10, 600] | Timeout (s) for `setup.py` subprocess; increase for slow machines |
-| `make_timeout` | int | 600 | [30, 3600] | Timeout (s) for `make` subprocess |
-| `with_sb` | bool | false | XOR `with_fd` | `--with-sb` — shearing box module (§10.1) |
-| `with_fargo` | bool | false | XOR `with_chombo` | `--with-fargo` — FARGO-MHD orbital advection (§10.2) |
-| `with_fd` | bool | false | XOR `with_sb`, `with_chombo` | `--with-fd` — finite difference scheme (§10.4) |
-| `with_chombo` | bool | false | XOR `with_fd`, `with_sb`, `with_fargo` | `--with-chombo` — AMR via Chombo library (Ch. 13). Requires g++ and gfortran. |
-| `chombo_mpi` | bool | false | requires `with_chombo` | `--with-chombo: MPI=TRUE` — Chombo + MPI parallel AMR. Automatically sets `parallel=true`. |
-| `with_cr_transport` | bool | false | — | `--with-cr_transport` — cosmic-ray transport (valid in setup.py source; omitted from `--help`) |
+|------|------|---------|------------|-------|
+| `run_dir` | str | **required** | must exist | PLUTO problem directory |
+| `pluto_dir` | str | `$PLUTO_DIR` | must exist | PLUTO source tree root |
+| `config_num` | int | None | 1–99 | Copies `definitions_N.h` → `definitions.h` and `pluto_N.ini` → `pluto.ini`; tries `_01` then `_1` padding |
+| `arch` | str | auto | — | `.defs` token, e.g. `Linux.gcc.defs`, `Darwin.mpicc.defs` |
+| `make_jobs` | int | 4 | [1,64] | `make -jN` parallelism |
+| `force_compile` | bool | false | — | Rebuild even if `./pluto` exists |
+| `setup_timeout` | int | 120 | [10,600] | Timeout (s) for `setup.py` subprocess |
+| `make_timeout` | int | 600 | [30,3600] | Timeout (s) for `make` subprocess |
 
-**Mutual exclusion rules (validated before calling setup.py):**
+### Build configuration
 
-| Rule | Source |
-|------|--------|
-| `with_chombo` XOR `{with_fd, with_sb, with_fargo}` | `setup.py`: set-intersection check → `sys.exit(1)` |
-| `with_sb` XOR `with_fd` | `setup.py`: explicit check → `sys.exit(1)` |
-| `chombo_mpi=True` requires `with_chombo=True` | logical dependency |
+| Name | Type | Default | Notes |
+|------|------|---------|-------|
+| `parallel` | bool | false | Prefer `mpicc.defs`; sets `PARALLEL=TRUE`. Binary still named `./pluto`. |
+| `hdf5` | bool | false | Prefer HDF5-enabled `.defs`; required for `.dbl.h5` / `.flt.h5` output |
 
-**`--with-chombo` must be the last flag passed to setup.py.** `setup.py` executes
-`break` immediately on matching it; anything after is silently ignored. This is
-handled automatically by `_build_setup_argv()`.
+### Module flags (passed to setup.py)
+
+| Name | Flag | Default | Incompatible with |
+|------|------|---------|------------------|
+| `with_sb` | `--with-sb` | false | `with_fd` |
+| `with_fargo` | `--with-fargo` | false | `with_chombo` |
+| `with_fd` | `--with-fd` | false | `with_sb`, `with_chombo` |
+| `with_chombo` | `--with-chombo` | false | `with_fd`, `with_sb`, `with_fargo` |
+| `chombo_mpi` | `--with-chombo: MPI=TRUE` | false | same; implies `parallel=true`; requires g++ + gfortran |
+| `with_cr_transport` | `--with-cr_transport` | false | — |
+
+`--with-chombo` must be the **last** flag in the setup.py argv (setup.py `break`s on it).
 
 ---
 
 ## Run parameters (`PLUTOParams`)
 
-Called by `scripts/run_pluto.py`. Parameters not listed here fall back to the
-existing value in `pluto.ini` when omitted.
+Called by `run_pluto.py`.
 
 ### Location
 
+| Name | Type | Default | Notes |
+|------|------|---------|-------|
+| `run_dir` | str | **required** | Must contain `./pluto` binary and `pluto.ini` |
+| `output_dir` | str | `run_dir` | Snapshot destination; patches `output_dir` in `[Static Grid Output]` |
+
+### Time control  →  patches `[Time]`
+
 | Name | Type | Default | Constraint | Notes |
-|---|---|---|---|---|
-| `run_dir` | str | **required** | must exist | Path to compiled PLUTO run directory |
-| `output_dir` | str | `run_dir` | — | Where snapshot files are written. Patches `output_dir` in `[Static Grid Output]`. Directory is created if absent. |
+|------|------|---------|------------|-------|
+| `tstop` | float | keep | > 0 | End time. **Mutually exclusive** with `checkpoint_times`. |
+| `checkpoint_times` | list[float] | None | all > 0, ascending | Staged-run schedule; PLUTO restarted at each value. **Mutually exclusive** with `tstop`. |
+| `cfl` | float | keep | [0.1, 0.9] | Courant number. Safe default: 0.3–0.4. |
+| `cfl_max_var` | float | keep | > 1.0 | Max dt^n / dt^{n-1} growth ratio. PLUTO default: 1.1. |
+| `first_dt` | float | keep | > 0 | Initial timestep. Typical: 1e-6 to 1e-3. |
 
-### Time control (patch `[Time]` in pluto.ini)
-
-| Name | Type | Default | Constraint | Notes |
-|---|---|---|---|---|
-| `tstop` | float | keep existing | > 0 | Integration end time. **Mutually exclusive** with `checkpoint_times`. |
-| `checkpoint_times` | list[float] | None | all > 0, ascending | Staged-run schedule. PLUTO is stopped and restarted at each value. Validated via `NDArrayAdapter(ndim=1, dtype="float64", gt=0)`. **Mutually exclusive** with `tstop`. |
-| `cfl` | float | keep existing | [0.1, 0.9] | Courant number. Typical safe value: 0.3–0.4. |
-| `cfl_max_var` | float | keep existing | > 1.0 | Max ratio dt^n / dt^{n-1} (time step growth limiter). Default in PLUTO: 1.1. |
-| `first_dt` | float | keep existing | > 0 | Initial time step. Typical: 1e-6 to 1e-3. |
-
-### Solver (patches `[Solver]` in pluto.ini)
+### Solver  →  patches `[Solver]`
 
 | Name | Type | Default | Notes |
-|---|---|---|---|
-| `solver` | str | keep existing | Riemann solver token. Must be valid for the compiled physics module. See SKILL §5 table. |
+|------|------|---------|-------|
+| `solver` | str | keep | Must be valid for compiled PHYSICS. See SKILL.md §3.2. |
 
-### User parameters (patch `[Parameters]` in pluto.ini)
+### User parameters  →  patches `[Parameters]`
 
 | Name | Type | Default | Notes |
-|---|---|---|---|
-| `parameters` | dict | `{}` | Key-value pairs for `[Parameters]`. Key names are problem-specific (defined in `init.c`). Count must match `USER_DEF_PARAMETERS` in `definitions.h` exactly. |
+|------|------|---------|-------|
+| `parameters` | dict | `{}` | Keys from `init.c`; count must match `USER_DEF_PARAMETERS` in `definitions.h` |
 
-### Runtime flags (assembled on `./pluto` command line)
+### Runtime flags  →  `./pluto` command line
 
-| Name | Type | Default | Constraint | Notes |
-|---|---|---|---|---|
-| `pluto_bin` | str | `"./pluto"` | — | Path to binary. PLUTO always produces `./pluto`; there is no `pluto_mpi`. |
-| `ini_file` | str | None | — | `-i fname` — use alternative ini file instead of `pluto.ini` |
-| `restart` | int | None | ≥ 0 | `-restart N` — restart from snapshot N (reads `.dbl` files). Exclusive with `h5restart`, `frestart`. |
-| `h5restart` | int | None | ≥ 0 | `-h5restart N` — restart from HDF5 snapshot N (reads `.dbl.h5`). Exclusive with `restart`, `frestart`. |
-| `frestart` | int | None | ≥ 0 | `-frestart N` — fluid-only restart; suppresses particle restart. Exclusive with `restart`, `h5restart`. |
-| `maxsteps` | int | None | ≥ 1 | `-maxsteps N` — stop after N integration steps |
-| `xres` | int | None | ≥ 1 | `-xres N` — override x1 resolution (aspect ratio preserved) |
-| `no_write` | bool | false | — | `-no-write` — suppress all disk output (useful for timing) |
+| Name | Type | Default | PLUTO flag | Notes |
+|------|------|---------|-----------|-------|
+| `pluto_bin` | str | `"./pluto"` | — | Always `./pluto`; no `pluto_mpi` exists |
+| `ini_file` | str | None | `-i fname` | Alternative ini file |
+| `restart` | int | None | `-restart N` | Read `.dbl` files. Exclusive with `h5restart`, `frestart`. |
+| `h5restart` | int | None | `-h5restart N` | Read `.dbl.h5` files. |
+| `frestart` | int | None | `-frestart N` | Fluid-only restart; suppress particle restart. |
+| `maxsteps` | int | None | `-maxsteps N` | Stop after N steps. |
+| `xres` | int | None | `-xres N` | Override x1 resolution; aspect ratio preserved. |
+| `no_write` | bool | false | `-no-write` | Suppress all disk output. |
 
 ### MPI
 
 | Name | Type | Default | Constraint | Notes |
-|---|---|---|---|---|
-| `n_procs` | int | 1 | [1, 512] | MPI rank count. Invoked as `mpirun -np N ./pluto`. |
-| `decomp` | list[int] | None | product = `n_procs` | `-dec n1 [n2] [n3]` — explicit MPI domain decomposition. Product of all values must equal `n_procs`. |
+|------|------|---------|------------|-------|
+| `n_procs` | int | 1 | [1,512] | `mpirun -np N ./pluto` |
+| `decomp` | list[int] | None | product = `n_procs` | `-dec n1 [n2] [n3]`; NOT `-decomp` |
+
+### Output  →  patches `[Static Grid Output]`
+
+| Name | Type | Default | Notes |
+|------|------|---------|-------|
+| `log_dir` | str | None | Directory for `pluto.N.log` parallel log files |
 
 ### Compile integration
 
 | Name | Type | Default | Notes |
-|---|---|---|---|
-| `config_num` | int | None | Config variant N for auto-compile |
-| `auto_compile` | bool | true | Compile automatically if `./pluto` is missing |
+|------|------|---------|-------|
+| `config_num` | int | None | Config variant for auto-compile |
+| `auto_compile` | bool | true | Compile if `./pluto` missing |
 | `force_compile` | bool | false | Force recompile before running |
 
 ### Background & monitoring
 
 | Name | Type | Default | Constraint | Notes |
-|---|---|---|---|---|
-| `background` | bool | false | — | Launch and return immediately (single stage only). Writes PID and log files. |
-| `monitor` | bool | false | — | Poll snapshots while running; log t, dt, nstep, rho_max/min per new snapshot. |
-| `watch_interval` | float | 20.0 | [1, 3600] | Polling cadence in seconds |
-| `plot_on_the_fly` | bool | false | — | Render density + velocity plots as snapshots appear |
-| `plot_interval` | float | 30.0 | [1, 3600] | Minimum seconds between plot renders |
-| `plot_output_dir` | str | `<output_dir>/live_plots` | — | Directory for monitor plots |
-| `quiver_subsample` | int | 8 | [1, 128] | Velocity field downsampling factor for quiver overlay |
-
-### Output directory options (patch `[Static Grid Output]`)
-
-| Name | Type | Default | Notes |
-|---|---|---|---|
-| `log_dir` | str | None | Directory for parallel log files (`pluto.0.log` etc.) |
+|------|------|---------|------------|-------|
+| `background` | bool | false | — | Launch and return; writes PID + log |
+| `monitor` | bool | false | — | Poll snapshots; log t, dt, nstep, ρ |
+| `watch_interval` | float | 20.0 | [1,3600] | Poll cadence (seconds) |
+| `plot_on_the_fly` | bool | false | — | Render plots as snapshots appear (calls `plot_pluto.py`) |
+| `plot_interval` | float | 30.0 | [1,3600] | Min seconds between renders |
+| `plot_output_dir` | str | `<output_dir>/live_plots` | — | Plot destination |
+| `quiver_subsample` | int | 8 | [1,128] | Velocity quiver downsampling |
 
 ---
 
-## Output descriptor files
+## Plot parameters (`PLUTOPlotParams`)
 
-PLUTO writes a `*.out` file for each enabled output format after every snapshot.
-These are the **ground truth** for restart decisions.
+Called by `plot_pluto.py`.
+
+### Input
+
+| Name | Type | Default | Notes |
+|------|------|---------|-------|
+| `run_dir` | str | **required** | Must contain `dbl.out` and snapshot files |
+| `snap` | int or list[int] or `"last"` or `"all"` | `"last"` | Snapshot(s) to plot |
+| `datatype` | str | `"dbl"` | `"dbl"`, `"flt"`, `"dbl.h5"`, `"flt.h5"`, `"vtk"` |
+| `physics_config` | str | `physics_config.md` | Written by compile script; provides GEOMETRY and units |
+
+### Variables
+
+| Name | Type | Default | Notes |
+|------|------|---------|-------|
+| `variables` | list[str] | `["rho"]` | Any variable in the snapshot: `rho`, `vx1`, `vx2`, `vx3`, `prs`, `Bx1`, `Bx2`, `Bx3`, `tr1`, … |
+| `log_scale` | bool or list[bool] | `auto` | Apply log10; auto-detected for density/pressure |
+| `velocity_overlay` | bool | false | Quiver overlay of (vx1, vx2) on density panel |
+| `quiver_subsample` | int | 8 | [1,128] Velocity quiver downsampling |
+
+### Geometry & units
+
+| Name | Type | Default | Notes |
+|------|------|---------|-------|
+| `geometry` | str | from `physics_config.md` | `CARTESIAN`, `POLAR`, `SPHERICAL`, `CYLINDRICAL` |
+| `unit_length_cm` | float | from `physics_config.md` | `UNIT_LENGTH` in cm; sets axis labels |
+| `unit_density_cgs` | float | from `physics_config.md` | `UNIT_DENSITY` in g/cm³ |
+| `unit_velocity_cgs` | float | from `physics_config.md` | `UNIT_VELOCITY` in cm/s |
+| `physical_axes` | bool | true | Label axes in physical units; false = code-unit indices |
+
+### Output
+
+| Name | Type | Default | Notes |
+|------|------|---------|-------|
+| `output_dir` | str | `run_dir/plots` | Plot destination |
+| `format` | str | `"pdf"` | `"pdf"`, `"png"`, `"svg"` |
+| `dpi` | int | 300 | Resolution for raster formats |
+| `colormap` | str | `"viridis"` | Colorblind-safe default; `"cividis"` for velocity |
+| `colormap_velocity` | str | `"cividis"` | Colormap for speed / velocity magnitude |
+| `figsize` | list[float] | `[6, 5]` per panel | Figure size in inches |
+| `show` | bool | false | Call `plt.show()` interactively |
+
+---
+
+## Output descriptor format
 
 `dbl.out` columns: `n  t  dt  nstep  [single_file]  [endian]  var1 var2 ...`
 
-Where `n` is the snapshot index used with `-restart N`.
+`n` = snapshot index used with `-restart N`.
 
-For Chombo-AMR: checkpoint files are `chk.nnnn.hdf5`; plot files are `data.nnnn.hdf5`.
-Restart with `-restart N` (reads `chk.nnnn.hdf5`).
+For Chombo-AMR: checkpoints `chk.nnnn.hdf5`; plots `data.nnnn.hdf5`.
+Restart from Chombo checkpoint: `-restart N` (reads `chk.nnnn.hdf5`).

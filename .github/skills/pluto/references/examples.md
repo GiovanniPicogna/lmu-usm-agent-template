@@ -1,218 +1,239 @@
 # PLUTO Skill — Run Examples
-# Based on PLUTO v4.4-patch3, compile_pluto_v4, run_pluto_v4
+# Based on PLUTO v4.4-patch3  •  See SKILL.md for routing and physics context
 
-All compile/run commands below use
-`$PLUTO_DIR/Test_Problems/HD/Disk_Planet/` as the reference run directory
-(set PLUTO_DIR before running; do not pass it as a literal string in JSON).
-It contains eight numbered config variants (`definitions_01.h` –
-`definitions_08.h`, paired with `pluto_01.ini` – `pluto_08.ini`).
+Resolve `$PLUTO_DIR` to the actual path before using in JSON strings.
 
 ---
 
-## 1. HD Disk–Planet — 2-D polar isothermal disk
+## 1. HD Disk–Planet  *(polar, isothermal, 2-D)*
 
-2-D isothermal HD disk in polar geometry (r ∈ [0.4, 2.5], 256 × 768 cells).
-Runtime-patchable `[Parameters]`: `Mplanet`, `Viscosity`, `MdiskCGS`, `Mstar`.
-
-### Compile (config variant 1)
+`Test_Problems/HD/Disk_Planet/` — 8 numbered configs, 256×768 cells, r ∈ [0.4, 2.5].
 
 ```bash
-# CLI
-python ~/.agents/skills/pluto/scripts/compile_pluto.py \
-    --run-dir "$PLUTO_DIR/Test_Problems/HD/Disk_Planet" \
-    --config-num 1
+# Compile config 1
+python compile_pluto.py --run-dir "$PLUTO_DIR/Test_Problems/HD/Disk_Planet" --config-num 1
 
-# JSON (agent form — resolve $PLUTO_DIR before constructing the string)
-python ~/.agents/skills/pluto/scripts/compile_pluto.py \
-    --json '{"run_dir": "/path/to/PLUTO/Test_Problems/HD/Disk_Planet",
-             "config_num": 1}'
+# Run default (tstop from pluto_01.ini)
+python run_pluto.py --run-dir "$PLUTO_DIR/Test_Problems/HD/Disk_Planet"
+
+# Override planet mass + extend to 10 orbital periods
+python run_pluto.py --json '{
+  "run_dir": "/path/to/Disk_Planet",
+  "tstop": 10.0,
+  "parameters": {"Mplanet": 100.0, "Viscosity": 1e14}}'
+
+# Staged run: stop at t=2, 5, 10 and restart automatically
+python run_pluto.py --json '{
+  "run_dir": "/path/to/Disk_Planet",
+  "checkpoint_times": [2.0, 5.0, 10.0]}'
+
+# Resume from snapshot 5
+python run_pluto.py --run-dir "/path/to/Disk_Planet" --restart 5 --tstop 10.0
+
+# HDF5 restart (requires binary compiled with hdf5=true)
+python run_pluto.py --run-dir "/path/to/Disk_Planet" --h5restart 5 --tstop 10.0
+
+# Plot last snapshot
+python plot_pluto.py --run-dir "/path/to/Disk_Planet" --snap last \
+  --variables rho vx1 vx2 --velocity-overlay
+
+# Plot all snapshots as PDF sequence
+python plot_pluto.py --run-dir "/path/to/Disk_Planet" --snap all \
+  --variables rho prs --format pdf
 ```
 
-### Run with defaults (tstop from pluto_01.ini)
+---
+
+## 2. HD Disk–Planet + FARGO orbital advection
 
 ```bash
-python ~/.agents/skills/pluto/scripts/run_pluto.py \
-    --run-dir "$PLUTO_DIR/Test_Problems/HD/Disk_Planet"
+python compile_pluto.py --json '{
+  "run_dir": "/path/to/Disk_Planet",
+  "config_num": 1,
+  "with_fargo": true}'
+
+python run_pluto.py --run-dir "/path/to/Disk_Planet" --tstop 10.0
 ```
 
-### Override planet mass and extend to 10 orbital periods
+FARGO is activated entirely at compile time. No ini change needed.
+
+---
+
+## 3. HD Disk–Planet + shearing box  *(sb XOR fd)*
 
 ```bash
-python ~/.agents/skills/pluto/scripts/run_pluto.py \
-    --json '{"run_dir": "/path/to/Disk_Planet",
-             "tstop": 10.0,
-             "parameters": {"Mplanet": 100.0, "Viscosity": 1e14}}'
+python compile_pluto.py --json '{
+  "run_dir": "/path/to/Disk_Planet",
+  "config_num": 1,
+  "with_sb": true}'
 ```
 
-### Staged run with restarts at t = 2, 5, 10
+---
+
+## 4. MHD Disk Wind  *(axisymmetric polar, MHD)*
 
 ```bash
-python ~/.agents/skills/pluto/scripts/run_pluto.py \
-    --json '{"run_dir": "/path/to/Disk_Planet",
-             "checkpoint_times": [2.0, 5.0, 10.0]}'
+python compile_pluto.py --run-dir "$PLUTO_DIR/Test_Problems/MHD/Disk_Wind" --config-num 1
+
+# Switch to more robust solver for magnetically dominated flows
+python run_pluto.py --json '{
+  "run_dir": "/path/to/MHD/Disk_Wind",
+  "tstop": 5.0,
+  "solver": "hlld"}'
+
+python plot_pluto.py --run-dir "/path/to/MHD/Disk_Wind" --snap last \
+  --variables rho Bx1 Bx2 --velocity-overlay
 ```
 
-### Resume from snapshot 5, extend to t = 10
+---
+
+## 5. Parallel run with explicit domain decomposition
 
 ```bash
-# dbl restart (reads .dbl files)
-python ~/.agents/skills/pluto/scripts/run_pluto.py \
-    --run-dir "$PLUTO_DIR/Test_Problems/HD/Disk_Planet" \
-    --restart 5 --tstop 10.0
-
-# HDF5 restart (reads .dbl.h5 files; requires binary compiled with hdf5=true)
-python ~/.agents/skills/pluto/scripts/run_pluto.py \
-    --run-dir "$PLUTO_DIR/Test_Problems/HD/Disk_Planet" \
-    --h5restart 5 --tstop 10.0
-```
-
-### Parallel run — 4 MPI processes with decomposition
-
-```bash
-# Compile with MPI support
-python ~/.agents/skills/pluto/scripts/compile_pluto.py \
-    --run-dir "$PLUTO_DIR/Test_Problems/HD/Disk_Planet" \
-    --config-num 1 --parallel
+# Compile with MPI support (binary still named ./pluto)
+python compile_pluto.py --json '{
+  "run_dir": "/path/to/Disk_Planet",
+  "config_num": 1,
+  "parallel": true}'
 
 # Run: mpirun -np 4 ./pluto -dec 2 2
-python ~/.agents/skills/pluto/scripts/run_pluto.py \
-    --json '{"run_dir": "/path/to/Disk_Planet",
-             "tstop": 10.0,
-             "n_procs": 4,
-             "decomp": [2, 2],
-             "parameters": {"Mplanet": 100.0}}'
-```
-
-### Stop after N steps (timing test)
-
-```bash
-python ~/.agents/skills/pluto/scripts/run_pluto.py \
-    --run-dir "$PLUTO_DIR/Test_Problems/HD/Disk_Planet" \
-    --maxsteps 100 --no-write
-```
-
-### Background run with live monitoring
-
-```bash
-python ~/.agents/skills/pluto/scripts/run_pluto.py \
-    --json '{"run_dir": "/path/to/Disk_Planet",
-             "tstop": 20.0,
-             "background": true,
-             "monitor": true,
-             "plot_on_the_fly": true,
-             "watch_interval": 30.0}'
+python run_pluto.py --json '{
+  "run_dir": "/path/to/Disk_Planet",
+  "tstop": 10.0,
+  "n_procs": 4,
+  "decomp": [2, 2],
+  "parameters": {"Mplanet": 100.0}}'
 ```
 
 ---
 
-## 2. HD Disk–Planet with FARGO orbital advection
+## 6. AMR with Chombo  *(requires g++ and gfortran)*
+
+Chombo is incompatible with `--with-fd`, `--with-sb`, `--with-fargo`.
 
 ```bash
-# Compile with FARGO module
-python ~/.agents/skills/pluto/scripts/compile_pluto.py \
-    --run-dir "$PLUTO_DIR/Test_Problems/HD/Disk_Planet" \
-    --config-num 1 --with-fargo
-
-# Run as normal — FARGO is activated via definitions.h at compile time
-python ~/.agents/skills/pluto/scripts/run_pluto.py \
-    --run-dir "$PLUTO_DIR/Test_Problems/HD/Disk_Planet" \
-    --tstop 10.0
-```
-
----
-
-## 3. HD Disk–Planet with shearing box
-
-```bash
-# Compile with shearing box (mutually exclusive with --with-fd)
-python ~/.agents/skills/pluto/scripts/compile_pluto.py \
-    --run-dir "$PLUTO_DIR/Test_Problems/HD/Disk_Planet" \
-    --config-num 1 --with-sb
-
-# JSON form
-python ~/.agents/skills/pluto/scripts/compile_pluto.py \
-    --json '{"run_dir": "/path/to/Disk_Planet",
-             "config_num": 1,
-             "with_sb": true}'
-```
-
----
-
-## 4. MHD Disk Wind — 2-D axisymmetric disk wind
-
-```bash
-# Compile
-python ~/.agents/skills/pluto/scripts/compile_pluto.py \
-    --run-dir "$PLUTO_DIR/Test_Problems/MHD/Disk_Wind" \
-    --config-num 1
-
-# Run with modified solver (roe → hll for robustness)
-python ~/.agents/skills/pluto/scripts/run_pluto.py \
-    --json '{"run_dir": "/path/to/MHD/Disk_Wind",
-             "tstop": 5.0,
-             "solver": "hll"}'
-```
-
----
-
-## 5. AMR — Chombo adaptive mesh refinement
-
-```bash
-# Prerequisites: g++ and gfortran must be installed (checked automatically)
-# Chombo is incompatible with --with-fd, --with-sb, --with-fargo
-
 # Serial AMR compile
-python ~/.agents/skills/pluto/scripts/compile_pluto.py \
-    --json '{"run_dir": "/path/to/my_amr_problem",
-             "with_chombo": true}'
+python compile_pluto.py --json '{"run_dir": "/path/to/amr_problem", "with_chombo": true}'
 
 # Parallel AMR compile (implies parallel=true)
-python ~/.agents/skills/pluto/scripts/compile_pluto.py \
-    --json '{"run_dir": "/path/to/my_amr_problem",
-             "with_chombo": true,
-             "chombo_mpi": true}'
+python compile_pluto.py --json '{
+  "run_dir": "/path/to/amr_problem",
+  "with_chombo": true,
+  "chombo_mpi": true}'
 
-# Run AMR simulation
-python ~/.agents/skills/pluto/scripts/run_pluto.py \
-    --json '{"run_dir": "/path/to/my_amr_problem",
-             "tstop": 1.0,
-             "n_procs": 4}'
+# Run (Chombo output: data.nnnn.hdf5 plots, chk.nnnn.hdf5 checkpoints)
+python run_pluto.py --json '{"run_dir": "/path/to/amr_problem", "tstop": 1.0, "n_procs": 4}'
 
-# Restart AMR from Chombo checkpoint file chk.0005.hdf5
-python ~/.agents/skills/pluto/scripts/run_pluto.py \
-    --json '{"run_dir": "/path/to/my_amr_problem",
-             "restart": 5,
-             "tstop": 3.0}'
+# Restart from Chombo checkpoint chk.0005.hdf5 (uses -restart 5 internally)
+python run_pluto.py --json '{"run_dir": "/path/to/amr_problem", "restart": 5, "tstop": 3.0}'
+
+# Plot Chombo AMR output (plot_pluto reads data.nnnn.hdf5 via pyPLUTO)
+python plot_pluto.py --run-dir "/path/to/amr_problem" --snap last \
+  --variables rho Bx1 --datatype dbl.h5
 ```
 
-Note: Chombo-AMR restarts use `-restart N` which reads `chk.nnnn.hdf5`
-checkpoint files (not `.dbl` files). AMR plot files are `data.nnnn.hdf5`.
+---
+
+## 7. Background run with live monitoring
+
+```bash
+python run_pluto.py --json '{
+  "run_dir": "/path/to/Disk_Planet",
+  "tstop": 20.0,
+  "background": true,
+  "monitor": true,
+  "plot_on_the_fly": true,
+  "watch_interval": 30.0}'
+```
+
+While running, check:
+```bash
+tail -f /path/to/Disk_Planet/pluto_monitor.log
+tail -5 /path/to/Disk_Planet/dbl.out
+```
 
 ---
 
-## 6. Other useful test problems in `$PLUTO_DIR/Test_Problems/`
+## 8. Timing test — no disk output, limited steps
 
-| Path | Physics | Notes |
-|---|---|---|
-| `HD/Disk_Vortex/` | HD polar | Rossby wave instability; good FARGO test |
-| `HD/Jet/` | HD cylindrical | Jet propagation; try `roe` vs `hll` solvers |
-| `MHD/Disk_Wind/` | MHD polar | Magnetically driven disk wind |
-| `MHD/Orszag_Tang/` | MHD Cartesian | Classic MHD vortex; tests `hlld` solver |
-| `RHD/Blast/` | RHD Cartesian | Relativistic blast wave |
-| `RMHD/Rotor/` | RMHD Cartesian | Relativistic MHD rotor |
-| `Particles/Dust/` | HD + dust | Dust-gas drag; fluid-only restart with `-frestart` |
+```bash
+python run_pluto.py --json '{
+  "run_dir": "/path/to/Disk_Planet",
+  "maxsteps": 100,
+  "no_write": true}'
+```
 
 ---
 
-## Common error patterns and fixes
+## 9. Units and physical scale workflow
 
-| Symptom | Likely cause | Fix |
-|---|---|---|
-| `ERROR: PLUTO binary not found` | Not compiled yet | Run compile script; or set `auto_compile=true` |
-| `ERROR: make failed` (Chombo) | Missing g++ or gfortran | Install C++ and Fortran compilers |
-| `PLUTO exited 1` immediately | Bad `[Parameters]` count | Count `USER_DEF_PARAMETERS` in `definitions.h`; must match pluto.ini exactly |
-| `NaN` / `rho_min < 0` in log | Numerical instability | Reduce `cfl` (try 0.2); switch to `tvdlf`; reduce `first_dt` |
-| `dt` decreasing every step | CFL violation or instability | Reduce `cfl`; check for supersonic inflow boundaries |
-| Snapshots never written | Wrong section name patched | Verify `[Static Grid Output]` section exists in pluto.ini (not `[Output]`) |
-| `decomp` product ≠ `n_procs` | Bad decomposition | Ensure n1 × n2 × n3 = n_procs |
-| `mpirun: command not found` | MPI not on PATH | `module load openmpi`; or use `n_procs=1` |
+When working in code units you must define three normalisation constants in
+`definitions.h` (in the user-defined constants block) before compiling:
+
+```c
+/* [Beg] user-defined constants (do not change this line) */
+#define UNIT_DENSITY   (CONST_mp)         /* code unit of density = proton mass in g/cm³ */
+#define UNIT_LENGTH    (CONST_au)         /* code unit of length  = 1 AU in cm          */
+#define UNIT_VELOCITY  (CONST_kms*1.e3)   /* code unit of velocity = 1 km/s in cm/s     */
+/* [End] user-defined constants (do not change this line) */
+```
+
+`compile_pluto.py` reads these and writes them to `physics_config.md`.
+`plot_pluto.py` reads `physics_config.md` to label axes in physical units.
+
+To convert simulation output:
+```
+t_physical [s]      = t_code * UNIT_LENGTH / UNIT_VELOCITY
+rho_physical [g/cc] = rho_code * UNIT_DENSITY
+P_physical [Ba]     = P_code  * UNIT_DENSITY * UNIT_VELOCITY²
+T_physical [K]      = T_code  * UNIT_VELOCITY² * CONST_mH / CONST_kB
+```
+
+---
+
+## 10. EOS and viscosity compile examples
+
+```bash
+# Isothermal HD disc (EOS must be set in definitions.h before compile)
+# definitions.h: EOS ISOTHERMAL, PHYSICS HD, GEOMETRY POLAR
+python compile_pluto.py --run-dir "/path/to/isothermal_disc" --config-num 2
+
+# MHD with explicit viscosity and thermal conduction
+# definitions.h: VISCOSITY EXPLICIT, THERMAL_CONDUCTION SUPER_TIME_STEPPING
+python compile_pluto.py --run-dir "/path/to/viscous_disc"
+
+# Relativistic resistive MHD (ResRMHD)
+# definitions.h: PHYSICS ResRMHD, EOS IDEAL
+python compile_pluto.py --run-dir "/path/to/resistive_jet" --parallel
+```
+
+---
+
+## 11. Other useful test problems
+
+| Path | PHYSICS | Geometry | Notable feature |
+|------|---------|----------|-----------------|
+| `HD/Sod/` | HD | Cartesian | Shock-tube; quickest sanity check |
+| `HD/Disk_Vortex/` | HD | Polar | Rossby wave instability |
+| `HD/Jet/` | HD | Cylindrical | Jet propagation; test `roe` vs `hll` |
+| `MHD/Disk_Wind/` | MHD | Polar | Magnetically-driven wind |
+| `MHD/Orszag_Tang/` | MHD | Cartesian | Classic vortex; tests `hlld` |
+| `RHD/Blast/` | RHD | Cartesian | Relativistic blast wave |
+| `RMHD/Rotor/` | RMHD | Cartesian | Relativistic MHD rotor |
+| `Particles/Dust/` | HD+dust | Polar | Dust-gas drag; use `-frestart` |
+
+---
+
+## Common errors and fixes
+
+| Symptom | Cause | Fix |
+|---------|-------|-----|
+| `ERROR: PLUTO binary not found` | Not compiled | Run compile script or set `auto_compile=true` |
+| `make failed` on Chombo | Missing g++ or gfortran | Install C++ and Fortran compilers |
+| `PLUTO exited 1` immediately | `[Parameters]` count wrong | Count `USER_DEF_PARAMETERS` in `definitions.h`; must match `pluto.ini` exactly |
+| `NaN` / `rho_min < 0` | Numerical instability | Reduce `cfl` (try 0.2); switch to `tvdlf`; check `first_dt` |
+| `dt` shrinks every step | CFL violation | Reduce `cfl`; check boundary conditions for supersonic inflow |
+| `output_dir` patches silently ignored | Wrong section name | Must be `[Static Grid Output]` not `[Output]` — handled by `run_pluto.py` |
+| `-decomp` flag not recognised | Wrong flag name | Use `-dec` (userguide Table 1.3); `run_pluto.py` handles this |
+| Snapshots not found after run | Wrong `datatype` in plot | Check `dbl.out` for actual format; pass `--datatype dbl.h5` if HDF5 |
+| Plot axes show array indices | No units file | Ensure `physics_config.md` exists; run `compile_pluto.py` first |

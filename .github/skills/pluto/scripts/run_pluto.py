@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-PLUTO ini patcher and runner — v4.
+PLUTO ini patcher and runner.
 Mignone et al. 2007  —  https://plutocode.ph.unito.it
 Based on PLUTO v4.4-patch3 (September 2024).
 
@@ -35,6 +35,7 @@ from pydantic import BaseModel, Field, field_validator, model_validator
 from scientific_pydantic.numpy import NDArrayAdapter
 
 SYSCONF_NAME = "sysconf.out"  # written by compile_pluto_v4
+_SKILL_DIR = Path(__file__).resolve().parent
 
 
 # ─── Pydantic model ───────────────────────────────────────────────────────────
@@ -426,6 +427,41 @@ def _load_snapshot_arrays(output_dir: str, snap_n: int):
 def _render_snapshot_plots(
     output_dir: str, plot_dir: str, snap_n: int, quiver_subsample: int
 ) -> Optional[str]:
+    """
+    Delegate to plot_pluto.py for geometry-aware, publication-quality output.
+    Falls back to a simple inline imshow if plot_pluto.py is not available.
+    """
+    plot_script = Path(__file__).resolve().parent / "plot_pluto.py"
+    if plot_script.is_file():
+        try:
+            payload = json.dumps(
+                {
+                    "run_dir": output_dir,
+                    "snap": snap_n,
+                    "variables": ["rho", "vx1"],
+                    "velocity_overlay": True,
+                    "quiver_subsample": quiver_subsample,
+                    "output_dir": plot_dir,
+                    "format": "png",
+                    "dpi": 150,
+                }
+            )
+            proc = subprocess.run(
+                [sys.executable, str(plot_script), "--json", payload],
+                capture_output=True,
+                text=True,
+                timeout=120,
+            )
+            if proc.returncode == 0:
+                # Return first output path mentioned in stdout
+                for line in proc.stdout.splitlines():
+                    if line.strip().endswith(".png"):
+                        return line.strip()
+                return plot_dir
+        except Exception:
+            pass  # fall through to inline fallback
+
+    # ── Inline fallback (no geometry awareness; pixel-index axes) ──────────
     arrays = _load_snapshot_arrays(output_dir, snap_n)
     if arrays is None:
         return None
@@ -439,29 +475,15 @@ def _render_snapshot_plots(
 
     rho, vx1, vx2 = arrays
     speed = np.sqrt(vx1 * vx1 + vx2 * vx2)
-    fig, axes = plt.subplots(1, 2, figsize=(12, 5), dpi=140)
-
-    im0 = axes[0].imshow(rho, origin="lower", cmap="viridis", aspect="auto")
-    axes[0].set_title(f"Density  n={snap_n}")
-    plt.colorbar(im0, ax=axes[0], fraction=0.046, pad=0.04)
-
-    im1 = axes[1].imshow(speed, origin="lower", cmap="cividis", aspect="auto")
+    fig, axes = plt.subplots(1, 2, figsize=(10, 4), dpi=150)
+    axes[0].imshow(rho, origin="lower", cmap="viridis", aspect="auto")
+    axes[0].set_title(f"rho  n={snap_n}")
+    axes[1].imshow(speed, origin="lower", cmap="cividis", aspect="auto")
     axes[1].set_title(f"|v|  n={snap_n}")
-    ny, nx = speed.shape
-    ys = np.arange(0, ny, quiver_subsample)
-    xs = np.arange(0, nx, quiver_subsample)
-    xx, yy = np.meshgrid(xs, ys)
-    axes[1].quiver(xx, yy, vx1[np.ix_(ys, xs)], vx2[np.ix_(ys, xs)], color="white", alpha=0.6)
-    plt.colorbar(im1, ax=axes[1], fraction=0.046, pad=0.04)
-
-    for ax in axes:
-        ax.set_xlabel("i")
-        ax.set_ylabel("j")
-
     os.makedirs(plot_dir, exist_ok=True)
     out_path = os.path.join(plot_dir, f"snapshot_{snap_n:05d}.png")
     fig.tight_layout()
-    fig.savefig(out_path)
+    fig.savefig(out_path, dpi=150)
     plt.close(fig)
     return out_path
 
@@ -755,7 +777,6 @@ def _run_single_stage(
             snap,
         )
 
-    # warnings = [line for line in (proc.stderr or "").splitlines() if "warn" in line.lower()]
     return True, f"wall_clock={wall:.1f}s", snap
 
 

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-PLUTO problem compiler — v4.
+PLUTO problem compiler.
 Mignone et al. 2007  —  https://plutocode.ph.unito.it
 Based on PLUTO v4.4-patch3 (September 2024).
 
@@ -29,6 +29,8 @@ import argparse
 import json
 import os
 import platform
+
+# import shutil
 import subprocess
 import sys
 import tempfile
@@ -46,6 +48,8 @@ SETUP_TIMEOUT = 120  # seconds — setup.py should never take longer
 MAKE_TIMEOUT = 600  # seconds — 10 min is enough for even large problems
 TAIL_LINES = 25  # lines of output to include in error messages
 SYSCONF_NAME = "sysconf.out"  # written after successful compile
+SKILL_VERSION = "pluto-v4.4-patch3"
+_SKILL_DIR = Path(__file__).resolve().parent
 
 
 # ─── Pydantic model ───────────────────────────────────────────────────────────
@@ -541,6 +545,29 @@ def compile_pluto(params: PLUTOCompileParams) -> str:
         _write_sysconf(str(run_dir), arch, params.config_num, binary_path, is_parallel, modules)
 
     modules_str = " ".join(modules) if modules else "none"
+
+    # Write physics_config.md — parsed from definitions.h
+    # read by run_pluto.py and plot_pluto.py for geometry-aware axes + units
+    phys_cfg_path = "not written"
+    try:
+        sys.path.insert(0, str(_SKILL_DIR))
+        from physics_config_writer import write_physics_config
+
+        phys_cfg_path = write_physics_config(
+            str(run_dir),
+            extra={
+                "arch": arch,
+                "config_num": str(params.config_num) if params.config_num else "none",
+                "binary": binary_path,
+                "parallel": str(is_parallel).lower(),
+                "modules": modules_str,
+                "compiled_at": time.strftime("%Y-%m-%dT%H:%M:%S"),
+                "skill_version": SKILL_VERSION,
+            },
+        )
+    except Exception as _pce:
+        phys_cfg_path = f"not written ({_pce})"
+
     return (
         f"SUCCESS: binary={binary_path}\n"
         f"  arch={arch}  config_num={params.config_num}  "
@@ -548,7 +575,8 @@ def compile_pluto(params: PLUTOCompileParams) -> str:
         f"wall_clock={wall:.1f}s\n"
         f"  modules={modules_str}\n"
         f"  pluto_dir={pluto_dir}\n"
-        f"  sysconf={run_dir / SYSCONF_NAME}"
+        f"  sysconf={run_dir / SYSCONF_NAME}\n"
+        f"  physics_config={phys_cfg_path}"
     )
 
 
