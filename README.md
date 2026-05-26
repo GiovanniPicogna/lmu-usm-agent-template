@@ -6,7 +6,7 @@ at LMU Munich.
 
 **Status**: community draft — open to contributions from all group members.
 **Maintainer**: LMU Astrophysics Group
-**Template version**: 1.0 (May 2026)
+**Template version**: 1.1 (May 2026)
 
 ---
 
@@ -16,6 +16,12 @@ at LMU Munich.
 .github/
 ├── copilot-instructions.md   # Group-wide agent baseline (auto-loaded)
 ├── agents/
+│   ├── pipeline-agent.agent.md     # @pipeline-agent: full 9-stage research orchestrator
+│   ├── hypothesis-agent.agent.md   # @hypothesis-agent: science question → ranked hypotheses
+│   ├── analytical-agent.agent.md   # @analytical-agent: analytical/linear pre-analysis
+│   ├── setup-agent.agent.md        # @setup-agent: simulation configs + SLURM/PBS scripts
+│   ├── analysis-agent.agent.md     # @analysis-agent: post-processing + benchmark comparison
+│   ├── interpretation-agent.agent.md # @interpretation-agent: physical interpretation
 │   ├── literature-agent.agent.md   # @literature-agent: ADS search & BibTeX
 │   ├── simulation-agent.agent.md   # @simulation-agent: FARGO3D/PLUTO/Magneticum
 │   ├── retrieval-agent.agent.md    # @retrieval-agent: petitRADTRANS CCF & dynesty
@@ -25,8 +31,8 @@ at LMU Munich.
 │       ├── output_conventions.md   #   FARGO3D/PLUTO/GADGET I/O functions + unit tables
 │       └── code_conventions.md     #   Script skeleton, HDF5 saving, figure naming
 ├── shared/
-│   └── handoff_schemas.md          # JSON schemas: Simulation/Spectral/MCMCHandoff v1
-├── skills/                         # Bundled simulation launch skills
+│   └── handoff_schemas.md          # JSON schemas: all 8 Handoff/v1 schemas
+├── skills/                         # Bundled simulation launch + analysis skills
 │   ├── dustpy/
 │   │   ├── SKILL.md                #   DustPy: grain growth & radial drift
 │   │   ├── references/
@@ -37,12 +43,24 @@ at LMU Munich.
 │   │   ├── references/
 │   │   │   └── parameters.md       #   Full parameter table
 │   │   └── scripts/run_fargo3d.py  #   Patches .par file, launches simulation
-│   └── pluto/
-│       ├── SKILL.md                #   PLUTO: HD/MHD disk & jet simulations
-│       ├── references/
-│       │   ├── parameters.md       #   Full parameter table
-│       │   └── examples.md         #   Step-by-step run examples
-│       └── scripts/run_pluto.py    #   Patches pluto.ini, launches simulation
+│   ├── pluto/
+│   │   ├── SKILL.md                #   PLUTO: HD/MHD disk & jet simulations
+│   │   ├── references/
+│   │   │   ├── parameters.md       #   Full parameter table
+│   │   │   └── examples.md         #   Step-by-step run examples
+│   │   └── scripts/run_pluto.py    #   Patches pluto.ini, launches simulation
+│   ├── radmc3d/
+│   │   ├── SKILL.md                #   RADMC-3D: radiative transfer, synthetic ALMA images
+│   │   └── references/
+│   │       └── parameters.md       #   Full parameter table
+│   ├── yt/
+│   │   ├── SKILL.md                #   yt: SPH/AMR volumetric analysis & projections
+│   │   └── references/
+│   │       └── parameters.md       #   Full parameter table
+│   └── sherpa/
+│       ├── SKILL.md                #   Sherpa: X-ray spectral fitting, C-stat, conf()
+│       └── references/
+│           └── parameters.md       #   Full parameter table
 ├── workflows/
 │   ├── pre-commit.yml              # CI: runs hooks on every PR
 │   └── pages.yml                   # CI: builds & deploys GitHub Pages
@@ -134,25 +152,49 @@ The MCP server starts automatically when VS Code loads. To verify:
 
 In Copilot Chat or Agent Mode:
 
+**Full research pipeline (recommended starting point):**
+```
+@pipeline-agent
+
+Science question: How does planet mass affect gap depth in a
+protoplanetary disk around a 1 Msun star?
+
+Domain: disk
+Target journal: A&A
+HPC mode: SLURM
+Cluster account: pn29co (LRZ SuperMUC-NG)
+Walltime: 24 h, 4 nodes × 48 cores
+```
+
+**Or invoke specialist agents directly:**
 ```
 @literature-agent  Find all papers citing 2025A&A...703A.270R since 2025
                    and add them to paper/bibliography.bib
+
+@hypothesis-agent  Generate hypotheses for how planet mass affects gap
+                   depth in dusty protoplanetary disks. Domain: disk.
+
+@analytical-agent  Compute Hill radius, Crida K, and type-I migration
+                   timescale for a 1 MJup planet at 20 au.
+                   HypothesisHandoff: results/hypotheses/gap_depth_20260526.json
+
+@setup-agent       Create a FARGO3D .par file + SLURM script.
+                   AnalyticalHandoff: results/analytical/gap_depth_20260526.json
+                   HPC mode: SLURM, LRZ SuperMUC-NG.
 
 @simulation-agent  Read all FARGO3D snapshots in data/runs/disk_1Mjup/
                    and compute the azimuthally averaged gap depth as a
                    function of time for planet 0. Save to results/gaps/.
 
-@simulation-agent  Load the Magneticum Box2/hr snapshot at z=0 and plot
-                   the projected gas temperature map centred on the most
-                   massive cluster. Save to plots/cosmo/.
+@analysis-agent    Post-process data/runs/disk_1Mjup/ at snapshot 200.
+                   Compare gap depth with the analytical benchmark.
+
+@interpretation-agent  Interpret the gap depth results and decide
+                        whether to iterate or write.
 
 @retrieval-agent   Run a petitRADTRANS CCF pipeline on
                    data/spectra/obs/wasp189b_K.fits using CO and H2O
                    templates. Parameters are in AGENTS.md.
-
-@retrieval-agent   Execute a dynesty retrieval for WASP-189b (emission,
-                   K-band) with nlive=500. Use the forward model in
-                   src/analysis/retrieval.py.
 
 @spectral-agent    Fit an absorbed APEC model to data/spectra/core/
                    using the parameters in AGENTS.md
@@ -241,17 +283,27 @@ In Copilot Chat, activate a skill by name:
 Use the scientific-visualization skill for this figure.
 ```
 
-### Bundled simulation launch skills
+### Bundled skills
 
-This template ships three simulation skills in `.github/skills/`. Each provides
-a validated Python runner (`run_<code>.py`) with Pydantic parameter checking and
-a `SUCCESS` / `ERROR` exit protocol that `@simulation-agent` parses automatically.
+This template ships six skills in `.github/skills/`. Simulation launch skills
+provide a validated Python runner with Pydantic parameter checking and a
+`SUCCESS` / `ERROR` exit protocol that agents parse automatically.
+
+#### Simulation launch skills
 
 | Skill | Code | Use case | Key parameters | Prerequisite |
 |---|---|---|---|---|
 | [`dustpy`](.github/skills/dustpy/SKILL.md) | DustPy | Radial dust evolution, grain growth, fragmentation, Stokes numbers | `alpha_viscosity`, `disk_mass_msun`, `t_end_yr`, `snapshot_times_yr` | `pip install dustpy scientific-pydantic` |
 | [`fargo3d`](.github/skills/fargo3d/SKILL.md) | FARGO3D | Planet–disk interaction, gap opening, type-I/II migration torques | `par_file`, `Alpha`, `PlanetMass`, `Sigma0`, `AspectRatio`, `Tmax` | Compiled `fargo3d` binary + valid `.par` file |
 | [`pluto`](.github/skills/pluto/SKILL.md) | PLUTO | HD/MHD disk or jet simulations; parameter overrides without recompiling | `run_dir`, `tstop`, `CFL`, `[Parameters]` overrides, `n_procs` | Compiled `pluto` binary + valid `pluto.ini` |
+
+#### Analysis & post-processing skills
+
+| Skill | Domain | Use case |
+|---|---|---|
+| [`radmc3d`](.github/skills/radmc3d/SKILL.md) | disk | Radiative transfer; synthetic ALMA images, SEDs, scattered-light maps from PLUTO/FARGO3D/DustPy density grids |
+| [`yt`](.github/skills/yt/SKILL.md) | cosmological | Volumetric analysis of GADGET/Magneticum HDF5 snapshots; projection/slice/profile/phase maps; FITS output |
+| [`sherpa`](.github/skills/sherpa/SKILL.md) | X-ray | X-ray spectral fitting (TBabs\*apec, C-stat, `conf()` at 90%); XMM-Newton, Chandra, eROSITA |
 
 Scripts accept individual flags or a single `--json` blob for multi-parameter calls:
 
@@ -290,6 +342,12 @@ constraints that must hold even in long conversations (context rot).
 
 | Agent | Critical rules |
 |---|---|
+| `@pipeline-agent` | Never skip a human gate; never auto-submit HPC jobs; stop after 3 failed iterations |
+| `@hypothesis-agent` | All refs via ADS MCP — never invent bibcodes; Gate 1 is mandatory |
+| `@analytical-agent` | Use `astropy.units` — no magic number conversions; flag nonlinear regime explicitly |
+| `@setup-agent` | Never call `sbatch`/`qsub`; never overwrite existing configs; read cluster details from `AGENTS.md` |
+| `@analysis-agent` | Never proceed if `sanity_passed: false`; SHA256-hash all output files |
+| `@interpretation-agent` | No findings without ADS support; Gate 2 is mandatory before `@paper-agent` |
 | `@simulation-agent` | No hallucinated numbers; read-only by default; test before batch |
 | `@spectral-agent` | No hallucinated fit results; C-stat on low counts; model changes need confirmation |
 | `@mcmc-agent` | 68% intervals (not 90%); never overwrite chains; convergence before reporting |
@@ -315,25 +373,35 @@ rather than producing a plausible-looking but fabricated result.
 ## Pipeline architecture
 
 See [`ARCHITECTURE.md`](ARCHITECTURE.md) for the complete picture:
-Mermaid pipeline diagram, full agent roster table, three data-flow descriptions
-(disk simulation, X-ray spectroscopy, atmospheric retrieval), and the quality-gate
-summary that maps to the three anti-failure mechanisms above.
+Mermaid flowchart of the full 9-stage research pipeline (including both human gates),
+full agent roster table (12 agents), stage-by-stage summary, legacy data-flow
+descriptions, and the quality-gate summary.
 
 ### Structured handoffs between agents
 
 When one specialist agent finishes and a downstream agent needs its results, it
 emits a **handoff JSON** whose schema is defined in
 [`.github/shared/handoff_schemas.md`](.github/shared/handoff_schemas.md).
-Three schemas are currently defined:
+Eight schemas are currently defined:
 
 | Schema | Emitted by | Consumed by |
 |---|---|---|
-| `SimulationHandoff/v1` | `@simulation-agent` | `@spectral-agent`, `@mcmc-agent` |
-| `SpectralFitHandoff/v1` | `@spectral-agent` | `@mcmc-agent` |
+| `HypothesisHandoff/v1` | `@hypothesis-agent` | `@analytical-agent` |
+| `AnalyticalHandoff/v1` | `@analytical-agent` | `@setup-agent` |
+| `SimConfigHandoff/v1` | `@setup-agent` | `@simulation-agent`, `@retrieval-agent`, `@spectral-agent` |
+| `SimulationHandoff/v1` | `@simulation-agent` | `@analysis-agent`, `@mcmc-agent` |
+| `SpectralFitHandoff/v1` | `@spectral-agent` | `@analysis-agent`, `@mcmc-agent` |
+| `AnalysisHandoff/v1` | `@analysis-agent` | `@interpretation-agent` |
+| `InterpretationHandoff/v1` | `@interpretation-agent` | `@paper-agent` (Gate 2) or `@hypothesis-agent` (iterate) |
 | `MCMCHandoff/v1` | `@mcmc-agent` | `@paper-agent`, user |
 
-Each schema includes a `sanity_passed` / `converged` gate: the receiving
-agent will refuse to proceed if the gate is `false`.
+Each schema includes a `sanity_passed` / `validated` / `converged` gate: the
+receiving agent will refuse to proceed if the gate is `false`.
+
+The **two mandatory human gates** in the pipeline are enforced by
+`@hypothesis-agent` (Gate 1 — confirm top hypothesis) and
+`@interpretation-agent` (Gate 2 — confirm write / iterate / stop). Neither
+gate can be bypassed programmatically.
 
 ---
 
