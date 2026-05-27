@@ -638,6 +638,101 @@ nav_order: 5
       </section>
 
       <!-- ═══════════════════════════════════════════════════════
+     SLIDE — MULTI-AGENT: WHY + ARCHITECTURES
+     ═══════════════════════════════════════════════════════ -->
+      <section>
+        <span class="stag">Part 1 — Multi-Agent Orchestration for Scientific Research</span>
+        <h2>Beyond the Single Agent: Why Orchestration?</h2>
+        <p>Single LLMs lack persistent memory, cannot self-verify numerical results, and cannot run external tools in a
+          closed loop. Scientific agents must integrate domain-specific knowledge, process diverse data types, and ensure
+          rigorous reproducibility — tasks that demand coordinated specialist agents.
+          <span class="sm">(Ren et al. 2025, arXiv:2503.24047)</span>
+        </p>
+        <div class="g4">
+          <div class="card c1">
+            <div class="ct">🏭 Role-based SOPs</div>
+            <div class="sm b" style="margin-bottom:0.2em;">MetaGPT — ICLR 2024</div>
+            <p>Fixed roles + Standardised Operating Procedures. Assembly-line workflow (manager → architect → engineer)
+              produces structured artefacts, reducing cascading hallucinations from naive LLM chaining.</p>
+            <div class="sm">Hong et al. 2023, arXiv:2308.00352</div>
+          </div>
+          <div class="card c2">
+            <div class="ct">💬 Conversable agents</div>
+            <div class="sm" style="color:var(--a2);margin-bottom:0.2em;">AutoGen — Wu et al. 2023</div>
+            <p>"Conversation programming": customisable agents interact through structured dialogues, each combining
+              LLMs, human input, or tools. Spans maths, coding, operations research.</p>
+            <div class="sm">Wu et al. 2023, arXiv:2308.08155</div>
+          </div>
+          <div class="card c3">
+            <div class="ct">🎯 Planner–executor–verifier</div>
+            <div class="sm" style="color:var(--a3);margin-bottom:0.2em;">CMBagent — astrophysics</div>
+            <p>Planner↔reviewer loop → control agent executes. Four building blocks: planner, memory module, action
+              space, verifier. Removes human-in-the-loop from routine steps while preserving structured oversight.</p>
+          </div>
+          <div class="card c5">
+            <div class="ct">🧬 Evolutionary search</div>
+            <div class="sm" style="color:var(--a5);margin-bottom:0.2em;">AlphaEvolve · AI Scientist-v2</div>
+            <p>Prompt sampler → LLM generates code diffs → evaluators score → database updated iteratively. No
+              human-authored templates. AI Scientist-v2: first fully AI-generated peer-review-accepted workshop paper.
+            </p>
+            <div class="sm">Novikov et al. 2025, arXiv:2506.13131 · Yamada et al. 2025, arXiv:2504.08066</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ═══════════════════════════════════════════════════════
+     SLIDE — MULTI-AGENT: RESULTS + FAILURE MODES
+     ═══════════════════════════════════════════════════════ -->
+      <section>
+        <span class="stag">Part 1 — Multi-Agent Science: Results &amp; Failure Modes</span>
+        <h2>What Has Been Demonstrated — and Where It Fails</h2>
+        <div class="g2">
+          <div>
+            <div class="sm" style="margin-bottom:0.3em;font-weight:700;color:var(--a2);">✅ Demonstrated Results</div>
+            <div class="pcard">
+              <div class="pref">Laverick et al. 2024 · arXiv:2412.00431 (CMBagent)</div>
+              Reproduced ACT DR6 CMB lensing constraints with <strong>no human-written code</strong>. Full pipeline →
+              converged MCMC in 40 min at $1.55. Expert equivalent: several hours.
+            </div>
+            <div class="pcard" style="border-left-color:var(--a2);">
+              <div class="pref" style="color:var(--a2);">Borrett et al. 2026 · arXiv:2604.09621 — Weak lensing
+                challenge</div>
+              Fully autonomous exploration did not reach expert level.
+              <strong>Semi-autonomous (human intervention) achieved 1st place.</strong>
+              Best results ensembled CMBagent, GPT-5, Gemini 2.5, Claude 4.5, Qwen3-max.
+            </div>
+            <div class="pcard" style="border-left-color:var(--a5);">
+              <div class="pref" style="color:var(--a5);">Novikov et al. 2025 · arXiv:2506.13131 (AlphaEvolve)</div>
+              Discovered provably correct algorithms beating state-of-the-art across maths &amp; CS; found a more
+              efficient data-centre scheduling algorithm for Google's own infrastructure.
+            </div>
+          </div>
+          <div>
+            <div class="sm" style="margin-bottom:0.3em;font-weight:700;color:var(--a4);">⚠️ Failure Modes — MAST
+              Taxonomy (NeurIPS 2025)</div>
+            <div class="card c4" style="margin-bottom:0.4em;font-size:0.79em;">
+              <div class="ct">Cemri et al. 2025 · arXiv:2503.13657</div>
+              14 failure modes · 7 frameworks · 200+ tasks · Cohen's κ = 0.88.<br>
+              <span class="r">System design 44%</span> ·
+              <span class="am">Inter-agent misalignment 32%</span> ·
+              <span class="b">Verification failures 24%</span>.<br>
+              Performance gains on benchmarks remain <strong>minimal vs single-agent</strong>. Better base models alone
+              will not fix these — good <em>organisational design</em> is required.
+            </div>
+            <div class="card c3" style="font-size:0.79em;">
+              <div class="ct">🔑 Open Problems</div>
+              <ul>
+                <li>No formula for how many agents, which roles, how they interact</li>
+                <li>Semi-autonomy outperforms full autonomy for hard science</li>
+                <li>Scientific agents need built-in validation (self-review, statistical checks)</li>
+                <li>No community standard for citing or archiving multi-agent workflows</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ═══════════════════════════════════════════════════════
      SLIDE 5 — GITHUB COPILOT
      ═══════════════════════════════════════════════════════ -->
       <section>
