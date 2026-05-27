@@ -73,11 +73,36 @@ argument-hint: "Physical parameters, e.g. 'alpha=1e-3, disk mass 0.05 Msun, run 
 `stellar_temperature_K` (not a direct luminosity input); DustPy derives
 `L = 4πR²σT⁴` from these. Defaults: R = 2 R☉, T = 5772 K.
 
+**Temperature profile:** DustPy uses a passively irradiated disk:
+$$T(r) = \left(\frac{0.05\,L_\star}{4\pi r^2 \sigma_{\rm SB}}\right)^{1/4}$$
+The irradiation angle (0.05) is constant. For a solar-type star
+the water snow line (T ≈ 150 K) falls at roughly 2–4 au.
+
 **Array-valued parameter:** `snapshot_times_yr` must be a JSON list:
 `"snapshot_times_yr": [1e4, 1e5, 1e6]`
 
 **Mass-grid resolution:** `Nmbpd` (mass bins per decade) must be ≥ 7 (Drążkowska+
 2014). Increasing it improves accuracy but substantially increases runtime.
+
+**Post-initialization fields** (applied after `sim.initialize()`, exposed as JSON
+keys in `run_dustpy.py`):
+- `delta_rad`, `delta_turb`, `delta_vert` — independent turbulent mixing parameters,
+  each defaulting to `alpha_viscosity`. Useful for layered-disk models where turbulent
+  collision velocities (`delta_turb`) are lower than the bulk gas diffusivity (`alpha`).
+- `cfl_factor` — adaptive timestep safety factor (default 0.1).
+- `overwrite` — if `True`, existing HDF5 output files are overwritten.
+
+**Advanced post-init fields** (set directly in a custom script; not JSON keys):
+- `sim.gas.S.ext` (shape Nr) — external gas source/sink terms (g cm⁻² s⁻¹); use for
+  disk wind or infall.
+- `sim.gas.torque.Lambda` (shape Nr) — specific angular momentum injection;
+  generates effective velocity $v_{\rm torque} = 2\Lambda/(r\,\Omega_K)$; use for
+  carving planetary gaps without a live planet.
+- `sim.dust.S.ext` (shape Nr × Nm) — external dust source/sink terms (g cm⁻² s⁻¹);
+  use for streaming-instability planetesimal formation.
+- `sim.dust.backreaction.A` and `.B` (shape Nr, defaults 1 and 0) — dust-on-gas
+  backreaction factors; $v_g = A\,v_{\rm visc} + 2B\,\eta\,v_K$. Enable with
+  `dustpylib.dynamics.backreaction` (Gárate et al. 2019, doi:10.3847/1538-4357/aaf4fc).
 
 ## Output
 

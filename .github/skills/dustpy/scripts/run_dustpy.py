@@ -71,6 +71,16 @@ class DustPyParams(BaseModel):
         ty.Annotated[np.ndarray, NDArrayAdapter(ndim=1, dtype="float64", gt=0.0)]
     ] = None
     output_dir: str = Field(default="dustpy_out")
+    # ── Post-initialization fields (applied AFTER sim.initialize()) ──────────
+    # delta mixing parameters; set to None to keep the default (= alpha_viscosity).
+    # Allows decoupling radial diffusion, turbulent collisions, and vertical settling.
+    delta_rad: ty.Optional[float] = Field(default=None, gt=0.0)
+    delta_turb: ty.Optional[float] = Field(default=None, gt=0.0)
+    delta_vert: ty.Optional[float] = Field(default=None, gt=0.0)
+    # CFL safety factor for the adaptive timestep (default 0.1).
+    cfl_factor: float = Field(default=0.1, gt=0.0, le=1.0)
+    # If True, existing HDF5 files in output_dir are overwritten (default False).
+    overwrite: bool = Field(default=False)
 
     @field_validator(
         "alpha_viscosity",
@@ -93,6 +103,10 @@ class DustPyParams(BaseModel):
         "fragment_distribution",
         "t_end_yr",
         "fragmentation_velocity_ms",
+        "delta_rad",
+        "delta_turb",
+        "delta_vert",
+        "cfl_factor",
         mode="before",
     )
     @classmethod
@@ -170,6 +184,18 @@ def run_dustpy_simulation(params: DustPyParams) -> str:
 
     # --- output directory (writer is created by initialize()) ---
     sim.writer.datadir = params.output_dir
+    sim.writer.overwrite = params.overwrite
+
+    # --- post-initialize fields ---
+    # delta mixing parameters (shape Nr,); default updater returns gas.alpha.
+    # Override only when user explicitly requests decoupled mixing.
+    if params.delta_rad is not None:
+        sim.dust.delta.rad[...] = params.delta_rad
+    if params.delta_turb is not None:
+        sim.dust.delta.turb[...] = params.delta_turb
+    if params.delta_vert is not None:
+        sim.dust.delta.vert[...] = params.delta_vert
+    sim.t.cfl = params.cfl_factor
 
     t_end_s = params.t_end_yr * YR_TO_S
     if params.snapshot_times_yr is not None:
@@ -267,6 +293,11 @@ def _build_parser() -> argparse.ArgumentParser:
         help="JSON array of snapshot times in years, e.g. '[1e4,1e5,1e6]'",
     )
     p.add_argument("--output-dir", type=str, dest="output_dir")
+    p.add_argument("--delta-rad", type=float, dest="delta_rad")
+    p.add_argument("--delta-turb", type=float, dest="delta_turb")
+    p.add_argument("--delta-vert", type=float, dest="delta_vert")
+    p.add_argument("--cfl", type=float, dest="cfl_factor")
+    p.add_argument("--overwrite", action="store_true", default=None, dest="overwrite")
     return p
 
 
