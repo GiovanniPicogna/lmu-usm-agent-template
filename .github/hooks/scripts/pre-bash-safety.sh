@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# preToolUse hook — bash tool safety guard
+# preToolUse hook — bash/terminal tool safety guard
 #
 # Blocks shell operations that are explicitly prohibited by §10 of
 # copilot-instructions.md:
@@ -7,24 +7,56 @@
 #   - rm -rf on data/ or results/
 #   - HPC job submission (sbatch / qsub / bsub) without user review
 #
-# Input:  JSON payload from stdin — toolName + toolArgs (camelCase CLI format)
-#         or tool_name + tool_input (snake_case VS Code format).
-# Output: {"permissionDecision":"deny","permissionDecisionReason":"..."} to block,
-#         or empty stdout to allow.
+# VS Code compatibility notes:
+#   - VS Code reads .github/hooks/*.json by default.
+#   - VS Code IGNORES hook matchers — this script runs for ALL PreToolUse
+#     events; it self-checks tool_name and exits 0 immediately for non-bash tools.
+#   - Output uses dual-format JSON: top-level permissionDecision (CLI) +
+#     hookSpecificOutput wrapper (VS Code).
+#   - Known bash/terminal tool names: "bash" (CLI), "runInTerminal" (VS Code).
+#
+# Input:  JSON via stdin — tool_name + tool_input (VS Code) or toolName + toolArgs (CLI).
+# Output: dual-format JSON to stdout to block; empty stdout to allow.
 set -euo pipefail
 
 INPUT=$(cat)
 
-# Parse the shell command from the JSON payload — handle both payload formats
-COMMAND=$(echo "$INPUT" | python3 -c "
+# Parse tool name and shell command from the JSON payload (handle both formats)
+PARSED=$(echo "$INPUT" | python3 -c "
 import sys, json
 d = json.load(sys.stdin)
-args = d.get('toolArgs') or d.get('tool_input') or {}
-print(args.get('command', '') if isinstance(args, dict) else '')
-" 2>/dev/null || echo "")
+tool_name = d.get('tool_name', d.get('toolName', ''))
+args = d.get('tool_input', d.get('toolArgs')) or {}
+command = args.get('command', '') if isinstance(args, dict) else ''
+print(tool_name + '\t' + command)
+" 2>/dev/null || printf '\t')
 
+TOOL_NAME=$(printf '%s' "$PARSED" | cut -f1)
+COMMAND=$(printf '%s' "$PARSED" | cut -f2-)
+
+# VS Code ignores matchers — skip non-bash tools immediately.
+# Known bash/terminal tool names across Copilot surfaces:
+case "$TOOL_NAME" in
+    bash|runInTerminal|run_in_terminal|executeTerminalCommand) ;;
+    "") ;;       # Unknown — still evaluate (fail-safe)
+    *) exit 0 ;; # Not a shell tool — allow
+esac
+
+# Output dual-format deny JSON: CLI reads top-level; VS Code reads hookSpecificOutput
 deny() {
-    python3 -c "import json, sys; print(json.dumps({'permissionDecision':'deny','permissionDecisionReason':sys.argv[1]}))" "$1"
+    python3 -c "
+import json, sys
+msg = sys.argv[1]
+print(json.dumps({
+    'permissionDecision': 'deny',
+    'permissionDecisionReason': msg,
+    'hookSpecificOutput': {
+        'hookEventName': 'PreToolUse',
+        'permissionDecision': 'deny',
+        'permissionDecisionReason': msg,
+    }
+}))
+" "$1"
     exit 0
 }
 

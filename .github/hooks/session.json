@@ -16,6 +16,14 @@
                 "cwd": ".",
                 "timeoutSec": 10
             }
+        ],
+        "Stop": [
+            {
+                "type": "command",
+                "bash": "bash .github/hooks/scripts/agent-stop-check.sh",
+                "cwd": ".",
+                "timeoutSec": 10
+            }
         ]
     }
 }
