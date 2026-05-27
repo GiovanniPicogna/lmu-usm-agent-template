@@ -7,7 +7,7 @@
 #
 # Maintainer: LMU Astrophysics Group <astro@physik.lmu.de>
 # Last updated: 2026-05
-# Template version: 1.0
+# Template version: 1.1
 #
 # ── How to customise ─────────────────────────────────────────────────────────
 # This file encodes GROUP-LEVEL conventions that apply to every project.
@@ -206,14 +206,18 @@ At minimum, record:
 ## 11. Agent skills
 
 Agent skills are reusable, domain-specific instruction packages that you
-can activate on demand to extend your capabilities. They live in
-`~/.agents/skills/` and are loaded with `read_file` at the start of a
-relevant task.
+can activate on demand to extend your capabilities. There are two tiers:
+
+**Bundled domain skills** (live in `.github/skills/`, no installation needed):
+`dustpy`, `fargo3d`, `pluto`, `radmc3d`, `yt`, `sherpa`.
+See `ARCHITECTURE.md` for the canonical list and trigger phrases.
+
+**Community skills** (installed to `~/.agents/skills/`, loaded with `read_file`):
 
 **Full catalog and installation instructions:**
 → https://github.com/K-Dense-AI/scientific-agent-skills
 
-### Recommended skills for USM groups
+### Recommended community skills for USM groups
 
 *Universal (all groups)*
 
@@ -233,7 +237,10 @@ relevant task.
 | `database-lookup` | querying SIMBAD, VizieR, ALMA archive, ExoFOP |
 | `exploratory-data-analysis` | first look at a new simulation output or data file |
 | `scientific-schematics` | disk structure diagrams, gap morphology schematics |
-| `radmc3d` | radiative transfer post-processing, synthetic ALMA images, SED, scattered-light maps |
+| `dustpy` | **bundled** — 1-D dust evolution, grain growth, fragmentation barrier |
+| `fargo3d` | **bundled** — planet–disk interaction, gap opening, type-I migration |
+| `pluto` | **bundled** — HD/MHD disk & jet simulations, compile/run/plot |
+| `radmc3d` | **bundled** — radiative transfer post-processing, synthetic ALMA images, SED, scattered-light maps |
 
 *Cosmological simulations*
 
@@ -242,7 +249,7 @@ relevant task.
 | `networkx` | building merger trees or substructure graphs |
 | `umap-learn` | dimensionality reduction for halo/galaxy populations |
 | `scikit-learn` | classification / regression on simulation catalogues |
-| `yt` | volumetric analysis, projection maps, thermodynamic profiles of SPH/AMR snapshots |
+| `yt` | **bundled** — volumetric analysis, projection maps, thermodynamic profiles of SPH/AMR snapshots |
 
 *Atmospheric retrievals & high-res spectroscopy*
 
@@ -258,7 +265,7 @@ relevant task.
 |-------|-------------|
 | `imaging-data-commons` | accessing NCI / public X-ray / CT imaging datasets |
 | `pydicom` | reading DICOM files from medical / detector calibration data |
-| `sherpa` | X-ray spectral fitting, TBabs\*apec models, C-stat, confidence contours |
+| `sherpa` | **bundled** — X-ray spectral fitting, TBabs\*apec models, C-stat, confidence contours |
 
 *Simulation pre-analysis (all domains)*
 

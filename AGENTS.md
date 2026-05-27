@@ -147,59 +147,95 @@ When creating a new script:
 ## Key commands
 
 ```bash
-# ── Disk simulations ───────────────────────────────────────────────────────
-# Generate FARGO3D parameter file from config
-python src/simulation/setup.py --config configs/disk_1Mjup.json \
-    --code fargo3d --out data/runs/disk_1Mjup/
+# ── Environment setup ──────────────────────────────────────────────────────
+conda env create -f envs/base.yml
+conda activate py312
+pre-commit install            # run style/BibTeX checks on every commit
 
-# Post-process: compute dust surface density gap depth vs time
-python src/analysis/dust.py --run data/runs/disk_1Mjup/ \
-    --planet 0 --out results/gaps/disk_1Mjup_gap.json
+# ── Bundled skill runners (use these directly or via agents) ────────────────
+# DustPy — dust evolution
+python .github/skills/dustpy/scripts/run_dustpy.py \
+    --setup <setup_module.py> --out data/dust/<run_name>/
 
-# ── Cosmological simulations ────────────────────────────────────────────────
-# Read Magneticum snapshot and compute halo mass function
-python src/analysis/snap.py --snap data/snapshots/snap_144 \
-    --box 352 --out results/populations/hmf_z0.json
+# FARGO3D — planet–disk simulation
+python .github/skills/fargo3d/scripts/run_fargo3d.py \
+    --par data/runs/<run_name>/fargo.par \
+    --params Sigma0=6e-4 AspectRatio=0.05 Mplanet=1.0
 
-# ── Atmospheric retrievals ──────────────────────────────────────────────────
-# Run petitRADTRANS CCF on a CRIRES+ spectrum
-python src/analysis/retrieval.py --obs data/spectra/obs/wasp189b_K.fits \
-    --species CO H2O Fe --mode emission \
-    --out results/fits/wasp189b_ccf.json
+# PLUTO — HD/MHD disk simulation
+python .github/skills/pluto/scripts/run_pluto.py \
+    --json <params.json>                  # patches pluto.ini and launches
+python .github/skills/pluto/scripts/compile_pluto.py \
+    --problem <Test_Problems/HD/Disk_Planet> --with-fargo
+python .github/skills/pluto/scripts/plot_pluto.py \
+    --run data/runs/<run_name>/ --var rho --snap -1
 
-# Run full nested-sampling retrieval (dynesty)
-python src/mcmc/sample.py --config results/fits/wasp189b_ccf.json \
-    --sampler dynesty --nlive 500 --out results/mcmc/wasp189b_chains.h5
+# RADMC-3D — radiative transfer post-processing
+python .github/skills/radmc3d/scripts/run_radmc3d.py \
+    --setup data/radmc/<run_name>/ --mode image
 
-# ── X-ray spectral fitting ──────────────────────────────────────────────────
-# Extract spectra for a given region
-python src/reduction/xmm_reduce.py --obsid <0123456789> --out data/spectra/
+# ── Literature (via @literature-agent) ────────────────────────────────────
+# In Copilot Chat:
+# @literature-agent Find all papers citing 2025A&A...703A.270R since 2025
+#                   and append BibTeX to paper/bibliography.bib
 
-# Run Sherpa fit
-python src/analysis/spectral.py --spec data/spectra/core --model tbabs_apec \
-    --nh 4.6e20 --redshift 0.091 --out results/fits/core.json
+# ── Full research pipeline (via @pipeline-agent) ───────────────────────────
+# In Copilot Chat, start the 9-stage pipeline:
+# @pipeline-agent  Science question: "How does planet mass affect gap depth?"
+#                  Domain: disk  |  Compute mode: local
+#
+# The pipeline pauses at two human gates:
+#   Gate 1 — after hypothesis generation (you choose which to pursue)
+#   Gate 2 — after interpretation (you decide: iterate or stop)
 
-# ── MCMC (general) ──────────────────────────────────────────────────────────
-python src/mcmc/sample.py --config results/fits/core.json \
-    --sampler emcee --nwalkers 64 --nsteps 5000 \
-    --out results/mcmc/core_chains.h5
+# ── MCMC sampling (via @mcmc-agent) ───────────────────────────────────────
+# @mcmc-agent  results/spectral/core_fit.json
+#              sampler: emcee  nwalkers: 64  nsteps: 5000
+
+# ── Pre-commit validation ─────────────────────────────────────────────────
+pre-commit run --all-files
 ```
 
 ---
 
 ## Agent behaviour rules (project-specific additions)
 
-1. **Spectral fitting**: Always run `fit.py` on a single test spectrum
+### Pipeline
+1. **Start with `@pipeline-agent`** for any new science question that requires
+   simulation or retrieval. Do not invoke specialist agents directly unless
+   you are continuing an already-started pipeline at a specific stage.
+2. **Human gates are blocking.** Gate 1 (after hypothesis) and Gate 2 (after
+   interpretation) require explicit user confirmation before the pipeline
+   continues. Agents must not auto-proceed.
+3. **Handoff schemas are contracts.** Every inter-agent handoff must
+   conform to the schema in `.github/shared/handoff_schemas.md`.
+   `[DATA MISSING]` is the required placeholder for any field the agent
+   cannot populate from actual data.
+4. **Prompt logs are mandatory.** Create a log in `prompts/` at the start
+   of every pipeline run using `cp prompts/TEMPLATE.md prompts/<task_id>_$(date +%Y%m%d).md`.
+   Complete the Output files table and Validation checklist before closing.
+
+### Analysis & fitting
+5. **Spectral fitting**: Always run on a single test spectrum
    (`data/spectra/bkg_region/`) before running on the full grid.
-2. **MCMC**: Always set and log a random seed. Default: `seed = 42`.
+6. **MCMC**: Always set and log a random seed. Default: `seed = 42`.
    Store it in the output HDF5 as an attribute.
-3. **Figures**: Use the colour scale defined in `src/utils/style.py`.
+7. **Figures**: Use the colour scale defined in `src/utils/style.py`.
    Do not override it without discussion.
-4. **Results files**: Write to `results/<category>/<descriptive_name>.json`
+
+### Data & outputs
+8. **Results files**: Write to `results/<category>/<descriptive_name>.json`
    or `.h5`. Never overwrite an existing results file — append a timestamp
    suffix instead: `core_fit_20260515.json`.
-5. **ADS citations**: When adding a new reference, always call the ADS MCP
-   `get_bibtex` tool and append the result to `paper/bibliography.bib`.
+9. **HPC jobs**: `@setup-agent` generates SLURM/PBS scripts but does
+   **not** submit them. Review the script, then submit manually.
+   Confirm job IDs and wall-clock time in the prompt log.
+
+### Citations
+10. **ADS citations**: When adding a new reference, always call the ADS MCP
+    `get_bibtex` tool and append the result to `paper/bibliography.bib`.
+    Never hand-write BibTeX entries — the doi= field must be present and
+    validated by pre-commit.
 
 ---
 
