@@ -46,10 +46,22 @@ class DustPyParams(BaseModel):
     N_r: int = Field(default=100, ge=10, le=500)
     # Mass grid resolution: must be >=7 (Drążkowska+ 2014); larger = slower.
     Nmbpd: int = Field(default=7, ge=7, le=20)
+    # Mass grid bounds (g)
+    mmin_g: float = Field(default=1e-12, gt=0.0)
+    mmax_g: float = Field(default=1e5, gt=0.0)
     # Gas surface density profile (Lynden-Bell & Pringle 1974)
     gas_sigma_exp: float = Field(default=-1.0, ge=-3.0, le=0.0)
     gas_sigma_rc_au: float = Field(default=60.0, gt=0.0)
+    # Mean molecular weight (g); default ≈ 2.3 m_proton
+    mu_g: float = Field(default=3.847030424486999e-24, gt=0.0)
+    # Dust collision physics
     monomer_density_gcc: float = Field(default=1.67, gt=0.0, le=10.0)
+    a_ini_max_cm: float = Field(default=1e-4, gt=0.0)
+    allow_drifting_particles: bool = Field(default=False)
+    dist_exp: float = Field(default=-3.5)
+    erosion_mass_ratio: float = Field(default=10.0, gt=0.0)
+    excavated_mass: float = Field(default=1.0, gt=0.0)
+    fragment_distribution: float = Field(default=-1.8333333333333333)
     t_end_yr: float = Field(default=1e6, gt=0.0)
     fragmentation_velocity_ms: float = Field(default=10.0, gt=0.0, le=100.0)
     N_snapshots: int = Field(default=100, ge=10, le=1000)
@@ -70,7 +82,15 @@ class DustPyParams(BaseModel):
         "r_in_au",
         "r_out_au",
         "gas_sigma_rc_au",
+        "mu_g",
+        "mmin_g",
+        "mmax_g",
         "monomer_density_gcc",
+        "a_ini_max_cm",
+        "dist_exp",
+        "erosion_mass_ratio",
+        "excavated_mass",
+        "fragment_distribution",
         "t_end_yr",
         "fragmentation_velocity_ms",
         mode="before",
@@ -119,6 +139,7 @@ def run_dustpy_simulation(params: DustPyParams) -> str:
     sim.ini.gas.Mdisk = params.disk_mass_msun * M_SUN_G
     sim.ini.gas.SigmaExp = params.gas_sigma_exp
     sim.ini.gas.SigmaRc = params.gas_sigma_rc_au * AU_TO_CM
+    sim.ini.gas.mu = params.mu_g
 
     # --- star ---
     # Note: sim.ini.star has M, R, T only.  Luminosity L is derived from R and T.
@@ -130,6 +151,12 @@ def run_dustpy_simulation(params: DustPyParams) -> str:
     sim.ini.dust.d2gRatio = params.dust_to_gas_ratio
     sim.ini.dust.vFrag = params.fragmentation_velocity_ms * 100.0  # m/s → cm/s
     sim.ini.dust.rhoMonomer = params.monomer_density_gcc
+    sim.ini.dust.aIniMax = params.a_ini_max_cm
+    sim.ini.dust.allowDriftingParticles = params.allow_drifting_particles
+    sim.ini.dust.distExp = params.dist_exp
+    sim.ini.dust.erosionMassRatio = params.erosion_mass_ratio
+    sim.ini.dust.excavatedMass = params.excavated_mass
+    sim.ini.dust.fragmentDistribution = params.fragment_distribution
 
     # --- grid ---
     sim.ini.grid.Nr = params.N_r
@@ -213,6 +240,20 @@ def _build_parser() -> argparse.ArgumentParser:
     p.add_argument("--sigma-exp", type=float, dest="gas_sigma_exp")
     p.add_argument("--sigma-rc", type=float, dest="gas_sigma_rc_au")
     p.add_argument("--rho-monomer", type=float, dest="monomer_density_gcc")
+    p.add_argument("--a-ini-max", type=float, dest="a_ini_max_cm")
+    p.add_argument(
+        "--allow-drifting-particles",
+        action="store_true",
+        default=None,
+        dest="allow_drifting_particles",
+    )
+    p.add_argument("--dist-exp", type=float, dest="dist_exp")
+    p.add_argument("--erosion-mass-ratio", type=float, dest="erosion_mass_ratio")
+    p.add_argument("--excavated-mass", type=float, dest="excavated_mass")
+    p.add_argument("--fragment-distribution", type=float, dest="fragment_distribution")
+    p.add_argument("--mu", type=float, dest="mu_g")
+    p.add_argument("--mmin", type=float, dest="mmin_g")
+    p.add_argument("--mmax", type=float, dest="mmax_g")
     p.add_argument("--Nmbpd", type=int, dest="Nmbpd")
     p.add_argument("--r-in", type=float, dest="r_in_au")
     p.add_argument("--r-out", type=float, dest="r_out_au")
