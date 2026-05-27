@@ -137,11 +137,12 @@ def run_dustpy_simulation(params: DustPyParams) -> str:
     sim.ini.grid.rmin = params.r_in_au * AU_TO_CM
     sim.ini.grid.rmax = params.r_out_au * AU_TO_CM
 
-    # --- output ---
-    sim.writer.datadir = params.output_dir
-
     # Initialise before setting snapshots (ini parameters are frozen after this).
+    # NOTE: sim.writer is None before initialize(); set datadir after this call.
     sim.initialize()
+
+    # --- output directory (writer is created by initialize()) ---
+    sim.writer.datadir = params.output_dir
 
     t_end_s = params.t_end_yr * YR_TO_S
     if params.snapshot_times_yr is not None:

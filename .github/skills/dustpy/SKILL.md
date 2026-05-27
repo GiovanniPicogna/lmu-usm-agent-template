@@ -49,6 +49,16 @@ argument-hint: "Physical parameters, e.g. 'alpha=1e-3, disk mass 0.05 Msun, run 
 3. The script initialises a `dustpy.Simulation`, applies all parameters via the
    `sim.ini.*` namespace (frozen at `sim.initialize()`), runs to `t_end`, writes
    HDF5 snapshots to `output_dir`, and prints a plain-text summary.
+
+   > **API notes (DustPy 1.0.9)**
+   > - `sim.writer` is `None` before `sim.initialize()`. Always set `sim.writer.datadir` **after** the `sim.initialize()` call.
+   > - Fragmentation velocity lives at `sim.dust.v.frag` (shape `(Nr,)`), **not** `sim.dust.vFrag`. It has a Heartbeat updater that re-reads `sim.ini.dust.vFrag` each timestep. To make `vFrag` radially varying (e.g. an ice-line step function), replace the updater:
+   >   ```python
+   >   def ice_line_vfrag(sim):
+   >       return np.where(sim.gas.T < 150.0, 1.0, 10.0)  # cm/s
+   >   sim.dust.v.frag.updater = ice_line_vfrag
+   >   sim.dust.v.frag.update()
+   >   ```
 4. Parse the summary (last line starts with `SUCCESS:` or `ERROR:`).
    On error, correct parameters and retry once; if still failing, report the traceback.
 
@@ -102,3 +112,5 @@ Sigma = sim.writer.read.sequence("dust.Sigma") # shape (N_snaps, Nr, Nm)
 | `scientific_pydantic not found` | `pip install scientific-pydantic` |
 | `t.snapshots shape mismatch` | Reduce `N_snapshots` or increase `t_end_yr` |
 | Mass conservation error > 1e-13 | Custom coagulation model; override `sim.checkmassconservation()` |
+| `sim.writer` is `None` | Set `sim.writer.datadir` **after** `sim.initialize()`, not before |
+| `'Group' has no attribute 'vFrag'` | Use `sim.dust.v.frag` (with updater) — see API note in §Procedure |
