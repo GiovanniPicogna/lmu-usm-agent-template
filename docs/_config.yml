@@ -15,7 +15,6 @@ header_pages:
   - index.md
   - agents.md
   - skills.md
-  - quickstart.md
   - slides.html
 
 exclude:
