@@ -1,21 +1,21 @@
 {
-  "version": 1,
-  "hooks": {
-    "preToolUse": [
-      {
-        "type": "command",
-        "matcher": "bash",
-        "bash": "bash .github/hooks/scripts/pre-bash-safety.sh",
-        "cwd": ".",
-        "timeoutSec": 10
-      },
-      {
-        "type": "command",
-        "matcher": "create",
-        "bash": "bash .github/hooks/scripts/pre-create-results.sh",
-        "cwd": ".",
-        "timeoutSec": 5
-      }
-    ]
-  }
+    "version": 1,
+    "hooks": {
+        "preToolUse": [
+            {
+                "type": "command",
+                "matcher": "bash",
+                "bash": "bash .github/hooks/scripts/pre-bash-safety.sh",
+                "cwd": ".",
+                "timeoutSec": 10
+            },
+            {
+                "type": "command",
+                "matcher": "create",
+                "bash": "bash .github/hooks/scripts/pre-create-results.sh",
+                "cwd": ".",
+                "timeoutSec": 5
+            }
+        ]
+    }
 }
