@@ -280,3 +280,31 @@ See `ARCHITECTURE.md` for the canonical list and trigger phrases.
 # "Use the scientific-visualization skill for this figure."
 # The agent will read the SKILL.md and follow its instructions.
 ```
+
+## 12. Scoped Copilot instructions (Copilot-only)
+
+Since July 2025, Copilot also supports glob-scoped instruction files that
+activate only for matching file types or directories. Create them in
+`.github/instructions/`:
+
+```
+.github/instructions/
+├── python.instructions.md       # applyTo: "**/*.py"
+├── simulation.instructions.md   # applyTo: "src/simulation/**"
+└── notebooks.instructions.md    # applyTo: "**/*.ipynb"
+```
+
+Frontmatter example:
+
+```markdown
+---
+applyTo: "**/*.py"
+---
+Always use type hints. Prefer `astropy.units.Quantity` over bare floats.
+Never hardcode physical constants — import from `astropy.constants`.
+```
+
+Use scoped files for rules that apply only to a specific file type or
+subdirectory (e.g., Python-only style rules, notebook-specific output
+conventions), keeping this file focused on universal group conventions.
+This is a Copilot-specific feature; it has no equivalent in `AGENTS.md`.

@@ -94,6 +94,9 @@ paper/*.log          # LaTeX .log files only — not Python/SAS/CIAO logs
 slurm-*.out
 qsub_*.sh.o*
 
+# ── Agent local overrides — machine-specific, never shared ───────────────────
+AGENTS.override.md     # Codex CLI local overrides (paths, env names, flags)
+
 # ── Secrets — never commit these ─────────────────────────────────────────────
 .env
 .env.*

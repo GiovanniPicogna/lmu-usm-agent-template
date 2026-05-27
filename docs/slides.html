@@ -723,30 +723,46 @@ nav_order: 5
      ═══════════════════════════════════════════════════════ -->
       <section>
         <span class="stag">Part 2 — Teaching Copilot Your Science</span>
-        <h2>Custom Instructions: <code>.github/copilot-instructions.md</code></h2>
-        <div class="sm" style="margin-bottom:0.4em;">
-          Create this file in any repo → version-controlled, shared with collaborators, auto-loaded by Copilot every
-          session
-        </div>
-        <pre><code class="language-markdown"># Project: NGC 1275 X-ray Spectral Analysis
-
-## Scientific context
-- Data: XMM-Newton EPIC-pn, 0.5-10 keV, background subtracted
-- Primary model: TBabs*powerlaw (XSPEC convention)
-- Galactic nH fixed: 1.2e21 cm^-2  (HI4PI Collaboration 2016)
-
-## Coding standards
-- Python 3.11+; use astropy, sherpa, emcee, corner, matplotlib
-- Physical units via astropy.units; always propagate uncertainties
-- Figures: 300 dpi, colorblind-safe palette (matplotlib tab10)
+        <h2>Two Config Files, One Source of Truth</h2>
+        <div class="g2" style="font-size:0.77em;align-items:start;gap:0.6em;">
+          <div>
+            <div class="sm" style="margin-bottom:0.3em;">
+              📁 <code>.github/copilot-instructions.md</code> — group-level, permanent
+            </div>
+            <pre style="margin:0;font-size:0.88em;"><code class="language-markdown">## Coding standards
+- Python 3.11+; astropy, sherpa, emcee, corner
+- Physical units via astropy.units; propagate errors
+- Figures: 300 dpi, tab10 palette, PDF + PNG
 
 ## References
-- Verify ALL citations via NASA ADS before including them
-- Use ADS bibcode format, e.g. 2016A&amp;A...594A.116H
-- NEVER invent author names, journal names, or DOIs</code></pre>
-        <div class="sbox" style="font-size:0.74em;">
-          This single file replaces having to re-explain your project to Copilot every session — the team shares the
-          same AI context
+- Verify ALL citations via NASA ADS first
+- ADS bibcode format: 2016A&amp;A...594A.116H
+- NEVER invent author names, DOIs, or bibcodes</code></pre>
+          </div>
+          <div>
+            <div class="sm" style="margin-bottom:0.3em;">
+              📁 <code>AGENTS.md</code> — project-specific, per paper
+            </div>
+            <pre style="margin:0;font-size:0.88em;"><code class="language-markdown">## Project: NGC 1275 X-ray Spectral Analysis
+**PI**: J. Doe  |  **Domain**: x-ray
+
+## Scientific context
+- Data: XMM-Newton EPIC-pn, 0.5–10 keV
+- Model: TBabs*powerlaw
+- Galactic nH = 1.2e21 cm⁻² (fixed; HI4PI 2016)
+- Fit band: 0.5–7.0 keV; statistic: C-stat</code></pre>
+          </div>
+        </div>
+        <div class="ibox" style="margin-top:0.4em;font-size:0.76em;">
+          <strong>AGENTS.md</strong> is the cross-tool standard (Linux Foundation,
+          <a href="https://agents.md" style="color:inherit;">agents.md</a>, 60k+ projects):
+          read by Copilot Coding Agent, Claude Code, Gemini CLI, Codex CLI, and Cursor.
+          <code>copilot-instructions.md</code> is Copilot-only — keep it to group conventions
+          that never change between projects.
+        </div>
+        <div class="sbox" style="font-size:0.74em;margin-top:0.35em;">
+          Both files are version-controlled and shared with the team — every collaborator gets
+          the same AI context automatically. Local-only tweaks go in <code>AGENTS.override.md</code> (gitignored).
         </div>
       </section>
 

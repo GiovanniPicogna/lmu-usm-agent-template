@@ -1,9 +1,19 @@
 # AGENTS.md — Project-Specific Agent Instructions
 #
-# File:    AGENTS.md  (repo root, or per-subdirectory)
-# Purpose: Extends .github/copilot-instructions.md with context specific
-#          to THIS project. Loaded by Copilot Coding Agent, Claude Code,
-#          Gemini CLI, and any OpenAI Codex-compatible agent.
+# File:    AGENTS.md  (repo root; subdirectory AGENTS.md files are also
+#          loaded by Codex CLI — nearer directory wins)
+# Purpose: Primary cross-tool agent instructions for THIS project.
+#          Loaded by: Copilot Coding Agent, Claude Code (fallback when no
+#          CLAUDE.md is present), Gemini CLI, Codex CLI, Cursor, and Aider.
+#          Stewarded by the Linux Foundation (agents.md); in use across
+#          60,000+ open-source projects as the universal agent standard.
+#          Group-level conventions (coding standards, citation policy,
+#          figure style) live in .github/copilot-instructions.md.
+#          This file carries only project-specific context: science goal,
+#          data paths, simulation parameters, and per-project agent rules.
+#
+# Size:    Keep under ~300 lines. Codex CLI truncates at 64 KiB per file.
+# Local:   Machine-specific overrides go in AGENTS.override.md (gitignored).
 #
 # ── Instructions ─────────────────────────────────────────────────────────────
 # Replace all <PLACEHOLDER> fields before committing.
