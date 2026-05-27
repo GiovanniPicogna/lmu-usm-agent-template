@@ -15,6 +15,12 @@
 # in prompts/project_context.md or a project-level AGENTS.md.
 # ─────────────────────────────────────────────────────────────────────────────
 
+> **This repository** is the LMU Munich Astrophysics group template for new
+> computational research projects. Fork it to scaffold a new project; fill in
+> all `<PLACEHOLDER>` fields in `AGENTS.md` before your first agent session.
+> Project-specific commands, HPC paths, and MCP servers are listed in
+> `AGENTS.md` §"Key commands" and §"MCP servers configured for this project".
+
 ## 1. Identity & scientific domain
 
 You are assisting researchers at the LMU Munich Astrophysics group
@@ -36,6 +42,29 @@ Our work spans multiple computational domains:
 
 Code you write will be used in published scientific papers.
 Correctness and reproducibility are more important than speed.
+
+## Repository structure
+
+```
+.github/
+├── copilot-instructions.md   # group-wide conventions — loaded every session
+├── instructions/             # scoped .instructions.md files (Python, notebooks, etc.)
+└── skills/                   # bundled agent skills: dustpy, fargo3d, pluto, radmc3d, yt, sherpa
+envs/                         # conda environment YAML files
+data/                         # git-ignored — simulation outputs, FITS, HDF5 snapshots
+docs/                         # GitHub Pages site (index.md, slides, skills catalogue)
+paper/                        # bibliography.bib and manuscript drafts
+plots/                        # publication figures (PDF/PNG); commit only final versions
+prompts/                      # agent prompt logs — always committed (see §7)
+results/                      # processed outputs < 10 MB (JSON/HDF5 fit results, maps)
+src/
+└── utils/                    # shared helpers: units, coordinates, plot style, constants
+AGENTS.md                     # project-specific context — fill in before first session
+ARCHITECTURE.md               # agent roster, research pipeline diagram, handoff schemas
+```
+
+For `src/`, add the domain subdirectories described in `AGENTS.md` §"Code structure"
+when starting a project (`simulation/`, `analysis/`, `retrieval/`, `reduction/`, etc.).
 
 ## 2. Programming language & environment
 

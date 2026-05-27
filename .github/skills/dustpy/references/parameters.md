@@ -51,7 +51,8 @@ matching the CLI flags and JSON keys.
 | `t_end_yr` | float | 1e6 | > 0 | Simulation end time (yr); auto-set to `snapshot_times_yr.max()` when that array is given |
 | `N_snapshots` | int | 100 | [10, 1000] | Number of log-spaced snapshots; ignored when `snapshot_times_yr` is set |
 | `snapshot_times_yr` | `np.ndarray` (1-D, float64) | None | all > 0 | Custom snapshot schedule (yr); validated via `NDArrayAdapter(ndim=1, dtype="float64", gt=0)` from **scientific-pydantic**; pass as JSON list `[1e4, 1e5, 1e6]` |
-| `output_dir` | str | `"dustpy_out"` | — | Output directory (created if absent); HDF5 files named `data0000.hdf5`, `data0001.hdf5`, … || `overwrite` | bool | False | — | If `True`, existing HDF5 files in `output_dir` are overwritten (`sim.writer.overwrite`) |
+| `output_dir` | str | `"dustpy_out"` | — | Output directory (created if absent); HDF5 files named `data0000.hdf5`, `data0001.hdf5`, … |
+| `overwrite` | bool | False | — | If `True`, existing HDF5 files in `output_dir` are overwritten (`sim.writer.overwrite`) |
 
 ## Post-initialization fields
 
