@@ -24,7 +24,7 @@ from scientific_pydantic.numpy import NDArrayAdapter
 # Physical constants
 # ---------------------------------------------------------------------------
 M_SUN_G = 1.989e33  # grams
-L_SUN_ERG = 3.846e33  # erg/s
+R_SUN_CM = 6.957e10  # cm
 AU_TO_CM = 1.496e13  # cm / au
 YR_TO_S = 3.1536e7  # s / yr
 
@@ -38,11 +38,18 @@ class DustPyParams(BaseModel):
     alpha_viscosity: float = Field(default=1e-3, ge=1e-6, le=1e-1)
     disk_mass_msun: float = Field(default=0.05, gt=0.0, le=1.0)
     stellar_mass_msun: float = Field(default=1.0, gt=0.0, le=100.0)
-    stellar_luminosity_lsun: ty.Optional[float] = Field(default=1.0, gt=0.0, le=1e6)
+    stellar_radius_rsun: float = Field(default=2.0, gt=0.0, le=1000.0)
+    stellar_temperature_K: float = Field(default=5772.0, gt=100.0, le=1e6)
     dust_to_gas_ratio: float = Field(default=0.01, gt=0.0, le=0.5)
     r_in_au: float = Field(default=1.0, gt=0.0)
     r_out_au: float = Field(default=300.0, gt=0.0)
     N_r: int = Field(default=100, ge=10, le=500)
+    # Mass grid resolution: must be >=7 (Drążkowska+ 2014); larger = slower.
+    Nmbpd: int = Field(default=7, ge=7, le=20)
+    # Gas surface density profile (Lynden-Bell & Pringle 1974)
+    gas_sigma_exp: float = Field(default=-1.0, ge=-3.0, le=0.0)
+    gas_sigma_rc_au: float = Field(default=60.0, gt=0.0)
+    monomer_density_gcc: float = Field(default=1.67, gt=0.0, le=10.0)
     t_end_yr: float = Field(default=1e6, gt=0.0)
     fragmentation_velocity_ms: float = Field(default=10.0, gt=0.0, le=100.0)
     N_snapshots: int = Field(default=100, ge=10, le=1000)
@@ -57,10 +64,13 @@ class DustPyParams(BaseModel):
         "alpha_viscosity",
         "disk_mass_msun",
         "stellar_mass_msun",
-        "stellar_luminosity_lsun",
+        "stellar_radius_rsun",
+        "stellar_temperature_K",
         "dust_to_gas_ratio",
         "r_in_au",
         "r_out_au",
+        "gas_sigma_rc_au",
+        "monomer_density_gcc",
         "t_end_yr",
         "fragmentation_velocity_ms",
         mode="before",
@@ -107,40 +117,40 @@ def run_dustpy_simulation(params: DustPyParams) -> str:
     # --- gas ---
     sim.ini.gas.alpha = params.alpha_viscosity
     sim.ini.gas.Mdisk = params.disk_mass_msun * M_SUN_G
+    sim.ini.gas.SigmaExp = params.gas_sigma_exp
+    sim.ini.gas.SigmaRc = params.gas_sigma_rc_au * AU_TO_CM
 
     # --- star ---
+    # Note: sim.ini.star has M, R, T only.  Luminosity L is derived from R and T.
     sim.ini.star.M = params.stellar_mass_msun * M_SUN_G
-    if params.stellar_luminosity_lsun is not None:
-        try:
-            sim.ini.star.L = params.stellar_luminosity_lsun * L_SUN_ERG
-        except AttributeError:
-            pass  # older DustPy versions do not expose star.L
+    sim.ini.star.R = params.stellar_radius_rsun * R_SUN_CM
+    sim.ini.star.T = params.stellar_temperature_K
 
     # --- dust ---
     sim.ini.dust.d2gRatio = params.dust_to_gas_ratio
-    sim.ini.dust.vfrag = params.fragmentation_velocity_ms * 100.0  # m/s → cm/s
+    sim.ini.dust.vFrag = params.fragmentation_velocity_ms * 100.0  # m/s → cm/s
+    sim.ini.dust.rhoMonomer = params.monomer_density_gcc
 
     # --- grid ---
     sim.ini.grid.Nr = params.N_r
+    sim.ini.grid.Nmbpd = params.Nmbpd
     sim.ini.grid.rmin = params.r_in_au * AU_TO_CM
     sim.ini.grid.rmax = params.r_out_au * AU_TO_CM
-
-    # --- time ---
-    sim.ini.t.tmax = params.t_end_yr * YR_TO_S
 
     # --- output ---
     sim.writer.datadir = params.output_dir
 
-    # Initialise before setting snapshots
+    # Initialise before setting snapshots (ini parameters are frozen after this).
     sim.initialize()
 
+    t_end_s = params.t_end_yr * YR_TO_S
     if params.snapshot_times_yr is not None:
         # Use the validated, typed ndarray directly (already in years)
         sim.t.snapshots = params.snapshot_times_yr * YR_TO_S
     else:
         sim.t.snapshots = np.geomspace(
-            max(sim.ini.t.tmax / params.N_snapshots, YR_TO_S),  # first snap ≥ 1 yr
-            sim.ini.t.tmax,
+            max(t_end_s / params.N_snapshots, YR_TO_S),  # first snap ≥ 1 yr
+            t_end_s,
             params.N_snapshots,
         )
 
@@ -196,8 +206,13 @@ def _build_parser() -> argparse.ArgumentParser:
     p.add_argument("--alpha", type=float, dest="alpha_viscosity")
     p.add_argument("--disk-mass", type=float, dest="disk_mass_msun")
     p.add_argument("--stellar-mass", type=float, dest="stellar_mass_msun")
-    p.add_argument("--stellar-luminosity", type=float, dest="stellar_luminosity_lsun")
+    p.add_argument("--stellar-radius", type=float, dest="stellar_radius_rsun")
+    p.add_argument("--stellar-temperature", type=float, dest="stellar_temperature_K")
     p.add_argument("--d2g", type=float, dest="dust_to_gas_ratio")
+    p.add_argument("--sigma-exp", type=float, dest="gas_sigma_exp")
+    p.add_argument("--sigma-rc", type=float, dest="gas_sigma_rc_au")
+    p.add_argument("--rho-monomer", type=float, dest="monomer_density_gcc")
+    p.add_argument("--Nmbpd", type=int, dest="Nmbpd")
     p.add_argument("--r-in", type=float, dest="r_in_au")
     p.add_argument("--r-out", type=float, dest="r_out_au")
     p.add_argument("--N-r", type=int, dest="N_r")

@@ -16,11 +16,20 @@ argument-hint: "Physical parameters, e.g. 'alpha=1e-3, disk mass 0.05 Msun, run 
 ## When to Use
 
 - Simulate the coupled radial and size evolution of dust in a protoplanetary disk
-- Explore the effect of turbulence (`alpha`), disk mass, stellar mass/luminosity, or
-  fragmentation velocity on the steady-state grain-size distribution
-- Generate grain-size snapshots for direct comparison with (sub-)mm continuum observations
+- Explore the effect of turbulence (`alpha`), disk mass, stellar mass/radius/temperature,
+  or fragmentation velocity on the steady-state grain-size distribution
+- Model an **ice line** by making `vFrag` a function of radius (e.g. increase by ×10
+  outside the water snow line — see `example_ice_lines` in the DustPy docs)
+- Model **planetary gaps**: impose a Kanagawa+ (2017) gap profile via a custom
+  `sim.gas.torque.Lambda` function — see `example_planetary_gaps` in the DustPy docs
+- Model **planetesimal formation** via streaming-instability sink terms using
+  `sim.dust.S.ext` — see `example_planetesimal_formation` in the DustPy docs
+- Generate grain-size snapshots for direct comparison with (sub-)mm continuum
+  observations; connect to **RADMC-3D** via the `dustpylib` companion library
+  (`pip install dustpylib`; see [dustpylib docs](https://dustpylib.rtfd.io/) and
+  the RADMC-3D skill for synthetic-image post-processing)
 - Do **NOT** use this skill for gas-only / 2-D / 3-D hydrodynamics, photoevaporation,
-  planet-disk interaction, or MHD — use the `simulation-agent` for those
+  or MHD — use the `simulation-agent` for those
 
 ## Procedure
 
@@ -37,8 +46,9 @@ argument-hint: "Physical parameters, e.g. 'alpha=1e-3, disk mass 0.05 Msun, run 
    python ~/.agents/skills/dustpy/scripts/run_dustpy.py \
        --alpha 1e-3 --disk-mass 0.05 --t-end 1e6
    ```
-3. The script initialises a `dustpy.Simulation`, applies all parameters, runs to
-   `t_end`, writes HDF5 snapshots to `output_dir`, and prints a plain-text summary.
+3. The script initialises a `dustpy.Simulation`, applies all parameters via the
+   `sim.ini.*` namespace (frozen at `sim.initialize()`), runs to `t_end`, writes
+   HDF5 snapshots to `output_dir`, and prints a plain-text summary.
 4. Parse the summary (last line starts with `SUCCESS:` or `ERROR:`).
    On error, correct parameters and retry once; if still failing, report the traceback.
 
@@ -49,8 +59,15 @@ argument-hint: "Physical parameters, e.g. 'alpha=1e-3, disk mass 0.05 Msun, run 
 **Key parameters:** `alpha_viscosity` · `disk_mass_msun` · `t_end_yr` ·
 `fragmentation_velocity_ms` · `snapshot_times_yr` (array) · `output_dir`
 
+**Stellar luminosity** is controlled via `stellar_radius_rsun` and
+`stellar_temperature_K` (not a direct luminosity input); DustPy derives
+`L = 4πR²σT⁴` from these. Defaults: R = 2 R☉, T = 5772 K.
+
 **Array-valued parameter:** `snapshot_times_yr` must be a JSON list:
 `"snapshot_times_yr": [1e4, 1e5, 1e6]`
+
+**Mass-grid resolution:** `Nmbpd` (mass bins per decade) must be ≥ 7 (Drążkowska+
+2014). Increasing it improves accuracy but substantially increases runtime.
 
 ## Output
 
@@ -62,6 +79,20 @@ SUCCESS: output_dir=<path>  t_end=<yr>yr  N_snaps=<n>
   wall_clock=<N>s
 ```
 
+HDF5 snapshots are at `<output_dir>/data0000.hdf5`, `data0001.hdf5`, …
+Read back with:
+```python
+import h5py, numpy as np
+with h5py.File("dustpy_out/data0050.hdf5") as f:
+    r    = f["grid/r"][:]        # radial grid centres [cm]
+    Sigma_d = f["dust/Sigma"][:] # surface density per mass bin [g/cm²]
+```
+Or use the built-in sequence reader after a run:
+```python
+t     = sim.writer.read.sequence("t")          # time array [s]
+Sigma = sim.writer.read.sequence("dust.Sigma") # shape (N_snaps, Nr, Nm)
+```
+
 ## Common Errors
 
 | Message | Fix |
@@ -69,5 +100,5 @@ SUCCESS: output_dir=<path>  t_end=<yr>yr  N_snaps=<n>
 | `r_out_au must be > r_in_au` | Swap or increase `r_out_au` |
 | `dustpy not found` | `pip install dustpy` in the active env |
 | `scientific_pydantic not found` | `pip install scientific-pydantic` |
-| `AttributeError: ini.star.L` | Old DustPy (<0.8); set `stellar_luminosity_lsun=None` to skip |
 | `t.snapshots shape mismatch` | Reduce `N_snapshots` or increase `t_end_yr` |
+| Mass conservation error > 1e-13 | Custom coagulation model; override `sim.checkmassconservation()` |
