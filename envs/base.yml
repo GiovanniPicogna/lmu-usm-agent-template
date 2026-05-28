@@ -69,3 +69,5 @@ dependencies:
     - petitRADTRANS>=3.0     # atmospheric forward model & retrieval (Nortmann/Molaverdikhani group)
     - radmc3dPy>=0.41        # Python interface to RADMC-3D radiative transfer
     - fargopy>=0.3           # FARGO3D output reader (Picogna/Roatti group)
+    - pydantic>=2.0          # parameter validation in skill runner scripts (dustpy, pluto)
+    - scientific-pydantic>=0.1  # NDArrayAdapter for numpy array validation in skill runners
