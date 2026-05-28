@@ -117,7 +117,7 @@ automated progression without explicit user confirmation.
 ### `@pipeline-agent`
 
 Full research pipeline orchestrator — runs a complete science workflow from
-question to manuscript preparation. Coordinates all 11 agents in the correct
+question to manuscript preparation. Coordinates all 12 agents in the correct
 order, enforces both human gates, creates prompt logs in `prompts/`, and
 tracks pipeline stages via a live todo list.
 
@@ -256,7 +256,27 @@ Output: `results/interpretation/<task_id>_<date>.json` — `InterpretationHandof
 
 ---
 
-## Agent reliability design
+### `@paper-agent`
+
+Drafts a full scientific manuscript (LaTeX + PDF) from an `InterpretationHandoff`.
+Writes sections sequentially (abstract → introduction → methods → results →
+discussion → conclusions), passing each section as context to the next for
+coherence. Inserts ADS-verified citations via `@literature-agent`. Compiles
+LaTeX to PDF and produces an automated referee report scored 0–9.
+
+Key constraints: numbers sourced exclusively from `AnalysisHandoff`; every
+citation ADS-verified; LaTeX must compile before `PaperHandoff/v1` is emitted;
+all claims cross-checked against `AnalysisHandoff.diagnostics`.
+
+```
+@paper-agent   Draft the manuscript for the gap-depth study.
+               InterpretationHandoff: results/interpretation/gap_depth_20260526.json
+
+@paper-agent   Draft the manuscript for the Perseus cluster X-ray analysis.
+               InterpretationHandoff: results/interpretation/perseus_xray_20260601.json
+```
+
+Output: `paper/<task_id>_<date>/manuscript.pdf` + `referee_notes.md` — `PaperHandoff/v1`.
 
 See [`ARCHITECTURE.md`](https://github.com/giovannipicogna/lmu-usm-agent-template/blob/main/ARCHITECTURE.md)
 for the full pipeline diagram, agent roster, handoff schemas, and quality-gate
@@ -275,6 +295,7 @@ constraints. Examples:
 | `@simulation-agent` | No hallucinated numbers; read-only by default; test one snapshot before batch |
 | `@spectral-agent` | No hallucinated fit results; C-stat on low-count data; model changes need confirmation |
 | `@mcmc-agent` | Report 68% credible intervals (not 90%); never overwrite chain files; convergence check before reporting |
+| `@paper-agent` | Numbers from `AnalysisHandoff` only; all citations ADS-verified; LaTeX must compile; claims cross-checked against diagnostics |
 | `@retrieval-agent` | No species detection without a shuffled-template null test; species list from `AGENTS.md`; ΔlogZ < 0.1 before reporting |
 
 ### Anti-patterns tables

@@ -322,3 +322,42 @@ Returned to the user or `@hypothesis-agent` for iteration.
 - Uncertainties are **68 % credible intervals** (1σ equivalent).
   Never report 90 % intervals unless the user explicitly requests them.
 - `corner_plot` must exist on disk before emitting this handoff.
+
+---
+
+## PaperHandoff/v1
+
+Emitted by `@paper-agent` after a manuscript draft is compiled and auto-reviewed.
+Returned to the user (or `@pipeline-agent` for logging).
+
+```json
+{
+  "schema": "PaperHandoff/v1",
+  "task_id": "<string>",
+  "domain": "<disk | cosmological | retrieval | xray | lss>",
+  "paper_dir": "<string — e.g. 'paper/gap_depth_1mjup_20260528/'>",
+  "manuscript_tex": "<string — path to manuscript.tex>",
+  "manuscript_pdf": "<string | null — null if compilation failed>",
+  "bibliography_bib": "paper/bibliography.bib",
+  "new_bibtex_keys": ["<string — ADS bibcode of entries added this session>"],
+  "sections_written": [
+    "abstract", "introduction", "methods", "results", "discussion", "conclusions"
+  ],
+  "n_figures": "<int>",
+  "n_citations": "<int — entries added to bibliography this session>",
+  "compilation_status": "<ok | errors>",
+  "latex_errors": ["<string — verbatim pdflatex error lines>"],
+  "todo_count": "<int — number of \\todo{} markers remaining>",
+  "referee_report": "<string — path to referee_notes.md>",
+  "referee_score": "<float 0–9>",
+  "warnings": ["<string>"]
+}
+```
+
+**Validation rules:**
+- `compilation_status: ok` requires `manuscript_pdf` to be non-null and the PDF to exist.
+- `todo_count` must be 0 for a clean handoff; non-zero values require a warning.
+- `referee_score < 5` requires a human review before the paper is considered ready.
+- `new_bibtex_keys` must each be a valid ADS bibcode format
+  (e.g. `2016A&A...594A.116H`), not a DOI or arXiv ID.
+- `n_figures` must equal the number of `\includegraphics` calls in the compiled PDF.

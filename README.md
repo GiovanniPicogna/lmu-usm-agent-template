@@ -27,11 +27,12 @@ at LMU Munich.
 │   ├── retrieval-agent.agent.md    # @retrieval-agent: petitRADTRANS CCF & dynesty
 │   ├── spectral-agent.agent.md     # @spectral-agent: X-ray Sherpa/PyXSPEC fitting
 │   ├── mcmc-agent.agent.md         # @mcmc-agent: emcee/dynesty sampling & corner plots
+│   ├── paper-agent.agent.md        # @paper-agent: LaTeX manuscript drafting + auto-review
 │   └── references/                 # Large code blocks extracted from agent files
 │       ├── output_conventions.md   #   FARGO3D/PLUTO/GADGET I/O functions + unit tables
 │       └── code_conventions.md     #   Script skeleton, HDF5 saving, figure naming
 ├── shared/
-│   └── handoff_schemas.md          # JSON schemas: all 8 Handoff/v1 schemas
+│   └── handoff_schemas.md          # JSON schemas: all 9 Handoff/v1 schemas
 ├── skills/                         # Bundled simulation launch + analysis skills
 │   ├── dustpy/
 │   │   ├── SKILL.md                #   DustPy: grain growth & radial drift
@@ -204,6 +205,9 @@ Walltime: 24 h, 4 nodes × 48 cores
 
 @mcmc-agent        Sample posteriors for the core region fit in
                    results/fits/core.json and produce a corner plot
+
+@paper-agent       Draft the manuscript from the interpretation results.
+                   InterpretationHandoff: results/interpretation/gap_depth_20260526.json
 ```
 
 ### 7. Log your prompts
@@ -354,6 +358,7 @@ constraints that must hold even in long conversations (context rot).
 | `@simulation-agent` | No hallucinated numbers; read-only by default; test before batch |
 | `@spectral-agent` | No hallucinated fit results; C-stat on low counts; model changes need confirmation |
 | `@mcmc-agent` | 68% intervals (not 90%); never overwrite chains; convergence before reporting |
+| `@paper-agent` | Numbers from AnalysisHandoff only; ADS-verified citations; LaTeX must compile; claims cross-checked against diagnostics |
 | `@retrieval-agent` | No detections without null test; species list from `AGENTS.md`; convergence before reporting |
 
 ### Anti-patterns table
@@ -377,7 +382,7 @@ rather than producing a plausible-looking but fabricated result.
 
 See [`ARCHITECTURE.md`](ARCHITECTURE.md) for the complete picture:
 Mermaid flowchart of the full 9-stage research pipeline (including both human gates),
-full agent roster table (12 agents), stage-by-stage summary, legacy data-flow
+full agent roster table (13 agents), stage-by-stage summary, legacy data-flow
 descriptions, and the quality-gate summary.
 
 ### Structured handoffs between agents
@@ -385,7 +390,7 @@ descriptions, and the quality-gate summary.
 When one specialist agent finishes and a downstream agent needs its results, it
 emits a **handoff JSON** whose schema is defined in
 [`.github/shared/handoff_schemas.md`](.github/shared/handoff_schemas.md).
-Eight schemas are currently defined:
+Nine schemas are currently defined:
 
 | Schema | Emitted by | Consumed by |
 |---|---|---|
@@ -395,8 +400,9 @@ Eight schemas are currently defined:
 | `SimulationHandoff/v1` | `@simulation-agent` | `@analysis-agent`, `@mcmc-agent` |
 | `SpectralFitHandoff/v1` | `@spectral-agent` | `@analysis-agent`, `@mcmc-agent` |
 | `AnalysisHandoff/v1` | `@analysis-agent` | `@interpretation-agent` |
-| `InterpretationHandoff/v1` | `@interpretation-agent` | `@hypothesis-agent` (iterate) or user (stop) |
+| `InterpretationHandoff/v1` | `@interpretation-agent` | `@hypothesis-agent` (iterate), `@paper-agent` (write), or user (stop) |
 | `MCMCHandoff/v1` | `@mcmc-agent` | user |
+| `PaperHandoff/v1` | `@paper-agent` | user |
 
 Each schema includes a `sanity_passed` / `validated` / `converged` gate: the
 receiving agent will refuse to proceed if the gate is `false`.

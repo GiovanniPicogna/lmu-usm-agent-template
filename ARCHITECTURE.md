@@ -17,6 +17,7 @@ what data flows between them, and what quality gates govern each stage.
 | `@setup-agent` | `setup-agent.agent.md` | Translate `AnalyticalHandoff` to validated simulation configs + optional SLURM/PBS scripts | [`SimConfigHandoff/v1`](.github/shared/handoff_schemas.md#simconfighandoffv1) |
 | `@analysis-agent` | `analysis-agent.agent.md` | Post-process simulation outputs + compare against analytical benchmarks | [`AnalysisHandoff/v1`](.github/shared/handoff_schemas.md#analysishandoffv1) |
 | `@interpretation-agent` | `interpretation-agent.agent.md` | Physical interpretation + ADS comparison + next-action decision | [`InterpretationHandoff/v1`](.github/shared/handoff_schemas.md#interpretationhandoffv1) |
+| `@paper-agent` | `paper-agent.agent.md` | Manuscript drafting (LaTeX), ADS citations, figure captions, compile + auto-review | [`PaperHandoff/v1`](.github/shared/handoff_schemas.md#paperhandoffv1) |
 
 ### Specialist agents (pre-existing)
 
@@ -51,7 +52,11 @@ flowchart TD
     AN -->|AnalysisHandoff/v1| I[@interpretation-agent]
     I -->|InterpretationHandoff/v1| GATE2{{⚠ Human Gate 2\nConfirm write / iterate}}
     GATE2 -->|next_action: iterate| H
-    GATE2 -->|next_action: stop| DONE([Done])
+    GATE2 -->|next_action: write| WR[@paper-agent]
+    WR -->|PaperHandoff/v1| DONE([Done])
+    GATE2 -->|next_action: stop| DONE
+
+    style WR fill:#cfc,stroke:#060,color:#000
 
     style GATE1 fill:#f9f,stroke:#a00,color:#000
     style GATE2 fill:#f9f,stroke:#a00,color:#000
@@ -70,7 +75,8 @@ flowchart TD
 | 6 SIMULATE | `@simulation-agent` / `@retrieval-agent` / `@spectral-agent` | Binary/HDF5 outputs in `data/` |
 | 7 ANALYSE | `@analysis-agent` | Figures in `plots/` + `AnalysisHandoff` JSON |
 | 8 INTERPRET | `@interpretation-agent` | `results/interpretation/<task_id>_<date>.json` |
-| **Gate 2** | User | Confirm iterate / stop |
+| **Gate 2** | User | Confirm iterate / write / stop |
+| 9 WRITE | `@paper-agent` | `paper/<task_id>_<date>/manuscript.pdf` + `referee_notes.md` |
 
 ---
 
@@ -155,7 +161,7 @@ flowchart TD
 Structured JSON schemas for inter-agent data passing are defined in
 [`.github/shared/handoff_schemas.md`](.github/shared/handoff_schemas.md).
 
-Key schemas: `SimulationHandoff/v1`, `SpectralFitHandoff/v1`, `MCMCHandoff/v1`.
+Key schemas: `SimulationHandoff/v1`, `SpectralFitHandoff/v1`, `MCMCHandoff/v1`, `PaperHandoff/v1`.
 
 ---
 

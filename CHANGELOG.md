@@ -7,6 +7,19 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Added
+- `.github/agents/paper-agent.agent.md` — `@paper-agent`: drafts a LaTeX
+  manuscript from `InterpretationHandoff/v1`, writes sections sequentially
+  (abstract → conclusions), inserts ADS-verified citations via `@literature-agent`,
+  compiles to PDF, and produces a scored automated referee report.
+  Emits `PaperHandoff/v1`. 5 iron rules; 4 anti-patterns.
+- `PaperHandoff/v1` schema in `.github/shared/handoff_schemas.md`.
+- Stage 9 WRITE added to `@pipeline-agent` and `ARCHITECTURE.md` pipeline
+  flowchart and stage summary table.
+- `@paper-agent` added to roster in `ARCHITECTURE.md`, `README.md`,
+  `docs/index.md`, `docs/agents.md`, and `docs/slides.html`.
+- EU AI Act §12 compliance section in `.github/copilot-instructions.md`.
+
 ## [1.2.0] — 2026-05-20
 
 ### Added

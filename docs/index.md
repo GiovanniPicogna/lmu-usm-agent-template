@@ -67,6 +67,7 @@ Copilot / Claude / Gemini session starts from the same safe, reproducible baseli
 | Retrieval | `@retrieval-agent` | petitRADTRANS forward model, CCF, dynesty |
 | Spectral | `@spectral-agent` | X-ray Sherpa / PyXSPEC fitting |
 | MCMC | `@mcmc-agent` | emcee / dynesty sampling, corner plots |
+| Paper | `@paper-agent` | LaTeX manuscript drafting, ADS citations, compile + auto-review |
 
 See the [Agents page](agents) for full documentation and example invocations.
 

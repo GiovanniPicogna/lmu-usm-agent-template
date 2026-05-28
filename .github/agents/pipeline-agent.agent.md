@@ -17,6 +17,7 @@ agents:
   - simulation-agent
   - analysis-agent
   - interpretation-agent
+  - paper-agent
   - mcmc-agent
   - literature-agent
   - spectral-agent
@@ -90,6 +91,7 @@ Stage 7  INTERPRET   → @interpretation-agent → InterpretationHandoff
          ──────────── HUMAN GATE 2 ───────────────────────────────
 Stage 8a ITERATE     → back to Stage 2 or 4 with refined parameters
 Stage 8b MCMC        → @mcmc-agent (if parameter constraints needed)
+Stage 9  WRITE       → @paper-agent (if next_action: write after Gate 2)
 ```
 
 ---
@@ -205,6 +207,22 @@ Track iteration count; warn if > 3 iterations without `hypothesis_match: confirm
 
 Invoke `@mcmc-agent` with `SpectralFitHandoff` or `SimulationHandoff`.
 Collect `MCMCHandoff`. Confirm `converged: true`.
+
+### Stage 9 — WRITE (if next_action = write)
+
+Invoke `@paper-agent` with the `InterpretationHandoff` path as its sole argument.
+The agent reads the full chain of handoffs (Analysis → Interpretation → MCMC if present)
+and produces `PaperHandoff/v1`.
+
+Do NOT invoke `@paper-agent` if:
+- `InterpretationHandoff.human_gate_2_confirmed` is `false`.
+- `InterpretationHandoff.plausibility_flags` is non-empty (must be cleared first).
+
+On receipt of `PaperHandoff/v1`:
+- Verify `compilation_status: ok`; if `errors`, report to user and stop.
+- Verify `referee_score >= 5`; if below, present the `referee_notes.md` to the user
+  and ask whether to iterate on the draft.
+- Record `paper_dir`, `manuscript_pdf`, and `referee_score` in the prompt log.
 
 ### Close
 
