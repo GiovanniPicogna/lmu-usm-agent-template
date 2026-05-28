@@ -1,5 +1,3 @@
-# LMU USM — AI Agent Configuration Template
-
 ![AI Agents in Astrophysics: Usage & Best Practices](docs/assets/banner.png)
 
 A first-draft template for using GitHub Copilot (and other AI agents)
@@ -7,7 +5,7 @@ in a reproducible, citable, and policy-compliant way in astrophysics research
 at LMU Munich.
 
 **Status**: community draft — open to contributions from all group members.
-**Maintainer**: LMU Astrophysics Group
+**Maintainer**: Giovanni Picogna
 **Template version**: 1.1 (May 2026)
 
 ---
