@@ -279,4 +279,3 @@ Run the full suite before pushing:
 pre-commit run --all-files
 pytest --tb=short
 ```
-
