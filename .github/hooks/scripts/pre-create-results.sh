@@ -39,7 +39,7 @@ FILEPATH=$(printf '%s' "$PARSED" | cut -f2-)
 
 # VS Code ignores matchers — skip non-create tools immediately.
 case "$TOOL_NAME" in
-    create|create_file|createFile|write_file|writeFile) ;;
+    create|create_file|createFile|write_file|writeFile|Write|Edit) ;;
     "") ;;       # Unknown — still evaluate
     *) exit 0 ;; # Not a create tool — allow
 esac

@@ -35,9 +35,9 @@ TOOL_NAME=$(printf '%s' "$PARSED" | cut -f1)
 COMMAND=$(printf '%s' "$PARSED" | cut -f2-)
 
 # VS Code ignores matchers — skip non-bash tools immediately.
-# Known bash/terminal tool names across Copilot surfaces:
+# Known bash/terminal tool names across Copilot and Claude Code surfaces:
 case "$TOOL_NAME" in
-    bash|runInTerminal|run_in_terminal|executeTerminalCommand) ;;
+    bash|Bash|runInTerminal|run_in_terminal|executeTerminalCommand) ;;
     "") ;;       # Unknown — still evaluate (fail-safe)
     *) exit 0 ;; # Not a shell tool — allow
 esac
