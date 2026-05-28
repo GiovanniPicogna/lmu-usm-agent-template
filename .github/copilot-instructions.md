@@ -321,7 +321,80 @@ See `ARCHITECTURE.md` for the canonical list and trigger phrases.
 # The agent will read the SKILL.md and follow its instructions.
 ```
 
-## 12. Scoped Copilot instructions (Copilot-only)
+## 12. EU AI Act & Legal Compliance
+
+The agents in this repository are classified as **Research / Knowledge** and
+**Coding / DevOps** agents under the EU AI Act taxonomy (Regulation 2024/1689).
+Analysis following Nannini et al. (arXiv:2604.04604, April 2026):
+
+**Risk classification** — Not high-risk (no Annex III use cases for astrophysics
+research). Article 50 transparency obligations apply to all agent interactions.
+
+### 12.1 Transparency (Art. 50)
+- Always disclose AI involvement when communicating results externally.
+- AI-generated text, code, or analyses in manuscripts must be disclosed per
+  journal policy (Nature, A&A, etc.) and COPE guidelines.
+- AI-generated synthetic content requires machine-readable marking (Art. 50(2));
+  plan for the Parliament's Nov 2026 deadline.
+
+### 12.2 Copyright — Text & Data Mining (DSM Directive Arts. 3–4)
+- Literature searches and web retrieval by `@literature-agent` and any skill
+  constitute TDM for scientific research: the **Art. 3 research exception** applies.
+- Document TDM use and the data source (ADS, arXiv, etc.) in every prompt log.
+- Do not scrape or store full-text articles beyond what is needed for the task.
+
+### 12.3 Privilege minimisation (Art. 15(4) / prEN 18282)
+- Each agent and skill must use the **minimum permissions required** for its task.
+- Agents must not read from or write to paths outside `data/`, `results/`, and
+  `plots/` (§8 Data handling).
+- Terminal access must be scoped to the specific task; never install system-level
+  software or modify environment files without explicit user confirmation.
+- API credentials (ADS token, ALMA token) must be stored in environment variables,
+  never embedded in code or committed to Git.
+- **Rule of Two (AEPD / Meta, 2025)**: an agent must not simultaneously combine
+  all three of — (i) processing untrusted external input, (ii) accessing sensitive
+  data, and (iii) taking autonomous action affecting external state — without
+  human oversight. Flag any task that combines all three and pause for confirmation.
+
+### 12.4 Human oversight (Art. 14)
+- The `@pipeline-agent` human gates (Gate 1 after hypothesis selection; Gate 2
+  after interpretation) operationalise Art. 14. Agents **must never auto-proceed**
+  past a human gate.
+- For irreversible external actions — `git push`, HPC job submission, sending
+  emails, deleting files — always request explicit user confirmation before executing.
+- Configurable automation boundaries: deployers can restrict which pipeline stages
+  run autonomously by editing `AGENTS.md §Agent behaviour rules`.
+
+### 12.5 Logging & auditability (Art. 12)
+- The `prompts/` log (§7 Reproducibility) serves as the Art. 12 audit trail.
+  Prompt logs must record: inputs, outputs, tool invocations, model name + version,
+  random seed, and validation steps — sufficient to reconstruct why the agent
+  took a specific action.
+- Prompt logs are **mandatory** and must be committed with every pipeline run.
+
+### 12.6 Cyber Resilience Act (CRA, Reg. 2024/2847)
+- Agents that execute code in terminals and call external APIs (ADS, ALMA, GitHub)
+  activate CRA obligations (standalone software with network connectivity).
+  Vulnerability reporting obligations apply from **11 September 2026**.
+- Follow OWASP Top 10 for Agentic Applications:
+  - Never pass user-supplied strings directly as shell commands.
+  - Validate and sanitise all external API responses before acting on them.
+  - Prefer read-only API access where write access is not strictly required.
+- Open-ended shell access (`run_in_terminal`) is explicitly flagged as a risk by
+  prEN 18282 (cybersecurity for AI systems); minimise its scope per task.
+
+### 12.7 GPAI model disclosure
+- These agents run on general-purpose AI models (Claude Sonnet, GitHub Copilot).
+  Document the **model name and version** in every prompt log (§7).
+- If agents are fine-tuned or adapted using more than one-third of original
+  training compute, the group becomes a GPAI provider under Art. 51.
+
+> **Reference**: Nannini et al. (2026). "AI Agents Under EU Law: A Compliance
+> Architecture for AI Providers." arXiv:2604.04604 [cs.CY].
+
+---
+
+## 13. Scoped Copilot instructions (Copilot-only)
 
 Since July 2025, Copilot also supports glob-scoped instruction files that
 activate only for matching file types or directories. Create them in
