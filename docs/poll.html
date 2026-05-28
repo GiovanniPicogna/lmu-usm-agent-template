@@ -1,0 +1,998 @@
+---
+layout: none
+title: AI Tools Poll
+nav_order: 6
+---
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI Coding Tools — Pre-Meeting Poll · Code &amp; Coffee</title>
+  <style>
+    /* ===== VARIABLES (matching slides.html theme) ===== */
+    :root {
+      --bg: #0d1117;
+      --surface: #161b22;
+      --surface2: rgba(255,255,255,0.04);
+      --border: rgba(255,255,255,0.10);
+      --a1: #4fc3f7;   /* nebula blue   */
+      --a2: #81c784;   /* aurora green  */
+      --a3: #ffb74d;   /* amber         */
+      --a4: #ef5350;   /* alert red     */
+      --a5: #ce93d8;   /* purple        */
+      --fg: #e6edf3;
+      --fg2: #8b949e;
+      --font: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: var(--bg);
+      color: var(--fg);
+      font-family: var(--font);
+      font-size: 15px;
+      line-height: 1.6;
+      min-height: 100vh;
+    }
+
+    /* ===== PAGE SHELL ===== */
+    .page {
+      max-width: 780px;
+      margin: 0 auto;
+      padding: 2.5rem 1.5rem 4rem;
+    }
+
+    /* ===== HEADER ===== */
+    .poll-header {
+      text-align: center;
+      padding: 2.5rem 2rem;
+      background: radial-gradient(ellipse at center, #0d1b2e 0%, #080c14 100%);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      margin-bottom: 2rem;
+    }
+
+    .venue-label {
+      font-size: 0.68em;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--a1);
+      font-weight: 700;
+      margin-bottom: 0.6rem;
+    }
+
+    .poll-header h1 {
+      font-size: 1.7em;
+      color: #fff;
+      font-weight: 800;
+      line-height: 1.25;
+      margin-bottom: 0.9rem;
+    }
+
+    .poll-header h1 em {
+      font-style: normal;
+      color: var(--a1);
+    }
+
+    .tag-row {
+      display: flex;
+      gap: 0.5rem;
+      justify-content: center;
+      flex-wrap: wrap;
+      margin-top: 0.75rem;
+    }
+
+    .tag {
+      padding: 0.2em 0.65em;
+      border: 1px solid var(--a1);
+      border-radius: 20px;
+      font-size: 0.72em;
+      color: var(--a1);
+    }
+
+    /* ===== INTRO BOX ===== */
+    .intro-box {
+      background: rgba(79,195,247,0.06);
+      border: 1px solid rgba(79,195,247,0.25);
+      border-radius: 8px;
+      padding: 1rem 1.2rem;
+      margin-bottom: 2rem;
+      font-size: 0.88em;
+      line-height: 1.6;
+      color: #ccd;
+    }
+
+    .intro-box strong { color: var(--fg); }
+
+    /* ===== PROGRESS BAR ===== */
+    .progress-wrap {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      margin-bottom: 2rem;
+    }
+
+    .progress-bar-outer {
+      flex: 1;
+      height: 4px;
+      background: rgba(255,255,255,0.1);
+      border-radius: 4px;
+      overflow: hidden;
+    }
+
+    .progress-bar-inner {
+      height: 100%;
+      background: var(--a1);
+      border-radius: 4px;
+      transition: width 0.4s ease;
+      width: 0%;
+    }
+
+    .progress-label {
+      font-size: 0.72em;
+      color: var(--fg2);
+      white-space: nowrap;
+    }
+
+    /* ===== SECTION ===== */
+    .poll-section {
+      margin-bottom: 2.25rem;
+    }
+
+    .section-header {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      margin-bottom: 1.1rem;
+    }
+
+    .section-num {
+      background: var(--a1);
+      color: #000;
+      font-weight: 800;
+      font-size: 0.78em;
+      width: 1.7em;
+      height: 1.7em;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .section-title {
+      font-size: 1.05em;
+      font-weight: 700;
+      color: #fff;
+    }
+
+    .section-subtitle {
+      font-size: 0.75em;
+      color: var(--fg2);
+    }
+
+    /* ===== QUESTION CARD ===== */
+    .q-card {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 1.1rem 1.25rem;
+      margin-bottom: 0.85rem;
+    }
+
+    .q-label {
+      font-size: 0.9em;
+      font-weight: 600;
+      color: #e6edf3;
+      margin-bottom: 0.7rem;
+    }
+
+    .q-hint {
+      font-size: 0.73em;
+      color: var(--fg2);
+      margin-bottom: 0.65rem;
+      font-style: italic;
+    }
+
+    /* ===== CHECKBOX / RADIO OPTIONS ===== */
+    .options-grid {
+      display: grid;
+      gap: 0.4rem;
+    }
+
+    .options-grid.cols2 {
+      grid-template-columns: 1fr 1fr;
+    }
+
+    .opt-label {
+      display: flex;
+      align-items: flex-start;
+      gap: 0.6rem;
+      cursor: pointer;
+      padding: 0.45rem 0.65rem;
+      border-radius: 7px;
+      border: 1px solid transparent;
+      transition: border-color 0.15s, background 0.15s;
+      font-size: 0.84em;
+      color: #ccd;
+      user-select: none;
+    }
+
+    .opt-label:hover {
+      background: rgba(79,195,247,0.05);
+      border-color: rgba(79,195,247,0.2);
+    }
+
+    .opt-label input {
+      margin-top: 0.18em;
+      accent-color: var(--a1);
+      flex-shrink: 0;
+      width: 15px;
+      height: 15px;
+      cursor: pointer;
+    }
+
+    .opt-label input:checked + .opt-text {
+      color: var(--fg);
+    }
+
+    .opt-label:has(input:checked) {
+      background: rgba(79,195,247,0.08);
+      border-color: rgba(79,195,247,0.35);
+    }
+
+    .opt-text { flex: 1; line-height: 1.4; }
+
+    .opt-badge {
+      font-size: 0.7em;
+      padding: 0.1em 0.45em;
+      border-radius: 10px;
+      margin-left: 0.4em;
+      vertical-align: middle;
+    }
+    .badge-new  { background: rgba(79,195,247,0.15); color: var(--a1); }
+    .badge-oss  { background: rgba(129,199,132,0.15); color: var(--a2); }
+    .badge-cli  { background: rgba(255,183,77,0.15); color: var(--a3); }
+    .badge-cloud { background: rgba(206,147,216,0.15); color: var(--a5); }
+
+    /* ===== SCALE / RATING ROW ===== */
+    .scale-row {
+      display: flex;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+    }
+
+    .scale-label {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.3rem;
+      cursor: pointer;
+    }
+
+    .scale-label input { accent-color: var(--a1); }
+
+    .scale-label .s-num {
+      font-size: 0.8em;
+      color: var(--fg2);
+    }
+
+    /* ===== TEXTAREA ===== */
+    .poll-textarea {
+      width: 100%;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 7px;
+      color: var(--fg);
+      font-family: var(--font);
+      font-size: 0.84em;
+      padding: 0.65rem 0.8rem;
+      resize: vertical;
+      min-height: 70px;
+      transition: border-color 0.15s;
+      outline: none;
+    }
+
+    .poll-textarea:focus {
+      border-color: rgba(79,195,247,0.5);
+    }
+
+    .poll-textarea::placeholder { color: #666; }
+
+    /* ===== LIKERT TABLE ===== */
+    .likert-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.82em;
+    }
+
+    .likert-table th {
+      padding: 0.5rem 0.5rem;
+      text-align: center;
+      color: var(--a1);
+      font-weight: 700;
+      font-size: 0.85em;
+      border-bottom: 1px solid var(--border);
+      white-space: nowrap;
+    }
+
+    .likert-table th.stmt { text-align: left; }
+
+    .likert-table td {
+      padding: 0.5rem 0.5rem;
+      border-bottom: 1px solid rgba(255,255,255,0.04);
+      text-align: center;
+      vertical-align: middle;
+      color: #ccd;
+    }
+
+    .likert-table td.stmt {
+      text-align: left;
+      padding-left: 0.25rem;
+    }
+
+    .likert-table tr:hover td { background: rgba(255,255,255,0.02); }
+
+    .likert-table input[type="radio"] { accent-color: var(--a1); }
+
+    /* ===== DIVIDER ===== */
+    .divider {
+      height: 1px;
+      background: var(--border);
+      margin: 1.8rem 0;
+    }
+
+    /* ===== SUBMIT BUTTON ROW ===== */
+    .action-row {
+      display: flex;
+      gap: 1rem;
+      flex-wrap: wrap;
+      margin-top: 2.5rem;
+      align-items: center;
+    }
+
+    .btn-primary {
+      background: var(--a1);
+      color: #000;
+      border: none;
+      border-radius: 8px;
+      padding: 0.75rem 1.75rem;
+      font-family: var(--font);
+      font-size: 0.88em;
+      font-weight: 700;
+      cursor: pointer;
+      transition: opacity 0.15s;
+    }
+
+    .btn-primary:hover { opacity: 0.85; }
+
+    .btn-secondary {
+      background: transparent;
+      color: var(--a1);
+      border: 1px solid var(--a1);
+      border-radius: 8px;
+      padding: 0.75rem 1.25rem;
+      font-family: var(--font);
+      font-size: 0.88em;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+
+    .btn-secondary:hover { background: rgba(79,195,247,0.08); }
+
+    /* ===== RESULT BOX ===== */
+    #summary-box {
+      display: none;
+      margin-top: 1.5rem;
+      background: var(--surface);
+      border: 1px solid rgba(129,199,132,0.35);
+      border-radius: 8px;
+      padding: 1.1rem 1.25rem;
+    }
+
+    #summary-box .s-title {
+      font-size: 0.85em;
+      font-weight: 700;
+      color: var(--a2);
+      margin-bottom: 0.7rem;
+    }
+
+    #summary-box pre {
+      font-size: 0.75em;
+      line-height: 1.55;
+      color: var(--fg);
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+
+    /* ===== FOOTER NOTE ===== */
+    .footer-note {
+      text-align: center;
+      font-size: 0.72em;
+      color: var(--fg2);
+      margin-top: 3rem;
+      padding-top: 1.5rem;
+      border-top: 1px solid var(--border);
+    }
+
+    /* ===== RESPONSIVE ===== */
+    @media (max-width: 560px) {
+      .options-grid.cols2 { grid-template-columns: 1fr; }
+      .poll-header h1 { font-size: 1.3em; }
+    }
+
+    /* ===== PRINT TWEAKS ===== */
+    @media print {
+      body { background: #fff; color: #111; font-size: 12px; }
+      .poll-header { background: #eef6ff; border: 2px solid #4fc3f7; }
+      .poll-header h1 { color: #002244; }
+      .poll-header h1 em { color: #0077b6; }
+      .venue-label { color: #0077b6; }
+      .q-card { border: 1px solid #ccc; background: #fafafa; }
+      .opt-label { color: #333; }
+      .action-row, #summary-box { display: none !important; }
+    }
+  </style>
+</head>
+
+<body>
+<div class="page">
+
+  <!-- HEADER -->
+  <div class="poll-header">
+    <div class="venue-label">Code &amp; Coffee · Astrophysics Dept · Pre-Meeting Poll</div>
+    <h1>AI Coding Tools:<br><em>How Is Our Department Using Them?</em></h1>
+    <div class="tag-row">
+      <span class="tag">Platforms</span>
+      <span class="tag">Models</span>
+      <span class="tag">MCP &amp; Agents</span>
+      <span class="tag">Use Cases</span>
+      <span class="tag">Workflows</span>
+    </div>
+  </div>
+
+  <!-- INTRO -->
+  <div class="intro-box">
+    <strong>Why this poll?</strong> We want to know where our group stands before diving into the discussion.
+    Your answers will be summarised (anonymously) at the start of the session to map
+    the landscape of tools in use, discover what's working, and prioritise the conversation
+    around topics that matter most to you.<br><br>
+    <strong>Anonymous · 5–7 minutes · no login required.</strong>
+    Fill in all that apply; leave open-ended fields blank if you prefer.
+  </div>
+
+  <!-- PROGRESS BAR -->
+  <div class="progress-wrap">
+    <div class="progress-bar-outer">
+      <div class="progress-bar-inner" id="progressBar"></div>
+    </div>
+    <span class="progress-label" id="progressLabel">0 / 7 sections</span>
+  </div>
+
+  <form id="pollForm" autocomplete="off">
+
+    <!-- ══════════════════════════════════════════════
+         SECTION 1 — ROLE
+    ══════════════════════════════════════════════ -->
+    <div class="poll-section" data-section="1">
+      <div class="section-header">
+        <div class="section-num">1</div>
+        <div>
+          <div class="section-title">About You</div>
+          <div class="section-subtitle">Role &amp; experience level — helps contextualise the group's answers</div>
+        </div>
+      </div>
+
+      <div class="q-card">
+        <div class="q-label">1.1 &nbsp;What is your role?</div>
+        <div class="options-grid">
+          <label class="opt-label"><input type="radio" name="role" value="bsc"><span class="opt-text">BSc / MSc student</span></label>
+          <label class="opt-label"><input type="radio" name="role" value="phd"><span class="opt-text">PhD student</span></label>
+          <label class="opt-label"><input type="radio" name="role" value="postdoc"><span class="opt-text">Postdoc</span></label>
+          <label class="opt-label"><input type="radio" name="role" value="pi"><span class="opt-text">PI / Faculty</span></label>
+          <label class="opt-label"><input type="radio" name="role" value="staff"><span class="opt-text">Research staff / engineer</span></label>
+          <label class="opt-label"><input type="radio" name="role" value="other"><span class="opt-text">Other</span></label>
+        </div>
+      </div>
+
+      <div class="q-card">
+        <div class="q-label">1.2 &nbsp;How long have you been using AI coding tools?</div>
+        <div class="options-grid">
+          <label class="opt-label"><input type="radio" name="experience" value="new"><span class="opt-text">I'm just starting / haven't yet</span></label>
+          <label class="opt-label"><input type="radio" name="experience" value="few_months"><span class="opt-text">&lt; 6 months</span></label>
+          <label class="opt-label"><input type="radio" name="experience" value="1yr"><span class="opt-text">6–18 months</span></label>
+          <label class="opt-label"><input type="radio" name="experience" value="2yr"><span class="opt-text">&gt; 18 months</span></label>
+        </div>
+      </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <!-- ══════════════════════════════════════════════
+         SECTION 2 — PLATFORMS
+    ══════════════════════════════════════════════ -->
+    <div class="poll-section" data-section="2">
+      <div class="section-header">
+        <div class="section-num">2</div>
+        <div>
+          <div class="section-title">Platforms &amp; Editors</div>
+          <div class="section-subtitle">Where do you interact with AI? Select all that apply.</div>
+        </div>
+      </div>
+
+      <div class="q-card">
+        <div class="q-label">2.1 &nbsp;Which AI-enhanced editor or interface do you use?</div>
+        <div class="q-hint">Select all that apply — tick "regularly" if you use it at least weekly.</div>
+        <div class="options-grid cols2">
+          <label class="opt-label"><input type="checkbox" name="platform" value="vscode_copilot"><span class="opt-text">VS Code + GitHub Copilot</span></label>
+          <label class="opt-label"><input type="checkbox" name="platform" value="cursor"><span class="opt-text">Cursor <span class="opt-badge badge-new">AI-native</span></span></label>
+          <label class="opt-label"><input type="checkbox" name="platform" value="windsurf"><span class="opt-text">Windsurf (Codeium) <span class="opt-badge badge-new">AI-native</span></span></label>
+          <label class="opt-label"><input type="checkbox" name="platform" value="claude_code"><span class="opt-text">Claude Code CLI <span class="opt-badge badge-cli">CLI</span></span></label>
+          <label class="opt-label"><input type="checkbox" name="platform" value="aider"><span class="opt-text">Aider <span class="opt-badge badge-cli">CLI</span> <span class="opt-badge badge-oss">OSS</span></span></label>
+          <label class="opt-label"><input type="checkbox" name="platform" value="gemini_cli"><span class="opt-text">Gemini CLI <span class="opt-badge badge-cli">CLI</span></span></label>
+          <label class="opt-label"><input type="checkbox" name="platform" value="codex_cli"><span class="opt-text">Codex CLI (OpenAI) <span class="opt-badge badge-cli">CLI</span></span></label>
+          <label class="opt-label"><input type="checkbox" name="platform" value="jetbrains"><span class="opt-text">JetBrains AI (PyCharm…)</span></label>
+          <label class="opt-label"><input type="checkbox" name="platform" value="continue"><span class="opt-text">Continue.dev <span class="opt-badge badge-oss">OSS</span></span></label>
+          <label class="opt-label"><input type="checkbox" name="platform" value="cline"><span class="opt-text">Cline / Roo Code <span class="opt-badge badge-oss">OSS</span></span></label>
+          <label class="opt-label"><input type="checkbox" name="platform" value="copilot_web"><span class="opt-text">GitHub Copilot (web / mobile)</span></label>
+          <label class="opt-label"><input type="checkbox" name="platform" value="chatgpt_web"><span class="opt-text">ChatGPT (copy-paste workflow)</span></label>
+          <label class="opt-label"><input type="checkbox" name="platform" value="claude_web"><span class="opt-text">Claude.ai (web chat)</span></label>
+          <label class="opt-label"><input type="checkbox" name="platform" value="gemini_web"><span class="opt-text">Gemini Advanced (web)</span></label>
+          <label class="opt-label"><input type="checkbox" name="platform" value="zed"><span class="opt-text">Zed + AI</span></label>
+          <label class="opt-label"><input type="checkbox" name="platform" value="neovim"><span class="opt-text">Neovim/Vim + AI plugin</span></label>
+          <label class="opt-label"><input type="checkbox" name="platform" value="jupyter_ai"><span class="opt-text">Jupyter AI / nbcopilot</span></label>
+          <label class="opt-label"><input type="checkbox" name="platform" value="none"><span class="opt-text">None — I don't use AI tools yet</span></label>
+        </div>
+        <div style="margin-top:0.65rem;">
+          <label class="opt-label" style="border:none;padding-left:0;">
+            <span class="opt-text" style="color:var(--fg2);font-size:0.88em;">Other platform:</span>
+          </label>
+          <input type="text" name="platform_other" class="poll-textarea" style="min-height:36px;resize:none;margin-top:0.3rem;" placeholder="e.g. Emacs + Copilot, Zed, ...">
+        </div>
+      </div>
+
+      <div class="q-card">
+        <div class="q-label">2.2 &nbsp;Which is your <em>primary</em> platform?</div>
+        <input type="text" name="primary_platform" class="poll-textarea" style="min-height:36px;resize:none;" placeholder="e.g. VS Code + GitHub Copilot">
+      </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <!-- ══════════════════════════════════════════════
+         SECTION 3 — MODELS
+    ══════════════════════════════════════════════ -->
+    <div class="poll-section" data-section="3">
+      <div class="section-header">
+        <div class="section-num">3</div>
+        <div>
+          <div class="section-title">AI Models</div>
+          <div class="section-subtitle">Which LLMs are powering your workflow?</div>
+        </div>
+      </div>
+
+      <div class="q-card">
+        <div class="q-label">3.1 &nbsp;Which AI models do you use for coding tasks?</div>
+        <div class="q-hint">Select all you actively use.</div>
+        <div class="options-grid cols2">
+          <label class="opt-label"><input type="checkbox" name="model" value="claude_sonnet"><span class="opt-text">Claude Sonnet 4.x (Anthropic)</span></label>
+          <label class="opt-label"><input type="checkbox" name="model" value="claude_opus"><span class="opt-text">Claude Opus 4.x (Anthropic)</span></label>
+          <label class="opt-label"><input type="checkbox" name="model" value="gpt4o"><span class="opt-text">GPT-4o (OpenAI)</span></label>
+          <label class="opt-label"><input type="checkbox" name="model" value="gpt5"><span class="opt-text">GPT-5 (OpenAI)</span></label>
+          <label class="opt-label"><input type="checkbox" name="model" value="o3"><span class="opt-text">o3 / o4-mini (OpenAI reasoning)</span></label>
+          <label class="opt-label"><input type="checkbox" name="model" value="gemini"><span class="opt-text">Gemini 2.5 Pro/Flash (Google)</span></label>
+          <label class="opt-label"><input type="checkbox" name="model" value="grok"><span class="opt-text">Grok (xAI)</span></label>
+          <label class="opt-label"><input type="checkbox" name="model" value="mistral"><span class="opt-text">Mistral / Codestral</span></label>
+          <label class="opt-label"><input type="checkbox" name="model" value="deepseek"><span class="opt-text">DeepSeek (V3 / R1)</span></label>
+          <label class="opt-label"><input type="checkbox" name="model" value="llama"><span class="opt-text">Llama (Meta, local via Ollama)</span></label>
+          <label class="opt-label"><input type="checkbox" name="model" value="qwen"><span class="opt-text">Qwen / other local model</span></label>
+          <label class="opt-label"><input type="checkbox" name="model" value="dont_know"><span class="opt-text">I don't know / I use the default</span></label>
+        </div>
+        <div style="margin-top:0.65rem;">
+          <input type="text" name="model_other" class="poll-textarea" style="min-height:36px;resize:none;" placeholder="Other model...">
+        </div>
+      </div>
+
+      <div class="q-card">
+        <div class="q-label">3.2 &nbsp;Do you switch models depending on the task?</div>
+        <div class="options-grid">
+          <label class="opt-label"><input type="radio" name="switch_models" value="yes_often"><span class="opt-text">Yes — I pick the model for each task</span></label>
+          <label class="opt-label"><input type="radio" name="switch_models" value="sometimes"><span class="opt-text">Sometimes</span></label>
+          <label class="opt-label"><input type="radio" name="switch_models" value="no"><span class="opt-text">No — I stick with one model</span></label>
+          <label class="opt-label"><input type="radio" name="switch_models" value="na"><span class="opt-text">My platform chooses for me</span></label>
+        </div>
+      </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <!-- ══════════════════════════════════════════════
+         SECTION 4 — TOOLS & FEATURES
+    ══════════════════════════════════════════════ -->
+    <div class="poll-section" data-section="4">
+      <div class="section-header">
+        <div class="section-num">4</div>
+        <div>
+          <div class="section-title">Tools &amp; Features</div>
+          <div class="section-subtitle">Which capabilities are you actually using?</div>
+        </div>
+      </div>
+
+      <div class="q-card">
+        <div class="q-label">4.1 &nbsp;Which AI features do you use?</div>
+        <div class="q-hint">Select all that apply.</div>
+        <div class="options-grid">
+          <label class="opt-label"><input type="checkbox" name="feature" value="autocomplete"><span class="opt-text">💡 Inline autocomplete / code suggestions (Tab)</span></label>
+          <label class="opt-label"><input type="checkbox" name="feature" value="chat"><span class="opt-text">💬 Chat / Q&amp;A (ask questions, explain code)</span></label>
+          <label class="opt-label"><input type="checkbox" name="feature" value="inline_edit"><span class="opt-text">✏️ Inline edit (Cmd+K / Ctrl+I — targeted rewrite)</span></label>
+          <label class="opt-label"><input type="checkbox" name="feature" value="agent_mode"><span class="opt-text">🤖 Agent / Agentic mode (multi-step autonomous tasks)</span></label>
+          <label class="opt-label"><input type="checkbox" name="feature" value="mcp"><span class="opt-text">🔌 MCP servers (Model Context Protocol — external tool access)</span></label>
+          <label class="opt-label"><input type="checkbox" name="feature" value="skills"><span class="opt-text">📦 Agent skills / reusable instruction packages</span></label>
+          <label class="opt-label"><input type="checkbox" name="feature" value="custom_instructions"><span class="opt-text">📄 Custom instructions / system prompts (.instructions.md, AGENTS.md)</span></label>
+          <label class="opt-label"><input type="checkbox" name="feature" value="prompt_files"><span class="opt-text">📝 Prompt files / reusable prompt templates (.prompt.md)</span></label>
+          <label class="opt-label"><input type="checkbox" name="feature" value="hooks"><span class="opt-text">🪝 Hooks (pre/post tool-call scripts, e.g. Claude Code hooks)</span></label>
+          <label class="opt-label"><input type="checkbox" name="feature" value="subagents"><span class="opt-text">🔀 Sub-agents / specialised delegated agents (runSubagent)</span></label>
+          <label class="opt-label"><input type="checkbox" name="feature" value="multi_agent"><span class="opt-text">🕸️ Multi-agent orchestration pipelines</span></label>
+          <label class="opt-label"><input type="checkbox" name="feature" value="memory"><span class="opt-text">🧠 Persistent memory (across sessions)</span></label>
+          <label class="opt-label"><input type="checkbox" name="feature" value="rag"><span class="opt-text">📚 RAG / custom context injection (codebase indexing, @-mentions)</span></label>
+          <label class="opt-label"><input type="checkbox" name="feature" value="code_review"><span class="opt-text">🔍 Automated code review / PR review</span></label>
+          <label class="opt-label"><input type="checkbox" name="feature" value="test_gen"><span class="opt-text">🧪 Test generation</span></label>
+          <label class="opt-label"><input type="checkbox" name="feature" value="voice"><span class="opt-text">🎙️ Voice input / dictation</span></label>
+          <label class="opt-label"><input type="checkbox" name="feature" value="cloud_agent"><span class="opt-text">☁️ Cloud agent (runs autonomously on server, e.g. Copilot cloud agent, Devin)</span></label>
+          <label class="opt-label"><input type="checkbox" name="feature" value="terminal_ai"><span class="opt-text">🖥️ AI in terminal (Copilot CLI, Gemini CLI, etc.)</span></label>
+          <label class="opt-label"><input type="checkbox" name="feature" value="none_basic"><span class="opt-text">🔰 None of the above — just basic chat</span></label>
+        </div>
+      </div>
+
+      <div class="q-card">
+        <div class="q-label">4.2 &nbsp;MCP servers: which ones do you have configured?</div>
+        <div class="q-hint">Select all. MCP = external tools/APIs plugged into your AI assistant.</div>
+        <div class="options-grid cols2">
+          <label class="opt-label"><input type="checkbox" name="mcp" value="ads"><span class="opt-text">NASA ADS (literature search)</span></label>
+          <label class="opt-label"><input type="checkbox" name="mcp" value="github"><span class="opt-text">GitHub (issues, PRs, repos)</span></label>
+          <label class="opt-label"><input type="checkbox" name="mcp" value="filesystem"><span class="opt-text">Filesystem access</span></label>
+          <label class="opt-label"><input type="checkbox" name="mcp" value="web_search"><span class="opt-text">Web search (Brave, Tavily, etc.)</span></label>
+          <label class="opt-label"><input type="checkbox" name="mcp" value="arxiv"><span class="opt-text">arXiv MCP</span></label>
+          <label class="opt-label"><input type="checkbox" name="mcp" value="alma"><span class="opt-text">ALMA archive</span></label>
+          <label class="opt-label"><input type="checkbox" name="mcp" value="postgres"><span class="opt-text">Database (PostgreSQL, SQLite)</span></label>
+          <label class="opt-label"><input type="checkbox" name="mcp" value="slack"><span class="opt-text">Slack / Teams</span></label>
+          <label class="opt-label"><input type="checkbox" name="mcp" value="jupyter"><span class="opt-text">Jupyter / notebook execution</span></label>
+          <label class="opt-label"><input type="checkbox" name="mcp" value="custom"><span class="opt-text">Custom-built MCP server</span></label>
+          <label class="opt-label"><input type="checkbox" name="mcp" value="none_mcp"><span class="opt-text">None / I don't use MCP</span></label>
+          <label class="opt-label"><input type="checkbox" name="mcp" value="dont_know_mcp"><span class="opt-text">I don't know what MCP is</span></label>
+        </div>
+      </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <!-- ══════════════════════════════════════════════
+         SECTION 5 — USE CASES
+    ══════════════════════════════════════════════ -->
+    <div class="poll-section" data-section="5">
+      <div class="section-header">
+        <div class="section-num">5</div>
+        <div>
+          <div class="section-title">Use Cases</div>
+          <div class="section-subtitle">What tasks do you delegate to AI?</div>
+        </div>
+      </div>
+
+      <div class="q-card">
+        <div class="q-label">5.1 &nbsp;What do you use AI tools for? (tick all that apply)</div>
+        <div class="options-grid cols2">
+          <label class="opt-label"><input type="checkbox" name="usecase" value="new_code"><span class="opt-text">Writing new code / boilerplate</span></label>
+          <label class="opt-label"><input type="checkbox" name="usecase" value="debug"><span class="opt-text">Debugging / error diagnosis</span></label>
+          <label class="opt-label"><input type="checkbox" name="usecase" value="understand"><span class="opt-text">Understanding existing / legacy code</span></label>
+          <label class="opt-label"><input type="checkbox" name="usecase" value="refactor"><span class="opt-text">Refactoring / code review</span></label>
+          <label class="opt-label"><input type="checkbox" name="usecase" value="docs"><span class="opt-text">Docstrings / documentation</span></label>
+          <label class="opt-label"><input type="checkbox" name="usecase" value="literature"><span class="opt-text">Literature search (ADS, arXiv)</span></label>
+          <label class="opt-label"><input type="checkbox" name="usecase" value="analysis"><span class="opt-text">Data analysis pipelines</span></label>
+          <label class="opt-label"><input type="checkbox" name="usecase" value="simulation"><span class="opt-text">Simulation setup &amp; configuration</span></label>
+          <label class="opt-label"><input type="checkbox" name="usecase" value="figures"><span class="opt-text">Figure creation (matplotlib, etc.)</span></label>
+          <label class="opt-label"><input type="checkbox" name="usecase" value="writing"><span class="opt-text">Scientific writing / LaTeX</span></label>
+          <label class="opt-label"><input type="checkbox" name="usecase" value="terminal"><span class="opt-text">Terminal / shell commands</span></label>
+          <label class="opt-label"><input type="checkbox" name="usecase" value="tests"><span class="opt-text">Test generation</span></label>
+          <label class="opt-label"><input type="checkbox" name="usecase" value="slurm"><span class="opt-text">HPC scripts (SLURM / PBS)</span></label>
+          <label class="opt-label"><input type="checkbox" name="usecase" value="pipeline"><span class="opt-text">End-to-end research pipelines</span></label>
+          <label class="opt-label"><input type="checkbox" name="usecase" value="retrieval"><span class="opt-text">Spectral fitting / retrievals</span></label>
+          <label class="opt-label"><input type="checkbox" name="usecase" value="mcmc"><span class="opt-text">MCMC / posterior sampling</span></label>
+          <label class="opt-label"><input type="checkbox" name="usecase" value="radtransfer"><span class="opt-text">Radiative transfer (RADMC-3D…)</span></label>
+          <label class="opt-label"><input type="checkbox" name="usecase" value="postproc"><span class="opt-text">Simulation post-processing (yt, h5py)</span></label>
+        </div>
+        <div style="margin-top:0.65rem;">
+          <input type="text" name="usecase_other" class="poll-textarea" style="min-height:36px;resize:none;" placeholder="Other use case...">
+        </div>
+      </div>
+
+      <div class="q-card">
+        <div class="q-label">5.2 &nbsp;What share of your weekly coding time involves AI assistance?</div>
+        <div class="options-grid">
+          <label class="opt-label"><input type="radio" name="time_share" value="none"><span class="opt-text">0% — I don't use AI tools</span></label>
+          <label class="opt-label"><input type="radio" name="time_share" value="occ"><span class="opt-text">1–20% — Occasional lookups / autocomplete</span></label>
+          <label class="opt-label"><input type="radio" name="time_share" value="regular"><span class="opt-text">20–50% — Regular daily use</span></label>
+          <label class="opt-label"><input type="radio" name="time_share" value="heavy"><span class="opt-text">50–80% — I draft nearly everything with AI</span></label>
+          <label class="opt-label"><input type="radio" name="time_share" value="always"><span class="opt-text">&gt;80% — AI is my primary coding interface</span></label>
+        </div>
+      </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <!-- ══════════════════════════════════════════════
+         SECTION 6 — EXPERIENCE & SATISFACTION
+    ══════════════════════════════════════════════ -->
+    <div class="poll-section" data-section="6">
+      <div class="section-header">
+        <div class="section-num">6</div>
+        <div>
+          <div class="section-title">Experience &amp; Satisfaction</div>
+          <div class="section-subtitle">Help us understand pain points and highlights.</div>
+        </div>
+      </div>
+
+      <div class="q-card">
+        <div class="q-label">6.1 &nbsp;Rate your agreement with the following statements.</div>
+        <div class="q-hint">1 = strongly disagree &nbsp;·&nbsp; 5 = strongly agree</div>
+        <table class="likert-table">
+          <thead>
+            <tr>
+              <th class="stmt">Statement</th>
+              <th>1</th><th>2</th><th>3</th><th>4</th><th>5</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="stmt">AI tools save me significant time</td>
+              <td><input type="radio" name="l_time" value="1"></td>
+              <td><input type="radio" name="l_time" value="2"></td>
+              <td><input type="radio" name="l_time" value="3"></td>
+              <td><input type="radio" name="l_time" value="4"></td>
+              <td><input type="radio" name="l_time" value="5"></td>
+            </tr>
+            <tr>
+              <td class="stmt">The output is usually correct enough to trust</td>
+              <td><input type="radio" name="l_correct" value="1"></td>
+              <td><input type="radio" name="l_correct" value="2"></td>
+              <td><input type="radio" name="l_correct" value="3"></td>
+              <td><input type="radio" name="l_correct" value="4"></td>
+              <td><input type="radio" name="l_correct" value="5"></td>
+            </tr>
+            <tr>
+              <td class="stmt">I understand the code the AI writes for me</td>
+              <td><input type="radio" name="l_understand" value="1"></td>
+              <td><input type="radio" name="l_understand" value="2"></td>
+              <td><input type="radio" name="l_understand" value="3"></td>
+              <td><input type="radio" name="l_understand" value="4"></td>
+              <td><input type="radio" name="l_understand" value="5"></td>
+            </tr>
+            <tr>
+              <td class="stmt">I worry about hallucinated results in my science</td>
+              <td><input type="radio" name="l_halluc" value="1"></td>
+              <td><input type="radio" name="l_halluc" value="2"></td>
+              <td><input type="radio" name="l_halluc" value="3"></td>
+              <td><input type="radio" name="l_halluc" value="4"></td>
+              <td><input type="radio" name="l_halluc" value="5"></td>
+            </tr>
+            <tr>
+              <td class="stmt">I document / disclose AI use in my papers</td>
+              <td><input type="radio" name="l_disclose" value="1"></td>
+              <td><input type="radio" name="l_disclose" value="2"></td>
+              <td><input type="radio" name="l_disclose" value="3"></td>
+              <td><input type="radio" name="l_disclose" value="4"></td>
+              <td><input type="radio" name="l_disclose" value="5"></td>
+            </tr>
+            <tr>
+              <td class="stmt">I'd like more group-level guidance / shared setup</td>
+              <td><input type="radio" name="l_guidance" value="1"></td>
+              <td><input type="radio" name="l_guidance" value="2"></td>
+              <td><input type="radio" name="l_guidance" value="3"></td>
+              <td><input type="radio" name="l_guidance" value="4"></td>
+              <td><input type="radio" name="l_guidance" value="5"></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="q-card">
+        <div class="q-label">6.2 &nbsp;What is your biggest pain point with current AI tools?</div>
+        <textarea class="poll-textarea" name="pain_point" placeholder="e.g. hallucinations in physics formulae, context window limits, slow completions, …"></textarea>
+      </div>
+
+      <div class="q-card">
+        <div class="q-label">6.3 &nbsp;What has been most useful or surprising?</div>
+        <textarea class="poll-textarea" name="most_useful" placeholder="e.g. debugging in seconds, automatic docstrings, literature search with ADS MCP, …"></textarea>
+      </div>
+
+      <div class="q-card">
+        <div class="q-label">6.4 &nbsp;Is there a tool or workflow you'd recommend to colleagues?</div>
+        <textarea class="poll-textarea" name="recommend" placeholder="e.g. 'Try agent skills + the ADS MCP — they changed how I do literature reviews'"></textarea>
+      </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <!-- ══════════════════════════════════════════════
+         SECTION 7 — CODE-COFFEE AGENDA
+    ══════════════════════════════════════════════ -->
+    <div class="poll-section" data-section="7">
+      <div class="section-header">
+        <div class="section-num">7</div>
+        <div>
+          <div class="section-title">Code-Coffee Agenda Input</div>
+          <div class="section-subtitle">Shape the discussion — your votes decide what we spend time on.</div>
+        </div>
+      </div>
+
+      <div class="q-card">
+        <div class="q-label">7.1 &nbsp;Which topics would you most like to discuss? (pick up to 3)</div>
+        <div class="options-grid">
+          <label class="opt-label"><input type="checkbox" name="agenda" value="setup"><span class="opt-text">🛠️ How to set up VS Code / Copilot for astrophysics research</span></label>
+          <label class="opt-label"><input type="checkbox" name="agenda" value="mcp_demo"><span class="opt-text">🔌 MCP servers demo — ADS, GitHub, web search</span></label>
+          <label class="opt-label"><input type="checkbox" name="agenda" value="skills_demo"><span class="opt-text">📦 Agent skills &amp; how to build domain-specific ones</span></label>
+          <label class="opt-label"><input type="checkbox" name="agenda" value="multi_agent_demo"><span class="opt-text">🕸️ Multi-agent orchestration demo (pipeline-agent, etc.)</span></label>
+          <label class="opt-label"><input type="checkbox" name="agenda" value="hooks_demo"><span class="opt-text">🪝 Hooks — automating guards and checks around agents</span></label>
+          <label class="opt-label"><input type="checkbox" name="agenda" value="claude_code"><span class="opt-text">🖥️ Claude Code CLI vs Copilot Agent Mode — comparison</span></label>
+          <label class="opt-label"><input type="checkbox" name="agenda" value="cursor_windsurf"><span class="opt-text">⚡ Cursor / Windsurf — worth switching from VS Code?</span></label>
+          <label class="opt-label"><input type="checkbox" name="agenda" value="hallucinations"><span class="opt-text">🚨 Hallucinations in science: how to catch and prevent them</span></label>
+          <label class="opt-label"><input type="checkbox" name="agenda" value="reproducibility"><span class="opt-text">📋 Reproducibility — prompt logs, provenance, AGENTS.md</span></label>
+          <label class="opt-label"><input type="checkbox" name="agenda" value="citations"><span class="opt-text">📖 Citing AI tools in papers: journal policies (MNRAS, A&amp;A, ApJ)</span></label>
+          <label class="opt-label"><input type="checkbox" name="agenda" value="data_privacy"><span class="opt-text">🔒 Data privacy &amp; proprietary data with cloud AI</span></label>
+          <label class="opt-label"><input type="checkbox" name="agenda" value="local_models"><span class="opt-text">🏠 Running models locally (Ollama, LM Studio) for sensitive data</span></label>
+          <label class="opt-label"><input type="checkbox" name="agenda" value="hpc"><span class="opt-text">🖥️ AI for HPC: SLURM scripts, remote debugging, LRZ integration</span></label>
+          <label class="opt-label"><input type="checkbox" name="agenda" value="cost"><span class="opt-text">💶 Costs &amp; budget: free tiers vs paid, what to ask the department for</span></label>
+        </div>
+      </div>
+
+      <div class="q-card">
+        <div class="q-label">7.2 &nbsp;Any specific question you'd like the group to address?</div>
+        <textarea class="poll-textarea" name="open_question" placeholder="e.g. 'How do others handle AI-generated code in their git history?' or 'Can we set up a shared ADS MCP config for the group?'"></textarea>
+      </div>
+
+      <div class="q-card">
+        <div class="q-label">7.3 &nbsp;Anything else you'd like to share before we meet?</div>
+        <textarea class="poll-textarea" name="other_comments" placeholder="Open comments, links, papers, or requests…"></textarea>
+      </div>
+    </div>
+
+    <!-- ACTION ROW -->
+    <div class="action-row">
+      <button type="button" class="btn-primary" onclick="generateSummary()">📋 Copy my answers as text</button>
+      <button type="button" class="btn-secondary" onclick="window.print()">🖨 Print / Save as PDF</button>
+      <span style="font-size:0.78em;color:var(--fg2);margin-left:auto;">
+        Share the copied text with your organiser (or paste it into the Google Form link they send you)
+      </span>
+    </div>
+
+    <div id="summary-box">
+      <div class="s-title">✅ Your answers — copy and share this text</div>
+      <pre id="summary-text"></pre>
+      <button type="button" class="btn-secondary" style="margin-top:0.75rem;" onclick="copyToClipboard()">📋 Copy to clipboard</button>
+    </div>
+
+  </form>
+
+  <div class="footer-note">
+    Code &amp; Coffee · LMU Astrophysics / USM · Poll v1 · May 2026<br>
+    Responses are summarised anonymously. This page stores nothing — answers live in your browser only.
+  </div>
+</div>
+
+<script>
+  /* ── Progress bar ── */
+  function updateProgress() {
+    const sections = document.querySelectorAll('[data-section]');
+    let filled = 0;
+    sections.forEach(sec => {
+      const inputs = sec.querySelectorAll('input[type="radio"]:checked, input[type="checkbox"]:checked, textarea, input[type="text"]');
+      let hasAny = false;
+      inputs.forEach(i => {
+        if ((i.type === 'radio' || i.type === 'checkbox') && i.checked) hasAny = true;
+        if ((i.type === 'text' || i.tagName === 'TEXTAREA') && i.value.trim()) hasAny = true;
+      });
+      if (hasAny) filled++;
+    });
+    const pct = Math.round((filled / sections.length) * 100);
+    document.getElementById('progressBar').style.width = pct + '%';
+    document.getElementById('progressLabel').textContent = filled + ' / ' + sections.length + ' sections';
+  }
+
+  document.getElementById('pollForm').addEventListener('change', updateProgress);
+  document.getElementById('pollForm').addEventListener('input', updateProgress);
+
+  /* ── Enforce max 3 agenda checkboxes ── */
+  document.querySelectorAll('input[name="agenda"]').forEach(cb => {
+    cb.addEventListener('change', () => {
+      const checked = document.querySelectorAll('input[name="agenda"]:checked');
+      if (checked.length > 3) { cb.checked = false; }
+    });
+  });
+
+  /* ── Generate plain-text summary ── */
+  function generateSummary() {
+    const lines = ['=== AI CODING TOOLS POLL — MY ANSWERS ===', ''];
+
+    function collect(name, label) {
+      const inputs = document.querySelectorAll(`[name="${name}"]`);
+      const vals = [];
+      inputs.forEach(i => {
+        if ((i.type === 'radio' || i.type === 'checkbox') && i.checked) {
+          vals.push(i.closest('.opt-label')?.querySelector('.opt-text')?.textContent?.trim() || i.value);
+        } else if ((i.type === 'text' || i.tagName === 'TEXTAREA') && i.value.trim()) {
+          vals.push(i.value.trim());
+        }
+      });
+      if (vals.length) lines.push(`${label}:\n  ${vals.join('\n  ')}`);
+    }
+
+    lines.push('--- SECTION 1: ABOUT YOU ---');
+    collect('role', 'Role');
+    collect('experience', 'Experience');
+    lines.push('');
+
+    lines.push('--- SECTION 2: PLATFORMS ---');
+    collect('platform', 'Platforms used');
+    collect('platform_other', 'Other platform');
+    collect('primary_platform', 'Primary platform');
+    lines.push('');
+
+    lines.push('--- SECTION 3: MODELS ---');
+    collect('model', 'Models used');
+    collect('model_other', 'Other model');
+    collect('switch_models', 'Switches models');
+    lines.push('');
+
+    lines.push('--- SECTION 4: TOOLS & FEATURES ---');
+    collect('feature', 'Features used');
+    collect('mcp', 'MCP servers');
+    lines.push('');
+
+    lines.push('--- SECTION 5: USE CASES ---');
+    collect('usecase', 'Use cases');
+    collect('usecase_other', 'Other use case');
+    collect('time_share', 'Time share');
+    lines.push('');
+
+    lines.push('--- SECTION 6: EXPERIENCE ---');
+    const likerts = ['l_time','l_correct','l_understand','l_halluc','l_disclose','l_guidance'];
+    const labels  = ['Saves time','Output correct','Understand AI code','Worry hallucinations','Disclose in papers','Want group guidance'];
+    likerts.forEach((n, i) => {
+      const v = document.querySelector(`[name="${n}"]:checked`);
+      if (v) lines.push(`${labels[i]}: ${v.value}/5`);
+    });
+    collect('pain_point', 'Biggest pain point');
+    collect('most_useful', 'Most useful');
+    collect('recommend', 'Recommended to colleagues');
+    lines.push('');
+
+    lines.push('--- SECTION 7: AGENDA ---');
+    collect('agenda', 'Topics to discuss');
+    collect('open_question', 'Open question for group');
+    collect('other_comments', 'Other comments');
+
+    lines.push('', '=== END ===');
+
+    const box = document.getElementById('summary-box');
+    const pre = document.getElementById('summary-text');
+    pre.textContent = lines.join('\n');
+    box.style.display = 'block';
+    box.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
+  function copyToClipboard() {
+    const text = document.getElementById('summary-text').textContent;
+    navigator.clipboard.writeText(text).then(() => {
+      const btn = event.target;
+      const orig = btn.textContent;
+      btn.textContent = '✅ Copied!';
+      setTimeout(() => { btn.textContent = orig; }, 2000);
+    });
+  }
+</script>
+
+</body>
+</html>

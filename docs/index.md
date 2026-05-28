@@ -18,6 +18,7 @@ Primary publication venues: *Astronomy & Astrophysics* (~54%), *MNRAS* (~16%), *
 [View on GitHub](https://github.com/GiovanniPicogna/lmu-usm-agent-template){: .btn }
 [Use this template](https://github.com/GiovanniPicogna/lmu-usm-agent-template/generate){: .btn .btn-primary }
 [▶ View Slides](slides.html){: .btn }
+[📋 Pre-Meeting Poll](poll.html){: .btn }
 
 ---
 
