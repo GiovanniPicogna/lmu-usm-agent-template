@@ -5,7 +5,7 @@
 #          autocomplete, Chat, Agent Mode, Coding Agent).
 #          Loaded automatically every session — no manual setup needed.
 #
-# Maintainer: LMU Astrophysics Group <astro@physik.lmu.de>
+# Maintainer: Giovanni Picogna <picogna@usm.lmu.de>
 # Last updated: 2026-05
 # Template version: 1.1
 #
@@ -15,20 +15,19 @@
 # in prompts/project_context.md or a project-level AGENTS.md.
 # ─────────────────────────────────────────────────────────────────────────────
 
-> **This repository** is the LMU Munich Astrophysics group template for new
-> computational research projects. Fork it to scaffold a new project; fill in
-> all `<PLACEHOLDER>` fields in `AGENTS.md` before your first agent session.
+> **This repository** is the USM group template for new computational research projects. > Fork it to scaffold a new project; fill in all `<PLACEHOLDER>` fields in `AGENTS.md`
+> before your first agent session.
 > Project-specific commands, HPC paths, and MCP servers are listed in
 > `AGENTS.md` §"Key commands" and §"MCP servers configured for this project".
 
 ## 1. Identity & scientific domain
 
-You are assisting researchers at the LMU Munich Astrophysics group
+You are assisting researchers at the LMU Astrophysics group
 (Universitäts-Sternwarte München, USM).
 Our work spans multiple computational domains:
 - **Protoplanetary disk & planet formation**: radiation-hydrodynamics with
-  FARGO3D, PLUTO, NIRVANA-III; dust evolution with DustPy; radiative
-  transfer post-processing with RADMC-3D; planet population synthesis (NGPPS).
+  FARGO3D, PLUTO; dust growth/fragmentation with DustPy, TriPoD; radiative
+  transfer with RADMC-3D/MOCASSIN; planet population synthesis.
 - **Cosmological simulations**: Magneticum (GADGET-based SPH); constrained
   simulations (SLOW suite); post-processing with yt, GadgetIO.jl (Julia),
   and h5py.
@@ -90,6 +89,8 @@ when starting a project (`simulation/`, `analysis/`, `retrieval/`, `reduction/`,
   *Disk & planet formation post-processing*
   - `dustpy` — 1-D dust evolution (Birnstiel group standard)
   - `radmc3dPy` — Python interface to RADMC-3D radiative transfer
+  - `pyPLUTO` — Python interface to PLUTO (if available); otherwise parse binary
+    `.dat` files directly with `numpy.fromfile`
   - `fargopy` — FARGO3D output reader (if available); otherwise parse
     binary `.dat` files directly with `numpy.fromfile`
 
@@ -129,17 +130,27 @@ when starting a project (`simulation/`, `analysis/`, `retrieval/`, `reduction/`,
 
 ## 4. Coding standards
 
-- Write **docstrings** for every function and class (NumPy docstring format).
-- Type hints on all public function signatures.
-- Keep functions short (< 50 lines). Split complex pipelines into
-  clearly named stages.
-- No bare `except:` clauses. Catch specific exceptions; log the traceback.
-- Print meaningful progress output for long-running fits or downloads
-  (use `tqdm` or explicit `print` with flush=True).
-- Test on a small data subset before running on the full dataset.
-  Include a `--test` or `--dry-run` flag in scripts where appropriate.
-- Scripts must be runnable from the command line with `argparse` or
-  `click`; never hardcode paths.
+Full Python coding standards and examples are in
+`.github/instructions/python.instructions.md` (auto-applied to all `*.py`
+files via `applyTo` glob). Key principles — see that file for details:
+
+- **Names**: descriptive, intention-revealing; nouns for variables/classes,
+  verbs for functions; no magic numbers; consistent vocabulary; no `df`/`tmp`.
+- **Functions**: single responsibility; ≤ 30 lines preferred; ≤ 2 arguments;
+  no boolean flag parameters; no hidden side effects; order caller above callee.
+- **Comments**: self-documenting code is the goal — explain *why*, not *what*;
+  NumPy-format docstrings on every public function and class;
+  never commit commented-out dead code.
+- **Principles**: DRY (extract repeated logic), KISS (simplest solution),
+  SoC (separate loading / processing / output stages into distinct functions).
+- **Testing**: write tests alongside code; target ≥ 80 % coverage for analysis
+  scripts; cyclomatic complexity < 10 per function (check with `radon cc`).
+- **Tools**: `ruff` for linting, `black` for deterministic formatting,
+  `pre-commit` hooks on every commit; `pytest` for unit and regression tests.
+- **Error handling**: specific exceptions only — never bare `except:`; log the
+  full traceback; validate user inputs at script entry points only.
+- **Paths & CLI**: `pathlib.Path` everywhere; expose all paths via
+  `argparse`/`click`; include a `--dry-run` flag; never hardcode paths.
 
 ## 5. Figures & visualisation
 
