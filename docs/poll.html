@@ -425,6 +425,30 @@ nav_order: 6
       .poll-header h1 { font-size: 1.3em; }
     }
 
+    /* ===== SUBMIT STATUS BANNER ===== */
+    #submit-status {
+      display: none;
+      border-radius: 8px;
+      padding: 1rem 1.25rem;
+      margin-top: 1.25rem;
+      font-size: 0.88em;
+      line-height: 1.55;
+    }
+
+    #submit-status.success {
+      background: rgba(129,199,132,0.08);
+      border: 1px solid rgba(129,199,132,0.4);
+      color: var(--a2);
+    }
+
+    #submit-status.error {
+      background: rgba(239,83,80,0.08);
+      border: 1px solid rgba(239,83,80,0.4);
+      color: var(--a4);
+    }
+
+    #submit-status strong { color: inherit; }
+
     /* ===== PRINT TWEAKS ===== */
     @media print {
       body { background: #fff; color: #111; font-size: 12px; }
@@ -861,15 +885,15 @@ nav_order: 6
 
     <!-- ACTION ROW -->
     <div class="action-row">
-      <button type="button" class="btn-primary" onclick="generateSummary()">📋 Copy my answers as text</button>
-      <button type="button" class="btn-secondary" onclick="window.print()">🖨 Print / Save as PDF</button>
-      <span style="font-size:0.78em;color:var(--fg2);margin-left:auto;">
-        Share the copied text with your organiser (or paste it into the Google Form link they send you)
-      </span>
+      <button type="button" class="btn-primary" id="submitBtn" onclick="submitPoll()">🚀 Submit answers</button>
+      <button type="button" class="btn-secondary" onclick="generateSummary()">📋 Copy as text</button>
+      <button type="button" class="btn-secondary" onclick="window.print()">🖨 Print / PDF</button>
     </div>
 
+    <div id="submit-status"></div>
+
     <div id="summary-box">
-      <div class="s-title">✅ Your answers — copy and share this text</div>
+      <div class="s-title">Your answers — copy and share this text</div>
       <pre id="summary-text"></pre>
       <button type="button" class="btn-secondary" style="margin-top:0.75rem;" onclick="copyToClipboard()">📋 Copy to clipboard</button>
     </div>
@@ -878,7 +902,7 @@ nav_order: 6
 
   <div class="footer-note">
     Code &amp; Coffee · LMU Astrophysics / USM · Poll v1 · May 2026<br>
-    Responses are summarised anonymously. This page stores nothing — answers live in your browser only.
+    Responses are sent anonymously to the organiser via Formspree and are not shared beyond the group.
   </div>
 </div>
 
@@ -991,6 +1015,91 @@ nav_order: 6
       btn.textContent = '✅ Copied!';
       setTimeout(() => { btn.textContent = orig; }, 2000);
     });
+  }
+
+  /* ── Formspree submission ── */
+  async function submitPoll() {
+    const btn = document.getElementById('submitBtn');
+    const statusEl = document.getElementById('submit-status');
+
+    /* Build a readable payload (same logic as generateSummary) */
+    const payload = {};
+
+    function collectField(name, label) {
+      const inputs = document.querySelectorAll(`[name="${name}"]`);
+      const vals = [];
+      inputs.forEach(i => {
+        if ((i.type === 'radio' || i.type === 'checkbox') && i.checked) {
+          vals.push(i.closest('.opt-label')?.querySelector('.opt-text')?.textContent?.trim() || i.value);
+        } else if ((i.type === 'text' || i.tagName === 'TEXTAREA') && i.value.trim()) {
+          vals.push(i.value.trim());
+        }
+      });
+      if (vals.length) payload[label] = vals.join(' | ');
+    }
+
+    collectField('role',             '01 Role');
+    collectField('experience',       '01 Experience');
+    collectField('platform',         '02 Platforms');
+    collectField('platform_other',   '02 Other platform');
+    collectField('primary_platform', '02 Primary platform');
+    collectField('model',            '03 Models');
+    collectField('model_other',      '03 Other model');
+    collectField('switch_models',    '03 Switches models');
+    collectField('feature',          '04 Features');
+    collectField('mcp',              '04 MCP servers');
+    collectField('usecase',          '05 Use cases');
+    collectField('usecase_other',    '05 Other use case');
+    collectField('time_share',       '05 Time share');
+
+    const likerts = ['l_time','l_correct','l_understand','l_halluc','l_disclose','l_guidance'];
+    const lLabels = ['06 Saves time','06 Output correct','06 Understand AI code',
+                     '06 Worry hallucinations','06 Disclose in papers','06 Want group guidance'];
+    likerts.forEach((n, i) => {
+      const v = document.querySelector(`[name="${n}"]:checked`);
+      if (v) payload[lLabels[i]] = v.value + '/5';
+    });
+
+    collectField('pain_point',    '06 Biggest pain point');
+    collectField('most_useful',   '06 Most useful');
+    collectField('recommend',     '06 Recommend');
+    collectField('agenda',        '07 Agenda topics');
+    collectField('open_question', '07 Open question');
+    collectField('other_comments','07 Other comments');
+
+    if (!Object.keys(payload).length) {
+      statusEl.className = 'error';
+      statusEl.innerHTML = '<strong>Nothing to submit yet.</strong> Please answer at least one question.';
+      statusEl.style.display = 'block';
+      return;
+    }
+
+    btn.disabled = true;
+    btn.textContent = '⏳ Submitting…';
+    statusEl.style.display = 'none';
+
+    try {
+      const res = await fetch('https://formspree.io/f/xdajbnrk', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      const data = await res.json();
+      if (res.ok) {
+        statusEl.className = 'success';
+        statusEl.innerHTML = '<strong>✅ Submitted — thank you!</strong> Your answers have been recorded. See you at Code &amp; Coffee!';
+        btn.textContent = '✅ Submitted';
+      } else {
+        throw new Error(data?.error || 'Submission failed');
+      }
+    } catch (err) {
+      statusEl.className = 'error';
+      statusEl.innerHTML = `<strong>❌ Submission failed.</strong> ${err.message}<br>Please use the "Copy as text" button and email your answers to the organiser.`;
+      btn.disabled = false;
+      btn.textContent = '🚀 Submit answers';
+    }
+    statusEl.style.display = 'block';
+    statusEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
   }
 </script>
 
