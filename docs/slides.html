@@ -769,6 +769,75 @@ nav_order: 5
       </section>
 
       <!-- ═══════════════════════════════════════════════════════
+     SLIDE A — COPILOT AGENT MODE vs CLAUDE CODE CLI
+     ═══════════════════════════════════════════════════════ -->
+      <section>
+        <span class="stag">Part 2 — Copilot Agent Mode vs Claude Code CLI</span>
+        <h2>Two Agentic Interfaces: Which Should You Use?</h2>
+        <table style="font-size:0.72em;margin-bottom:0.5em;">
+          <thead>
+            <tr>
+              <th>Feature</th>
+              <th>GitHub Copilot Agent Mode<br><span style="font-weight:400;color:#b0bec5;">(VS Code)</span></th>
+              <th>Claude Code CLI<br><span style="font-weight:400;color:#b0bec5;">(terminal)</span></th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Interface</td>
+              <td>GUI inside VS Code</td>
+              <td>Terminal / shell — works on HPC, SSH</td>
+            </tr>
+            <tr>
+              <td>Cost (2026)</td>
+              <td><span class="g">Free</span> via GitHub Education</td>
+              <td>~$5–20 / month (Anthropic API) or ~$20/mo Claude Max</td>
+            </tr>
+            <tr>
+              <td>Models</td>
+              <td>GPT-4o · Claude Sonnet 4.5 · Gemini 2.5 (switchable)</td>
+              <td>Claude Sonnet 4.5 / Opus 4 (fixed to Anthropic)</td>
+            </tr>
+            <tr>
+              <td>Context window</td>
+              <td>~128k tokens</td>
+              <td>200k tokens (Sonnet 4.5) — larger repo ingestion</td>
+            </tr>
+            <tr>
+              <td>File access</td>
+              <td>Open workspace only</td>
+              <td>Any path the shell can reach — ideal for <code>data/</code></td>
+            </tr>
+            <tr>
+              <td>MCP support</td>
+              <td>✅ via <code>.vscode/settings.json</code></td>
+              <td>✅ via <code>claude_desktop_config.json</code></td>
+            </tr>
+            <tr>
+              <td>HPC / remote server</td>
+              <td>Requires VS Code SSH extension</td>
+              <td><span class="g">Native</span> — runs anywhere Python is available</td>
+            </tr>
+            <tr>
+              <td>Custom instructions</td>
+              <td><code>copilot-instructions.md</code> + <code>AGENTS.md</code></td>
+              <td><code>CLAUDE.md</code> + <code>AGENTS.md</code></td>
+            </tr>
+            <tr>
+              <td>Best for</td>
+              <td>Daily coding, debugging, in-editor refactoring</td>
+              <td>Long autonomous runs, HPC pipeline setup, whole-repo tasks</td>
+            </tr>
+          </tbody>
+        </table>
+        <div class="ibox" style="font-size:0.8em;">
+          💡 <strong>Practical rule:</strong> use Copilot for interactive development; use Claude Code on the server
+          when you need overnight autonomous tasks or direct access to large <code>data/</code> trees.
+          Both read the same <code>AGENTS.md</code> — one config, two interfaces.
+        </div>
+      </section>
+
+      <!-- ═══════════════════════════════════════════════════════
      SLIDE 6 — DEMO
      ═══════════════════════════════════════════════════════ -->
       <section>
@@ -908,6 +977,78 @@ nav_order: 5
       </section>
 
       <!-- ═══════════════════════════════════════════════════════
+     SLIDE B — BUILDING A SKILL.MD
+     ═══════════════════════════════════════════════════════ -->
+      <section>
+        <span class="stag">Part 2 — Build Your Own Agent Skill</span>
+        <h2>Writing a <code>SKILL.md</code> in 3 Steps</h2>
+        <div class="g2" style="gap:0.7em;">
+          <div>
+            <div class="card c1" style="margin-bottom:0.5em;">
+              <div class="ct">Step 1 — YAML frontmatter</div>
+              <pre style="font-size:0.72em;margin:0;"><code>---
+name: my-skill
+description: >
+  One sentence the agent uses to decide
+  whether to load this skill. Include
+  trigger phrases here.
+---</code></pre>
+            </div>
+            <div class="card c2" style="margin-bottom:0.5em;">
+              <div class="ct">Step 2 — Numbered workflow</div>
+              <pre style="font-size:0.72em;margin:0;"><code>## Workflow
+1. Load AGENTS.md and identify target.
+2. Call `@literature-agent` to verify params.
+3. Run script; validate output units with
+   `astropy.units`.
+4. Save figure to `plots/` at 300 dpi.
+5. Emit handoff JSON.</code></pre>
+            </div>
+            <div class="card c3">
+              <div class="ct">Step 3 — Iron rules + anti-patterns</div>
+              <pre style="font-size:0.72em;margin:0;"><code>## Iron rules
+> NEVER invent a bibcode.
+> ALWAYS use astropy.units.
+
+## Anti-patterns
+| Wrong | Why | Correct |
+|---|---|---|
+| Hardcode kpc | breaks units | use u.kpc |</code></pre>
+            </div>
+          </div>
+          <div>
+            <div class="card c4" style="margin-bottom:0.5em;">
+              <div class="ct">Minimal astronomy example: <code>alma-imager.agent.md</code></div>
+              <pre style="font-size:0.68em;margin:0;"><code>---
+name: alma-imager
+description: >
+  Produce a CLEAN image from ALMA measurement
+  set. Trigger: ALMA, CLEAN, tclean, dirty map,
+  beam, synthesized beam, continuum image.
+tools: [read, edit, execute]
+---
+## Role
+Run CASA tclean on a calibrated ALMA MS.
+
+## Workflow
+1. Read AGENTS.md — get MS path and target name.
+2. Check beam size; warn if &lt; 2 px/beam.
+3. Run tclean (briggs, robust=0.5).
+4. Export FITS to data/images/.
+5. Validate: peak SNR ≥ 5 else flag.
+6. Emit {image_path, beam_arcsec, rms_uJy}.</code></pre>
+            </div>
+            <div class="ibox" style="font-size:0.78em;">
+              📁 Save to <code>.github/agents/alma-imager.agent.md</code><br>
+              📁 Large code blocks → <code>.github/agents/references/</code><br>
+              🔑 Trigger phrases in <code>description:</code> control when the agent auto-loads the skill<br>
+              ♻️ Reuse across projects by committing to group template
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ═══════════════════════════════════════════════════════
      SLIDE 9 — TWO LEVELS
      ═══════════════════════════════════════════════════════ -->
       <section>
@@ -946,6 +1087,53 @@ nav_order: 5
         <div class="ibox" style="margin-top:0.5em;">
           <strong>Rule:</strong> the more domain context you give the agent upfront, the less it has to guess — and the
           fewer hallucinations you get. <em>Specificity is safety.</em>
+        </div>
+      </section>
+
+      <!-- ═══════════════════════════════════════════════════════
+     SLIDE C — MCP IN PLAIN ENGLISH
+     ═══════════════════════════════════════════════════════ -->
+      <section>
+        <span class="stag">Part 3 — MCP: Before &amp; After</span>
+        <h2>MCP in Plain English: Before and After</h2>
+        <div class="g2" style="gap:0.9em;margin-bottom:0.6em;">
+          <div class="card c4">
+            <div class="ct">❌ Before MCP — Copy-Paste Workflow</div>
+            <ol style="font-size:0.8em;line-height:1.6;">
+              <li>You ask ChatGPT: <em>"find papers on gap opening criterion"</em></li>
+              <li>ChatGPT invents 3 plausible-looking bibcodes (hallucination)</li>
+              <li>You search ADS manually for each one — 2 don't exist</li>
+              <li>You copy the real BibTeX by hand into your <code>.bib</code> file</li>
+              <li>You paste the BibTeX back to ChatGPT for the next question</li>
+              <li>Total: ~10 min per reference · error-prone · not reproducible</li>
+            </ol>
+          </div>
+          <div class="card c2">
+            <div class="ct">✅ After MCP — Agent Calls ADS Directly</div>
+            <ol style="font-size:0.8em;line-height:1.6;">
+              <li>You type: <em>"find papers on gap opening criterion"</em></li>
+              <li>Copilot calls <code>ads_search()</code> via the ADS MCP server</li>
+              <li>ADS returns real bibcodes, titles, abstracts</li>
+              <li>Copilot calls <code>ads_export()</code> → verified BibTeX</li>
+              <li>Agent appends to <code>paper/bibliography.bib</code> automatically</li>
+              <li>Total: ~5 sec · zero hallucinations · logged in <code>prompts/</code></li>
+            </ol>
+          </div>
+        </div>
+        <div style="display:flex;align-items:center;justify-content:center;gap:0.5em;font-size:0.78em;flex-wrap:wrap;">
+          <div class="card" style="padding:0.4em 0.75em;text-align:center;min-width:6em;">Your prompt<br><span class="sm">in VS Code Chat</span></div>
+          <span style="color:var(--a1);">→</span>
+          <div class="card" style="padding:0.4em 0.75em;text-align:center;min-width:6em;">Copilot Agent<br><span class="sm">picks tool</span></div>
+          <span style="color:var(--a1);">→</span>
+          <div class="card c1" style="padding:0.4em 0.75em;text-align:center;min-width:7em;">MCP Server<br><span class="sm">local process</span></div>
+          <span style="color:var(--a1);">→</span>
+          <div class="card c2" style="padding:0.4em 0.75em;text-align:center;min-width:7em;">NASA ADS API<br><span class="sm">real data</span></div>
+          <span style="color:var(--a1);">→</span>
+          <div class="card c2" style="padding:0.4em 0.75em;text-align:center;min-width:7em;">bibliography.bib<br><span class="sm">verified BibTeX</span></div>
+        </div>
+        <div class="ibox" style="margin-top:0.55em;font-size:0.78em;">
+          MCP runs as a <strong>local process on your laptop</strong> — your data never leaves your machine.
+          The agent only gets back what the MCP server returns. Setup: add 10 lines to <code>.vscode/settings.json</code>.
         </div>
       </section>
 
@@ -1209,6 +1397,42 @@ nav_order: 5
             <div>CMBagent study: fully autonomous pipelines underperformed. Human checkpoints at key decision points are
               essential for hard science.</div>
           </div>
+        </div>
+      </section>
+
+      <!-- ═══════════════════════════════════════════════════════
+     SLIDE D — HALLUCINATION PREVENTION CHECKLIST
+     ═══════════════════════════════════════════════════════ -->
+      <section>
+        <span class="stag">Part 4 — Hallucination Prevention</span>
+        <h2>Hallucination Prevention: A Science Checklist</h2>
+        <div class="g2" style="gap:0.7em;margin-bottom:0.5em;">
+          <div class="card c1">
+            <div class="ct">🔍 Before you trust the output</div>
+            <div class="titem" style="margin:0.3em 0;"><span class="ticon" style="font-size:0.9em;">📚</span>
+              <div><strong>References</strong> — cross-check every bibcode on ADS before citing. One fabricated DOI invalidates the paper.</div></div>
+            <div class="titem" style="margin:0.3em 0;"><span class="ticon" style="font-size:0.9em;">🔢</span>
+              <div><strong>Numbers</strong> — reproduce one known result analytically (e.g. derive the scale height from your own disk parameters). If it doesn't match, the chain is broken.</div></div>
+            <div class="titem" style="margin:0.3em 0;"><span class="ticon" style="font-size:0.9em;">📐</span>
+              <div><strong>Units</strong> — use <code>astropy.units</code>. Never accept bare floats for physical quantities. Unit errors are invisible until they cascade.</div></div>
+            <div class="titem" style="margin:0.3em 0;"><span class="ticon" style="font-size:0.9em;">🧪</span>
+              <div><strong>Code</strong> — run on a toy case first; compare to analytical expectation before applying to real data.</div></div>
+          </div>
+          <div class="card c2">
+            <div class="ct">🛡️ Guards built into the template</div>
+            <div class="titem" style="margin:0.3em 0;"><span class="ticon" style="font-size:0.9em;">🚦</span>
+              <div><code>[DATA MISSING: …]</code> sentinel — agents must halt and flag, not fabricate values they don't have.</div></div>
+            <div class="titem" style="margin:0.3em 0;"><span class="ticon" style="font-size:0.9em;">⚙️</span>
+              <div><strong>Iron rules in <code>AGENTS.md</code></strong> — survive context window rotation and model switches. "NEVER invent a bibcode" repeated in every agent.</div></div>
+            <div class="titem" style="margin:0.3em 0;"><span class="ticon" style="font-size:0.9em;">🔬</span>
+              <div><strong>ADS MCP server</strong> — forces verified citation lookup. The agent cannot silently fall back to training-data references when MCP is wired in.</div></div>
+            <div class="titem" style="margin:0.3em 0;"><span class="ticon" style="font-size:0.9em;">✔️</span>
+              <div><strong>pre-commit <code>doi=</code> check</strong> — blocks commits with hand-written BibTeX entries missing a DOI field. Last-line defence before <code>git push</code>.</div></div>
+          </div>
+        </div>
+        <div class="wbox" style="font-size:0.78em;">
+          ⚡ Poll feedback: "Worry about hallucinations — have to iterate often." Each guard above targets one iteration loop.
+          The checklist reduces, not eliminates, the need for manual verification.
         </div>
       </section>
 
@@ -1638,10 +1862,54 @@ Return Gamma and norm with 90% confidence. Save chi2 residual as PDF.
       </section>
 
       <!-- ═══════════════════════════════════════════════════════
+     SLIDE E — COSTS & BUDGET
+     ═══════════════════════════════════════════════════════ -->
+      <section>
+        <span class="stag">Part 6 — Costs &amp; Budget</span>
+        <h2>Costs &amp; Budget: What Does AI Actually Cost?</h2>
+        <div class="g3" style="gap:0.6em;margin-bottom:0.5em;">
+          <div class="card c2">
+            <div class="ct">🆓 Free tiers</div>
+            <ul style="font-size:0.78em;line-height:1.55;">
+              <li><strong>GitHub Copilot</strong> — free for students &amp; verified faculty via GitHub Education (unlimited chat + agent mode)</li>
+              <li><strong>Claude.ai</strong> — free tier (Claude Sonnet, limited messages / day)</li>
+              <li><strong>ChatGPT</strong> — free tier (GPT-4o, rate-limited)</li>
+              <li><strong>Gemini</strong> — free via Google AI Studio (1M context)</li>
+              <li><strong>Ollama</strong> — free, fully local, runs on your laptop</li>
+            </ul>
+          </div>
+          <div class="card c1">
+            <div class="ct">💳 Paid plans (June 2026)</div>
+            <ul style="font-size:0.78em;line-height:1.55;">
+              <li><strong>Copilot Pro</strong> €10 / mo — higher premium-request quota</li>
+              <li><strong>Claude Max</strong> €18 / mo — unlimited Sonnet, Projects, Opus access</li>
+              <li><strong>OpenAI Plus</strong> €20 / mo — GPT-5, o4-mini, DALL·E</li>
+              <li><strong>Anthropic API</strong> ~€3 / M tokens (Sonnet), ~€15 (Opus)</li>
+              <li><strong>OpenAI API</strong> ~€2.50 / M tokens (GPT-4o)</li>
+            </ul>
+          </div>
+          <div class="card c3">
+            <div class="ct">🏛️ Getting department funding</div>
+            <ul style="font-size:0.78em;line-height:1.55;">
+              <li>Frame as <em>reproducible research infrastructure</em> — like compute time on LRZ</li>
+              <li>Typical researcher: <strong>€20–50 / month</strong> covers heavy daily use</li>
+              <li>Ask IT: check for <strong>LRZ / TUM / LMU institutional licence</strong> (Microsoft M365 Copilot)</li>
+              <li>Grant line: "AI-assisted analysis tools" in DFG / ERC proposals is accepted</li>
+              <li>Template: <em>"I request €X/month for AI API access to support reproducible research in [domain]…"</em></li>
+            </ul>
+          </div>
+        </div>
+        <div class="ibox" style="font-size:0.78em;">
+          💡 <strong>Rule of thumb:</strong> 1 hour of agent-mode coding ≈ 50–200 K tokens ≈ <strong>€0.15–€0.60</strong> (Sonnet API).
+          That's cheaper than a coffee at the Sternwarte Kantine — and covered free via GitHub Education.
+        </div>
+      </section>
+
+      <!-- ═══════════════════════════════════════════════════════
      SLIDE 26 — DISCUSSION
      ═══════════════════════════════════════════════════════ -->
       <section>
-        <span class="stag">Part 6 — Discussion</span>
+        <span class="stag">Part 7 — Discussion</span>
         <h2>Open Questions for Our Department</h2>
         <div class="ibox" style="margin-bottom:0.7em;">
           We built one: <strong><a
@@ -1969,6 +2237,59 @@ Return Gamma and norm with 90% confidence. Save chi2 residual as PDF.
 
         </div><!-- /font-size wrapper -->
 
+      </section>
+
+      <!-- ═══════════════════════════════════════════════════════
+     SLIDE F — LOCAL MODELS FOR SENSITIVE DATA
+     ═══════════════════════════════════════════════════════ -->
+      <section>
+        <span class="stag">Appendix — Local Models for Sensitive Data</span>
+        <h2>Local Models for Sensitive Data (Ollama / LM Studio)</h2>
+        <div class="g2" style="gap:0.7em;margin-bottom:0.5em;">
+          <div class="card c3">
+            <div class="ct">When to run models locally</div>
+            <ul style="font-size:0.8em;line-height:1.6;">
+              <li>Embargoed or proprietary observational data (pre-publication)</li>
+              <li>Unpublished simulation outputs (IP of your group)</li>
+              <li>Patient / medical data — EU GDPR compliance</li>
+              <li>HPC login nodes without outbound internet access</li>
+              <li>Budget constraints — zero API cost once hardware is available</li>
+              <li>Offline development or conference travel</li>
+            </ul>
+          </div>
+          <div>
+            <div class="card c1" style="margin-bottom:0.5em;">
+              <div class="ct">Quick-start: Ollama</div>
+              <pre style="font-size:0.68em;margin:0.2em 0 0;"><code># Install (macOS / Linux)
+curl -fsSL https://ollama.com/install.sh | sh
+
+# Pull a capable science-friendly model
+ollama pull qwen2.5-coder:14b   # 9 GB — strong at code
+
+# Serve (auto-starts on install)
+ollama serve   # listens on localhost:11434
+
+# Use with VS Code Copilot Chat
+# Settings → Copilot → Chat Model → "ollama/qwen2.5-coder:14b"</code></pre>
+            </div>
+            <div class="card" style="font-size:0.75em;">
+              <div class="ct">Model quick-reference</div>
+              <table style="font-size:0.88em;margin-top:0.2em;">
+                <thead><tr><th>Model</th><th>Size</th><th>Best for</th></tr></thead>
+                <tbody>
+                  <tr><td><code>qwen2.5-coder:7b</code></td><td>4 GB</td><td>Quick code edits</td></tr>
+                  <tr><td><code>qwen2.5-coder:14b</code></td><td>9 GB</td><td>Analysis scripts</td></tr>
+                  <tr><td><code>llama3.3:70b</code></td><td>40 GB</td><td>Complex reasoning</td></tr>
+                  <tr><td><code>gemma3:27b</code></td><td>17 GB</td><td>Scientific writing</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+        <div class="ibox" style="font-size:0.78em;">
+          <strong>LM Studio</strong> = GUI alternative to Ollama. Both expose an OpenAI-compatible API on
+          <code>localhost:11434</code> — drop-in replacement; no code changes needed in your analysis scripts.
+        </div>
       </section>
 
     </div><!-- .slides -->
