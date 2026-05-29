@@ -2420,6 +2420,126 @@ ollama serve   # listens on localhost:11434
         </div>
       </section>
 
+      <!-- ═══════════════════════════════════════════════════════
+     SLIDE I — BENCHMARK REALITY CHECK
+     ═══════════════════════════════════════════════════════ -->
+      <section>
+        <span class="stag">Appendix — How Good Are Agents?</span>
+        <h2>Benchmark Reality Check: AI Agents in Astrophysics</h2>
+        <div class="g2" style="gap:0.7em;margin-bottom:0.5em;">
+          <div class="card c4">
+            <div class="ct">📊 ReplicationBench — Paper Replication</div>
+            <p style="font-size:0.77em;margin-bottom:0.35em;">111 tasks · 20 peer-reviewed astrophysics papers · tasks co-written by original authors</p>
+            <div style="text-align:center;font-size:2.4em;font-weight:700;color:#ef5350;line-height:1.1;">&lt;20%</div>
+            <p style="font-size:0.74em;text-align:center;color:#b0bec5;margin-bottom:0.4em;">success rate for best frontier models</p>
+            <ul style="font-size:0.72em;line-height:1.5;">
+              <li>Tasks include: Abacus N-body near-field summation with spline softening; B-spline localisation of black-hole merger-rate peaks in mass</li>
+              <li>Failure mode: <strong>coding is fine — domain-specific rigor is not</strong></li>
+            </ul>
+          </div>
+          <div class="card c3">
+            <div class="ct">🪐 Stargazer — Exoplanet RV Orbit Fitting</div>
+            <p style="font-size:0.77em;margin-bottom:0.35em;">120 tasks · 100 synthetic + 20 real RV datasets · multi-planet systems</p>
+            <div style="text-align:center;font-size:1.05em;font-weight:700;color:#ffb74d;margin:0.3em 0;">Perfect χ² minimisation → wrong orbital parameters</div>
+            <ul style="font-size:0.72em;line-height:1.5;">
+              <li>Agents achieve optimal statistical fits on periodograms — <em>but fail to recover true Keplerian elements</em></li>
+              <li>Difficulty scales with: SNR, orbital resonances, planet multiplicity</li>
+              <li>Root cause: <strong>no persistent physical world model</strong> — statistical optimisation ≠ physical understanding</li>
+            </ul>
+          </div>
+        </div>
+        <div class="wbox" style="font-size:0.76em;">
+          ⚠️ <strong>Implication for our group:</strong> agents can write PLUTO setup scripts and call RADMC-3D correctly. They <em>cannot yet verify</em> that outputs are physically consistent.
+          <strong>Human domain review at Gate 1 &amp; Gate 2 remains mandatory — this is why our pipeline enforces it.</strong>
+        </div>
+      </section>
+
+      <!-- ═══════════════════════════════════════════════════════
+     SLIDE J — ASTROPHYSICS AGENT FRAMEWORKS
+     ═══════════════════════════════════════════════════════ -->
+      <section>
+        <span class="stag">Appendix — Astrophysics Agent Landscape</span>
+        <h2>Agent Systems Built for Astrophysics &amp; Cosmology</h2>
+        <div class="g3" style="gap:0.6em;margin-bottom:0.5em;">
+          <div class="card c5">
+            <div class="ct">🌌 CosmoEvolve</div>
+            <ul style="font-size:0.74em;line-height:1.5;">
+              <li><strong>Task:</strong> ACT DR6 CMB power-spectrum analysis</li>
+              <li><strong>PI + Student</strong> agent hierarchy</li>
+              <li>Shared "Blackboard" for async cross-agent memory retention</li>
+              <li>Open-ended: hypothesis → computation → diagnostic iteration</li>
+              <li>Closest analogue to our <code>@pipeline-agent</code> design</li>
+            </ul>
+          </div>
+          <div class="card c1">
+            <div class="ct">📡 CMBEvolve</div>
+            <ul style="font-size:0.74em;line-height:1.5;">
+              <li><strong>Task:</strong> out-of-distribution detection in weak-lensing maps</li>
+              <li>Structured tree-search + dedicated idea sampler</li>
+              <li>Iteratively refines detection algorithms against known physical bounds</li>
+              <li>Excels where objectives are <em>mathematically precise and measurable</em></li>
+            </ul>
+          </div>
+          <div class="card c2">
+            <div class="ct">📄 Denario</div>
+            <ul style="font-size:0.74em;line-height:1.5;">
+              <li><strong>Task:</strong> end-to-end paper generation</li>
+              <li>Autonomously applies quantum-physics methods to astrophysical datasets</li>
+              <li>Expert-validated papers in astrophysics, planetary science, mathematical physics</li>
+              <li><strong>Still requires domain expert review</strong> — not autonomous publishing</li>
+            </ul>
+          </div>
+        </div>
+        <div class="ibox" style="font-size:0.76em;">
+          🖥️ <strong>Local Body, Remote Brain</strong> for our HPC workflows: terabytes of disk/cosmological data stay on LRZ SuperMUC-NG (local body executes I/O).
+          The LLM orchestrates methodology, tracks provenance, and flags physical anomalies remotely. <strong>Data never leaves the cluster.</strong>
+        </div>
+      </section>
+
+      <!-- ═══════════════════════════════════════════════════════
+     SLIDE K — SKILL.MD VALIDATED + KEY RISKS
+     ═══════════════════════════════════════════════════════ -->
+      <section>
+        <span class="stag">Appendix — SKILL.md Evidence &amp; Risks</span>
+        <h2>Our SKILL.md Approach: Evidence &amp; What to Watch</h2>
+        <div class="g2" style="gap:0.7em;margin-bottom:0.5em;">
+          <div class="card c2">
+            <div class="ct">✅ SciAgent-Skills: SKILL.md files demonstrably work</div>
+            <div style="text-align:center;margin:0.25em 0 0.1em;">
+              <span style="font-size:2.3em;font-weight:700;color:#81c784;">92.0%</span>
+              <span style="font-size:0.85em;color:#b0bec5;"> accuracy on BixBench</span>
+            </div>
+            <p style="font-size:0.73em;text-align:center;color:#81c784;margin-bottom:0.45em;"><strong>+26.7 percentage points</strong> vs baseline — zero fine-tuning required</p>
+            <ul style="font-size:0.72em;line-height:1.5;">
+              <li>199 domain-specific SKILL.md files (biostatistics, data analysis, scientific writing)</li>
+              <li>Agent reads structured Markdown → applies domain knowledge dynamically at inference time</li>
+              <li><strong>Directly validates our</strong> <code>dustpy</code>, <code>pluto</code>, <code>fargo3d</code>, <code>radmc3d</code>, <code>sherpa</code>, <code>yt</code> skills</li>
+            </ul>
+          </div>
+          <div>
+            <div class="card c4" style="margin-bottom:0.5em;">
+              <div class="ct">📚 The hallucinated-citation crisis</div>
+              <ul style="font-size:0.72em;line-height:1.5;">
+                <li>Audit of 111 M references across 2.5 M arXiv + PubMed papers</li>
+                <li><strong style="color:#ef5350;">≥146,932 entirely hallucinated references</strong> introduced in 2025 alone</li>
+                <li>Risk compounds: agents using RAG on poisoned literature generate recursively invalid science</li>
+              </ul>
+            </div>
+            <div class="card c3">
+              <div class="ct">🎭 Illusion of full autonomy</div>
+              <ul style="font-size:0.72em;line-height:1.5;">
+                <li>Agents optimise toward the objective <em>you provide</em> — problem selection remains human</li>
+                <li>True autonomy requires scientific judgment trained on grant reviews and rejections — not yet available</li>
+                <li><strong>Current role: powerful co-scientist, not independent PI</strong></li>
+              </ul>
+            </div>
+          </div>
+        </div>
+        <div class="wbox" style="font-size:0.74em;">
+          🔒 <strong>Our defences:</strong> ADS MCP tool for every reference (verified BibTeX only) · no hand-written citations · prompt logs as Art. 12 audit trail · human gates at hypothesis and interpretation stages
+        </div>
+      </section>
+
     </div><!-- .slides -->
   </div><!-- .reveal -->
 

@@ -191,3 +191,64 @@ and loaded on demand, keeping the agent/skill file itself scannable.
 | `.github/agents/references/` | Simulation I/O functions and code conventions for `@simulation-agent` |
 | `.github/skills/<code>/references/` | Full parameter tables and worked examples for each skill |
 | `.github/shared/` | Cross-agent shared artefacts (handoff schemas) |
+
+---
+
+## Agentic AI in astrophysics: research landscape (2026)
+
+This section summarises the external research context that informed the
+architectural choices in this template. Sources: ReplicationBench, Stargazer,
+SciAgent-Skills (BixBench), CosmoEvolve, CMBEvolve, Denario.
+
+### Benchmark capability assessments
+
+| Benchmark | Scope | Key result | Implication |
+|---|---|---|---|
+| **ReplicationBench** | 111 replication tasks across 20 peer-reviewed astrophysics papers | Best frontier models: **<20% success rate** | Agents fail not at coding but at domain-specific rigor (spline force laws, B-spline peak finding) |
+| **Stargazer** | 120 RV exoplanet-fitting tasks (100 synthetic + 20 real) | Perfect χ² fit → wrong Keplerian parameters | No persistent physical world model: statistical optimisation ≠ physical understanding |
+
+These results are why the pipeline enforces **mandatory human gates** at
+hypothesis selection (Gate 1) and interpretation (Gate 2): agents currently
+cannot self-verify physical consistency of their outputs.
+
+### SKILL.md approach: empirical validation
+
+The SciAgent-Skills project equipped Claude Code with 199 domain-specific
+SKILL.md files (formatted identically to this repository's `.github/skills/`):
+
+- **BixBench accuracy: 92.0%** — a +26.7 percentage-point improvement
+  over the baseline, achieved with zero fine-tuning.
+- Each skill file contains runnable code examples, key parameter definitions,
+  troubleshooting matrices, and established domain best practices.
+- **This directly validates our `dustpy`, `pluto`, `fargo3d`, `radmc3d`,
+  `sherpa`, and `yt` skills** as an effective mechanism for specialising
+  general-purpose LLMs for astrophysical workflows.
+
+### Specialized multi-agent frameworks in our domain
+
+| Framework | Task | Architecture | Relation to this template |
+|---|---|---|---|
+| **CosmoEvolve** | ACT DR6 CMB analysis | PI + Student hierarchy; shared "Blackboard" for async memory | Closest published analogue to our `@pipeline-agent` design |
+| **CMBEvolve** | Weak-lensing OoD detection | Structured tree search + idea sampler | Example of quantitative, metrics-driven agentic optimisation |
+| **Denario** | End-to-end paper generation | Methodology → calculation → synthesis subsystems | Inspiration for `@paper-agent`; requires expert review |
+| **CMBAGENT** | CMB multi-agent calculation | Modular calculation nodes | Underpins some Denario calculation subsystems |
+
+### Local Body, Remote Brain architecture
+
+Recommended for astrophysics HPC environments:
+- **Local Body**: Python steering scripts on the cluster execute all I/O
+  (reading PLUTO `.dbl` snapshots, writing RADMC-3D inputs, launching DustPy).
+  Terabytes of proprietary/embargoed data never leave the cluster.
+- **Remote Brain**: the LLM (via API) orchestrates methodology, tracks
+  provenance, flags physical anomalies, and generates analysis plans.
+- This maps directly to: `@setup-agent` + `@simulation-agent` (local)
+  ↔ `@analytical-agent` + `@interpretation-agent` (remote LLM reasoning).
+
+### Key systemic risks
+
+| Risk | Evidence | Our mitigation |
+|---|---|---|
+| **Hallucinated citations** | ≥146,932 entirely non-existent references introduced into arXiv/PubMed in 2025 alone (audit of 111 M refs across 2.5 M papers) | ADS MCP for all references; `pre-commit` BibTeX validation; no hand-written entries |
+| **Physical world model gap** | Stargazer: perfect statistical fit, incorrect orbital parameters | Human Gate 1 & Gate 2; simulators as verifiers; physical plausibility checks in `@interpretation-agent` |
+| **Illusion of full autonomy** | Agents optimise toward provided objectives; cannot select problems | Explicit human gates; problem selection always user-driven; agents framed as co-scientists |
+| **Compound RAG poisoning** | Hallucinated literature → agents recursively generate invalid science | ADS-only sourcing; no open-web RAG without user confirmation |

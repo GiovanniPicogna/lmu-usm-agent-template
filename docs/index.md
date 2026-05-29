@@ -26,9 +26,10 @@ Primary publication venues: *Astronomy & Astrophysics* (~54%), *MNRAS* (~16%), *
 
 *Code & Coffee, LMU Astrophysics Department, May 2026*
 
-A 38-slide reveal.js presentation covering GitHub Copilot Agent Mode, MCP & the ADS
-server, pitfalls in AI-assisted research, reproducibility best practices, and journal
-disclosure policies (MNRAS, A&A, ApJ, Nature, Science).
+A 41-slide reveal.js presentation covering GitHub Copilot Agent Mode, MCP & the ADS
+server, pitfalls in AI-assisted research, reproducibility best practices, journal
+disclosure policies (MNRAS, A&A, ApJ, Nature, Science), IDE landscape (Cursor, Windsurf,
+Google Antigravity), and agentic AI benchmarks in astrophysics (ReplicationBench, Stargazer).
 
 [▶ Open full-screen slides](slides.html){: .btn .btn-primary }
 
