@@ -1849,291 +1849,125 @@ Return Gamma and norm with 90% confidence. Save chi2 residual as PDF.
         <span class="stag">Appendix — Agent Pipeline</span>
         <h2>9-Stage Research Pipeline</h2>
 
-        <style>
-          /* ── pipeline graph styles (scoped to this slide) ── */
-          .pipe-wrap {
-            display: flex;
-            align-items: flex-start;
-            gap: 0;
-            font-size: 0.62em;
-            justify-content: center;
-          }
+        <!-- Snake layout: row 1 left→right, row 2 right→left, connected by down arrow at right edge -->
+        <div style="font-size:0.515em; color:#e6edf3; padding:0 0.1em;">
+          <div style="
+            display:grid;
+            grid-template-columns: 1fr 18px 1fr 18px 1fr 18px 1fr 18px 1fr 18px 1fr;
+            grid-template-rows: auto 30px auto;
+            align-items:center;
+            gap:0;
+          ">
 
-          /* left column: main pipeline */
-          .pipe-main {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 0;
-          }
-
-          /* right column: optional MCMC branch */
-          .pipe-side {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            margin-left: 0.6em;
-            margin-top: 10.5em;
-          }
-
-          .pnode {
-            border-radius: 7px;
-            padding: 0.32em 0.75em;
-            text-align: center;
-            min-width: 8em;
-            font-weight: 600;
-            line-height: 1.3;
-            border: 1px solid rgba(255,255,255,0.18);
-          }
-
-          .pnode-blue  { background: rgba(79,195,247,0.18); border-color: #4fc3f7; color: #e6edf3; }
-          .pnode-green { background: rgba(129,199,132,0.22); border-color: #81c784; color: #e6edf3; }
-          .pnode-pink  { background: rgba(239,83,80,0.22);  border-color: #ef5350; color: #fff; font-style: italic; }
-          .pnode-amber { background: rgba(255,183,77,0.18); border-color: #ffb74d; color: #e6edf3; }
-          .pnode-user  { background: rgba(206,147,216,0.18); border-color: #ce93d8; color: #e6edf3; border-radius: 50px; }
-          .pnode-done  { background: rgba(79,195,247,0.10); border-color: #4fc3f7; color: #4fc3f7; border-radius: 50px; }
-
-          /* arrow + label */
-          .parrow {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            margin: 0;
-          }
-
-          .parrow-line {
-            width: 2px;
-            background: rgba(255,255,255,0.25);
-            flex-shrink: 0;
-          }
-
-          .parrow-label {
-            font-size: 0.82em;
-            color: #81c784;
-            background: #0d1117;
-            padding: 0 0.3em;
-            border-radius: 3px;
-            white-space: nowrap;
-            line-height: 1.1;
-            text-align: center;
-          }
-
-          .parrow-head {
-            color: rgba(255,255,255,0.4);
-            font-size: 1.1em;
-            line-height: 0.5;
-          }
-
-          /* side branch connector */
-          .pipe-connector {
-            display: flex;
-            align-items: center;
-          }
-
-          .pipe-hline {
-            height: 2px;
-            background: rgba(255,183,77,0.5);
-            width: 1.4em;
-          }
-
-          .pipe-vline-side {
-            width: 2px;
-            background: rgba(255,183,77,0.4);
-          }
-
-          /* iterate back arrow label */
-          .iterate-label {
-            font-size: 0.75em;
-            color: #ffb74d;
-            margin-left: 0.3em;
-            writing-mode: vertical-rl;
-            text-orientation: mixed;
-            transform: rotate(180deg);
-            line-height: 1.1;
-          }
-
-          /* legend */
-          .pipe-legend {
-            display: flex;
-            gap: 1.2em;
-            justify-content: center;
-            margin-top: 0.55em;
-            font-size: 0.68em;
-            flex-wrap: wrap;
-          }
-
-          .pipe-legend-item {
-            display: flex;
-            align-items: center;
-            gap: 0.35em;
-          }
-
-          .pipe-legend-dot {
-            width: 0.85em;
-            height: 0.85em;
-            border-radius: 3px;
-            border: 1px solid;
-          }
-        </style>
-
-        <div class="pipe-wrap">
-
-          <!-- ── MAIN PIPELINE COLUMN ── -->
-          <div class="pipe-main">
-
-            <div class="pnode pnode-user">👤 User / science question</div>
-
-            <div class="parrow">
-              <div class="parrow-line" style="height:0.55em;"></div>
-              <div class="parrow-head">▼</div>
+            <!-- ══ ROW 1 · left → right ══════════════════════════ -->
+            <!-- col 1 -->
+            <div style="grid-row:1;grid-column:1;
+              background:rgba(206,147,216,0.18);border:1px solid #ce93d8;border-radius:50px;
+              padding:0.32em 0.45em;text-align:center;font-weight:600;line-height:1.2;">
+              👤 User<br><span style="font-weight:400;font-size:0.83em;color:#b0bec5;">science question</span>
+            </div>
+            <div style="grid-row:1;grid-column:2;text-align:center;color:rgba(255,255,255,0.3);font-size:1.3em;">→</div>
+            <!-- col 3 -->
+            <div style="grid-row:1;grid-column:3;
+              background:rgba(79,195,247,0.18);border:1px solid #4fc3f7;border-radius:6px;
+              padding:0.32em 0.45em;text-align:center;font-weight:600;line-height:1.2;">
+              @pipeline-agent<br><span style="font-weight:400;font-size:0.83em;color:#b0bec5;">① prompt log</span>
+            </div>
+            <div style="grid-row:1;grid-column:4;text-align:center;color:rgba(255,255,255,0.3);font-size:1.3em;">→</div>
+            <!-- col 5 -->
+            <div style="grid-row:1;grid-column:5;
+              background:rgba(79,195,247,0.18);border:1px solid #4fc3f7;border-radius:6px;
+              padding:0.32em 0.45em;text-align:center;font-weight:600;line-height:1.2;">
+              @lit / @hypothesis<br><span style="font-weight:400;font-size:0.83em;color:#b0bec5;">② search &nbsp;③ ranked hyps</span>
+            </div>
+            <div style="grid-row:1;grid-column:6;text-align:center;color:rgba(255,255,255,0.3);font-size:1.3em;">→</div>
+            <!-- col 7 -->
+            <div style="grid-row:1;grid-column:7;
+              background:rgba(239,83,80,0.22);border:1px solid #ef5350;border-radius:6px;
+              padding:0.32em 0.45em;text-align:center;font-weight:600;line-height:1.2;">
+              ⚠ GATE 1<br><span style="font-weight:400;font-size:0.83em;color:#ffcdd2;">confirm hypothesis</span>
+            </div>
+            <div style="grid-row:1;grid-column:8;text-align:center;color:rgba(255,255,255,0.3);font-size:1.3em;">→</div>
+            <!-- col 9 -->
+            <div style="grid-row:1;grid-column:9;
+              background:rgba(79,195,247,0.18);border:1px solid #4fc3f7;border-radius:6px;
+              padding:0.32em 0.45em;text-align:center;font-weight:600;line-height:1.2;">
+              @analytical-agent<br><span style="font-weight:400;font-size:0.83em;color:#b0bec5;">④ scales · stability</span>
+            </div>
+            <div style="grid-row:1;grid-column:10;text-align:center;color:rgba(255,255,255,0.3);font-size:1.3em;">→</div>
+            <!-- col 11 -->
+            <div style="grid-row:1;grid-column:11;
+              background:rgba(79,195,247,0.18);border:1px solid #4fc3f7;border-radius:6px;
+              padding:0.32em 0.45em;text-align:center;font-weight:600;line-height:1.2;">
+              @setup-agent<br><span style="font-weight:400;font-size:0.83em;color:#b0bec5;">⑤ config · SLURM/PBS</span>
             </div>
 
-            <div class="pnode pnode-blue">@pipeline-agent<br><span style="font-weight:400;font-size:0.88em;">① create prompt log</span></div>
-
-            <div class="parrow">
-              <div class="parrow-line" style="height:0.45em;"></div>
-              <div class="parrow-head">▼</div>
+            <!-- ══ CONNECTOR · down arrow at right edge ══════════ -->
+            <div style="grid-row:2;grid-column:11;
+              display:flex;flex-direction:column;align-items:center;height:30px;">
+              <div style="width:2px;flex:1;background:rgba(255,255,255,0.22);"></div>
+              <div style="color:rgba(255,255,255,0.32);font-size:1.05em;line-height:0.8;">▼</div>
             </div>
 
-            <div style="display:flex;gap:0.6em;">
-              <div style="display:flex;flex-direction:column;align-items:center;">
-                <div class="pnode pnode-blue" style="min-width:6em;">@literature-agent<br><span style="font-weight:400;font-size:0.88em;">② background</span></div>
-              </div>
-              <div style="display:flex;flex-direction:column;align-items:center;">
-                <div class="pnode pnode-blue">@hypothesis-agent<br><span style="font-weight:400;font-size:0.88em;">③ hypotheses + ADS</span></div>
-              </div>
+            <!-- ══ ROW 2 · right → left (col 11 = stage ⑥, col 1 = Done) ══ -->
+            <!-- col 11 -->
+            <div style="grid-row:3;grid-column:11;
+              background:rgba(79,195,247,0.18);border:1px solid #4fc3f7;border-radius:6px;
+              padding:0.32em 0.45em;text-align:center;font-weight:600;line-height:1.2;">
+              @sim / @retrieval<br><span style="font-weight:400;font-size:0.83em;color:#b0bec5;">⑥ / @spectral · run</span>
+            </div>
+            <div style="grid-row:3;grid-column:10;text-align:center;color:rgba(255,255,255,0.3);font-size:1.3em;">←</div>
+            <!-- col 9 -->
+            <div style="grid-row:3;grid-column:9;
+              background:rgba(79,195,247,0.18);border:1px solid #4fc3f7;border-radius:6px;
+              padding:0.32em 0.45em;text-align:center;font-weight:600;line-height:1.2;">
+              @analysis-agent<br><span style="font-weight:400;font-size:0.83em;color:#b0bec5;">⑦ post-process · plots</span>
+            </div>
+            <div style="grid-row:3;grid-column:8;text-align:center;color:rgba(255,255,255,0.3);font-size:1.3em;">←</div>
+            <!-- col 7 -->
+            <div style="grid-row:3;grid-column:7;
+              background:rgba(79,195,247,0.18);border:1px solid #4fc3f7;border-radius:6px;
+              padding:0.32em 0.45em;text-align:center;font-weight:600;line-height:1.2;">
+              @interpretation<br><span style="font-weight:400;font-size:0.83em;color:#b0bec5;">⑧ interpret · ADS cites</span>
+            </div>
+            <div style="grid-row:3;grid-column:6;text-align:center;color:rgba(255,255,255,0.3);font-size:1.3em;">←</div>
+            <!-- col 5 -->
+            <div style="grid-row:3;grid-column:5;
+              background:rgba(239,83,80,0.22);border:1px solid #ef5350;border-radius:6px;
+              padding:0.32em 0.45em;text-align:center;font-weight:600;line-height:1.2;">
+              ⚠ GATE 2<br><span style="font-weight:400;font-size:0.83em;color:#ffcdd2;">write / iterate / stop</span>
+            </div>
+            <div style="grid-row:3;grid-column:4;text-align:center;color:rgba(255,255,255,0.3);font-size:1.3em;">←</div>
+            <!-- col 3 -->
+            <div style="grid-row:3;grid-column:3;
+              background:rgba(129,199,132,0.22);border:1px solid #81c784;border-radius:6px;
+              padding:0.32em 0.45em;text-align:center;font-weight:600;line-height:1.2;">
+              @paper-agent<br><span style="font-weight:400;font-size:0.83em;color:#b0bec5;">⑨ LaTeX · PDF · review</span>
+            </div>
+            <div style="grid-row:3;grid-column:2;text-align:center;color:rgba(255,255,255,0.3);font-size:1.3em;">←</div>
+            <!-- col 1 -->
+            <div style="grid-row:3;grid-column:1;
+              background:rgba(79,195,247,0.08);border:1px solid #4fc3f7;border-radius:50px;
+              padding:0.32em 0.45em;text-align:center;font-weight:600;line-height:1.2;color:#4fc3f7;">
+              ✅ Done
             </div>
 
-            <div class="parrow">
-              <div class="parrow-line" style="height:0.45em;"></div>
-              <div class="parrow-label">HypothesisHandoff/v1</div>
-              <div class="parrow-line" style="height:0.35em;"></div>
-              <div class="parrow-head">▼</div>
-            </div>
+          </div><!-- /grid -->
 
-            <div class="pnode pnode-pink">⚠ HUMAN GATE 1<br><span style="font-weight:400;">confirm top hypothesis</span></div>
-
-            <div class="parrow">
-              <div class="parrow-line" style="height:0.45em;"></div>
-              <div class="parrow-head">▼</div>
-            </div>
-
-            <div class="pnode pnode-blue">@analytical-agent<br><span style="font-weight:400;font-size:0.88em;">④ scales · stability · linear regime</span></div>
-
-            <div class="parrow">
-              <div class="parrow-line" style="height:0.45em;"></div>
-              <div class="parrow-label">AnalyticalHandoff/v1</div>
-              <div class="parrow-line" style="height:0.35em;"></div>
-              <div class="parrow-head">▼</div>
-            </div>
-
-            <div class="pnode pnode-blue">@setup-agent<br><span style="font-weight:400;font-size:0.88em;">⑤ config files + SLURM/PBS</span></div>
-
-            <div class="parrow">
-              <div class="parrow-line" style="height:0.45em;"></div>
-              <div class="parrow-label">SimConfigHandoff/v1</div>
-              <div class="parrow-line" style="height:0.35em;"></div>
-              <div class="parrow-head">▼</div>
-            </div>
-
-            <div class="pnode pnode-blue">@simulation-agent / @retrieval-agent / @spectral-agent<br><span style="font-weight:400;font-size:0.88em;">⑥ run simulation or fit</span></div>
-
-            <div class="parrow">
-              <div class="parrow-line" style="height:0.45em;"></div>
-              <div class="parrow-label">SimulationHandoff · SpectralFitHandoff</div>
-              <div class="parrow-line" style="height:0.35em;"></div>
-              <div class="parrow-head">▼</div>
-            </div>
-
-            <div class="pnode pnode-blue">@analysis-agent<br><span style="font-weight:400;font-size:0.88em;">⑦ post-process · benchmark · plots/</span></div>
-
-            <div class="parrow">
-              <div class="parrow-line" style="height:0.45em;"></div>
-              <div class="parrow-label">AnalysisHandoff/v1</div>
-              <div class="parrow-line" style="height:0.35em;"></div>
-              <div class="parrow-head">▼</div>
-            </div>
-
-            <div class="pnode pnode-blue">@interpretation-agent<br><span style="font-weight:400;font-size:0.88em;">⑧ physical interpretation · ADS · caveats</span></div>
-
-            <div class="parrow">
-              <div class="parrow-line" style="height:0.45em;"></div>
-              <div class="parrow-label">InterpretationHandoff/v1</div>
-              <div class="parrow-line" style="height:0.35em;"></div>
-              <div class="parrow-head">▼</div>
-            </div>
-
-            <div class="pnode pnode-pink">⚠ HUMAN GATE 2<br><span style="font-weight:400;">write / iterate / stop</span></div>
-
-            <div style="display:flex;gap:0.6em;margin-top:0;">
-              <!-- stop branch -->
-              <div class="parrow" style="align-items:center;">
-                <div class="parrow-line" style="height:0.5em;"></div>
-                <div class="parrow-label" style="color:#ef5350;">stop</div>
-                <div class="parrow-line" style="height:0.3em;"></div>
-                <div class="parrow-head">▼</div>
-                <div class="pnode pnode-done" style="min-width:4.5em;font-size:0.92em;">✅ Done</div>
-              </div>
-              <!-- write branch -->
-              <div class="parrow" style="align-items:center;">
-                <div class="parrow-line" style="height:0.5em;"></div>
-                <div class="parrow-label" style="color:#81c784;">write</div>
-                <div class="parrow-line" style="height:0.3em;"></div>
-                <div class="parrow-head">▼</div>
-                <div class="pnode pnode-green">@paper-agent<br><span style="font-weight:400;font-size:0.88em;">⑨ LaTeX · ADS cites · PDF · auto-review</span></div>
-                <div class="parrow-line" style="height:0.35em;"></div>
-                <div class="parrow-label" style="color:#81c784;">PaperHandoff/v1</div>
-                <div class="parrow-line" style="height:0.3em;"></div>
-                <div class="parrow-head">▼</div>
-                <div class="pnode pnode-done" style="min-width:4.5em;font-size:0.92em;">✅ Done</div>
-              </div>
-            </div>
-
-          </div><!-- .pipe-main -->
-
-          <!-- ── OPTIONAL MCMC BRANCH ── -->
-          <div class="pipe-side">
-            <div style="height:2px;width:2.2em;background:rgba(255,183,77,0.45);margin-bottom:0;"></div>
-            <div style="display:flex;align-items:flex-start;">
-              <div style="width:2px;height:1.8em;background:rgba(255,183,77,0.4);"></div>
-            </div>
-            <div class="pnode pnode-amber" style="min-width:6.5em;text-align:center;">
-              @mcmc-agent<br><span style="font-weight:400;font-size:0.88em;">emcee / dynesty<br>corner plot</span>
-            </div>
-            <div class="parrow">
-              <div class="parrow-line" style="height:0.4em;background:rgba(255,183,77,0.4);"></div>
-              <div class="parrow-label" style="color:#ffb74d;font-size:0.78em;">MCMCHandoff/v1</div>
-              <div class="parrow-line" style="height:0.3em;background:rgba(255,183,77,0.4);"></div>
-              <div class="parrow-head" style="color:rgba(255,183,77,0.7);">▼</div>
-            </div>
-            <div style="font-size:0.78em;color:#ffb74d;text-align:center;font-style:italic;">→ interpretation-agent</div>
+          <!-- optional MCMC note -->
+          <div style="margin-top:0.6em;text-align:center;font-size:0.84em;color:#ffb74d;">
+            ⚡ Optional: @mcmc-agent (emcee / dynesty) branches off ⑥ → MCMCHandoff/v1 → feeds into ⑦
           </div>
 
-        </div><!-- .pipe-wrap -->
+          <!-- legend -->
+          <div style="display:flex;gap:1.5em;justify-content:center;margin-top:0.5em;font-size:0.84em;flex-wrap:wrap;">
+            <span><span style="display:inline-block;width:0.78em;height:0.78em;background:rgba(79,195,247,0.18);border:1px solid #4fc3f7;border-radius:3px;vertical-align:middle;margin-right:0.3em;"></span>Specialist agent</span>
+            <span><span style="display:inline-block;width:0.78em;height:0.78em;background:rgba(239,83,80,0.22);border:1px solid #ef5350;border-radius:3px;vertical-align:middle;margin-right:0.3em;"></span>Human gate (blocking)</span>
+            <span><span style="display:inline-block;width:0.78em;height:0.78em;background:rgba(129,199,132,0.22);border:1px solid #81c784;border-radius:3px;vertical-align:middle;margin-right:0.3em;"></span>@paper-agent · Stage 9</span>
+            <span><span style="display:inline-block;width:0.78em;height:0.78em;background:rgba(206,147,216,0.18);border:1px solid #ce93d8;border-radius:50px;vertical-align:middle;margin-right:0.3em;"></span>User / terminal</span>
+          </div>
 
-        <!-- legend -->
-        <div class="pipe-legend">
-          <div class="pipe-legend-item">
-            <div class="pipe-legend-dot" style="background:rgba(79,195,247,0.18);border-color:#4fc3f7;"></div>
-            <span style="color:#e6edf3;">Specialist agent</span>
-          </div>
-          <div class="pipe-legend-item">
-            <div class="pipe-legend-dot" style="background:rgba(239,83,80,0.22);border-color:#ef5350;"></div>
-            <span style="color:#e6edf3;">Human gate (mandatory)</span>
-          </div>
-          <div class="pipe-legend-item">
-            <div class="pipe-legend-dot" style="background:rgba(129,199,132,0.22);border-color:#81c784;"></div>
-            <span style="color:#e6edf3;">@paper-agent (new Stage 9)</span>
-          </div>
-          <div class="pipe-legend-item">
-            <div class="pipe-legend-dot" style="background:rgba(255,183,77,0.18);border-color:#ffb74d;"></div>
-            <span style="color:#e6edf3;">Optional MCMC branch</span>
-          </div>
-          <div class="pipe-legend-item">
-            <div class="pipe-legend-dot" style="background:rgba(206,147,216,0.18);border-color:#ce93d8;border-radius:50px;"></div>
-            <span style="color:#e6edf3;">User / terminal node</span>
-          </div>
-        </div>
+        </div><!-- /font-size wrapper -->
 
       </section>
 
