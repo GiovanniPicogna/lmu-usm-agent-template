@@ -246,9 +246,15 @@ Recommended for astrophysics HPC environments:
 
 ### Key systemic risks
 
-| Risk | Evidence | Our mitigation |
+> **Actionable rules** derived from these risks live in
+> `.github/copilot-instructions.md` §6 (citations), §9 (physical plausibility),
+> and §10 (never do). Those sections are auto-loaded every session by Copilot
+> and followed by Claude Code via the `@` reference in `CLAUDE.md`.
+> The table below documents the evidence base for those rules.
+
+| Risk | Evidence | Rule location |
 |---|---|---|
-| **Hallucinated citations** | ≥146,932 entirely non-existent references introduced into arXiv/PubMed in 2025 alone (audit of 111 M refs across 2.5 M papers) | ADS MCP for all references; `pre-commit` BibTeX validation; no hand-written entries |
-| **Physical world model gap** | Stargazer: perfect statistical fit, incorrect orbital parameters | Human Gate 1 & Gate 2; simulators as verifiers; physical plausibility checks in `@interpretation-agent` |
-| **Illusion of full autonomy** | Agents optimise toward provided objectives; cannot select problems | Explicit human gates; problem selection always user-driven; agents framed as co-scientists |
-| **Compound RAG poisoning** | Hallucinated literature → agents recursively generate invalid science | ADS-only sourcing; no open-web RAG without user confirmation |
+| **Hallucinated citations** | ≥146,932 entirely non-existent references introduced into arXiv/PubMed in 2025 (audit of 111 M refs across 2.5 M papers) | `copilot-instructions.md §6` |
+| **Physical world model gap** | Stargazer: perfect χ² fit → incorrect Keplerian orbital parameters | `copilot-instructions.md §9` |
+| **Illusion of full autonomy** | ReplicationBench: <20% success — agents cannot self-verify physical consistency | `copilot-instructions.md §10` |
+| **Compound RAG poisoning** | Hallucinated literature → agents recursively generate invalid science via RAG | `copilot-instructions.md §6` |

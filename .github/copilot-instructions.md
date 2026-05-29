@@ -182,6 +182,15 @@ files via `applyTo` glob). Key principles — see that file for details:
   as fields even if they are not standard BibTeX fields (add as `note`
   or custom field).
 
+> **Why this rule is non-negotiable (empirical evidence):** A 2025 audit of
+> 111 million references across 2.5 million arXiv and PubMed Central papers
+> found that **≥146,932 entirely hallucinated citations** were introduced into
+> the permanent scientific corpus in 2025 alone, concentrated in manuscripts
+> with linguistic AI-writing signatures. The compound risk is severe: agents
+> using RAG pipelines on a poisoned corpus will recursively generate
+> physically invalid science. ADS-only sourcing with `pre-commit` BibTeX
+> validation is the primary defence.
+
 ## 7. Reproducibility requirements
 
 Every analysis script must be accompanied by a corresponding prompt
@@ -228,6 +237,15 @@ At minimum, record:
 - If a numerical result looks physically implausible (e.g. a photon index
   Γ > 5 or a temperature kT < 0.1 keV for a cluster), flag it as a
   warning and do not proceed without user confirmation.
+- **Statistical fit ≠ physical understanding.** A perfect χ² or minimised
+  loss function does not guarantee correct physical results. Empirical
+  evidence (Stargazer exoplanet benchmark): frontier agents consistently
+  achieved optimal periodogram fits while recovering entirely wrong Keplerian
+  orbital parameters — because they lack persistent physical world models.
+  Always verify that statistically good outputs are also physically plausible
+  before treating them as science-ready. Flag any result where the
+  statistical metric is excellent but the physical interpretation is
+  unclear or untested.
 
 ## 10. What this agent must never do
 
@@ -242,6 +260,15 @@ At minimum, record:
   or prompt for confirmation).
 - Use a non-deterministic random seed without logging it to the output.
 - Silently subsample or filter data without documenting the selection.
+- **Claim or imply that AI-generated science outputs are ready for publication
+  without domain-expert review.** Current agents (<20% success on astrophysics
+  replication tasks, ReplicationBench) cannot self-verify physical consistency.
+  The role of this agent is co-scientist, not independent PI: problem selection,
+  physical interpretation, and final validation always require human judgment.
+- **Auto-proceed past human gates** (Gate 1: hypothesis confirmation; Gate 2:
+  interpret/iterate/stop). These gates exist precisely because agents optimise
+  toward the provided objective but cannot independently assess whether the
+  objective is physically meaningful or worth pursuing.
 
 ## 11. Agent skills
 
