@@ -838,6 +838,87 @@ nav_order: 5
       </section>
 
       <!-- ═══════════════════════════════════════════════════════
+     SLIDE G — CURSOR / WINDSURF vs VS CODE
+     ═══════════════════════════════════════════════════════ -->
+      <section>
+        <span class="stag">Part 2 — Cursor &amp; Windsurf: Worth Switching?</span>
+        <h2>Cursor &amp; Windsurf: Worth Switching from VS Code?</h2>
+        <table style="font-size:0.7em;margin-bottom:0.45em;">
+          <thead>
+            <tr>
+              <th>Feature</th>
+              <th>VS Code + Copilot<br><span style="font-weight:400;color:#b0bec5;">our baseline</span></th>
+              <th>Cursor<br><span style="font-weight:400;color:#b0bec5;">VS Code fork</span></th>
+              <th>Windsurf<br><span style="font-weight:400;color:#b0bec5;">Codeium IDE</span></th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Base IDE</td>
+              <td>VS Code (Microsoft)</td>
+              <td>VS Code fork (AnySphere)</td>
+              <td>Proprietary (Codeium/OpenAI)</td>
+            </tr>
+            <tr>
+              <td>Cost (May 2026)</td>
+              <td><span class="g">Free</span> (GitHub Education)</td>
+              <td>Free tier + Pro $20/mo</td>
+              <td>Free tier + Pro $15/mo</td>
+            </tr>
+            <tr>
+              <td>Agent mode name</td>
+              <td>Agent Mode</td>
+              <td>Composer + Background Agent</td>
+              <td>Cascade (fully autonomous)</td>
+            </tr>
+            <tr>
+              <td>Model choice</td>
+              <td>GPT-4o · Sonnet · Gemini</td>
+              <td>Sonnet · GPT-4o · Gemini · local</td>
+              <td>Sonnet · GPT-4o · own models</td>
+            </tr>
+            <tr>
+              <td>MCP support</td>
+              <td>✅</td>
+              <td>✅</td>
+              <td>✅</td>
+            </tr>
+            <tr>
+              <td>VS Code extensions</td>
+              <td>✅ All</td>
+              <td>✅ Most</td>
+              <td>⚠️ Limited</td>
+            </tr>
+            <tr>
+              <td>Remote SSH / HPC</td>
+              <td>✅ Full Remote SSH</td>
+              <td>✅ Partial</td>
+              <td>⚠️ Limited</td>
+            </tr>
+            <tr>
+              <td>Privacy (Pro)</td>
+              <td>Opt-out available (Enterprise)</td>
+              <td>Privacy mode (no training)</td>
+              <td>Privacy mode available</td>
+            </tr>
+            <tr>
+              <td>Standout feature</td>
+              <td>Free, full extension ecosystem, GitHub integration</td>
+              <td><strong>Composer</strong>: best multi-file refactoring UX</td>
+              <td><strong>Cascade</strong>: most autonomous, "vibe coding"</td>
+            </tr>
+          </tbody>
+        </table>
+        <div class="ibox" style="font-size:0.78em;">
+          🏆 <strong>Verdict for research code:</strong> VS Code + Copilot is the lowest-friction choice for our group —
+          free via GitHub Education, full Remote SSH for HPC, and all Python/Julia extensions work.
+          Try <strong>Cursor</strong> if you find yourself doing large cross-file refactors daily.
+          <strong>Windsurf</strong>'s Cascade is impressive for greenfield projects but less suited to
+          iterative scientific analysis with custom libraries and tight version control needs.
+        </div>
+      </section>
+
+      <!-- ═══════════════════════════════════════════════════════
      SLIDE 6 — DEMO
      ═══════════════════════════════════════════════════════ -->
       <section>
@@ -2289,6 +2370,52 @@ ollama serve   # listens on localhost:11434
         <div class="ibox" style="font-size:0.78em;">
           <strong>LM Studio</strong> = GUI alternative to Ollama. Both expose an OpenAI-compatible API on
           <code>localhost:11434</code> — drop-in replacement; no code changes needed in your analysis scripts.
+        </div>
+      </section>
+
+      <!-- ═══════════════════════════════════════════════════════
+     SLIDE H — KEEPING UP WITH A FAST-MOVING FIELD
+     ═══════════════════════════════════════════════════════ -->
+      <section>
+        <span class="stag">Appendix — Staying Current</span>
+        <h2>Keeping Up: AI Moves Fast, but You Don't Have to Chase Everything</h2>
+        <div class="g2" style="gap:0.7em;margin-bottom:0.5em;">
+          <div class="card c1">
+            <div class="ct">What changes frequently (and you should track)</div>
+            <ul style="font-size:0.8em;line-height:1.6;">
+              <li><strong>Model releases</strong> — new GPT / Claude / Gemini every few months, often with larger context or better code quality</li>
+              <li><strong>Pricing</strong> — API costs drop ~2× per year; free tier limits change</li>
+              <li><strong>Agent capabilities</strong> — new tools, new MCP servers, multi-agent orchestration</li>
+              <li><strong>IDE features</strong> — VS Code Copilot, Cursor, Windsurf update weekly</li>
+              <li><strong>Journal policies</strong> — MNRAS, A&amp;A, Nature updating disclosure requirements</li>
+              <li><strong>EU AI Act timelines</strong> — compliance deadlines approaching (Aug 2026)</li>
+            </ul>
+          </div>
+          <div>
+            <div class="card c2" style="margin-bottom:0.5em;">
+              <div class="ct">📰 High signal-to-noise sources (15 min/week)</div>
+              <ul style="font-size:0.78em;line-height:1.5;">
+                <li><strong>Simon Willison's blog</strong> — simonwillison.net — best daily AI-for-developers digest</li>
+                <li><strong>GitHub Changelog</strong> — github.blog/changelog — Copilot updates first</li>
+                <li><strong>Anthropic / OpenAI release notes</strong> — model capability changes</li>
+                <li><strong>This template repo</strong> — <code>CHANGELOG.md</code> — group-curated updates</li>
+                <li><strong>Code Coffee sessions</strong> — USM informal monthly AI show-and-tell</li>
+              </ul>
+            </div>
+            <div class="card c3">
+              <div class="ct">🧭 Practical strategy</div>
+              <ul style="font-size:0.78em;line-height:1.5;">
+                <li>Pin one tool, go deep (don't tool-hop every month)</li>
+                <li>Update your <code>AGENTS.md</code> once per project, not once per model release</li>
+                <li>Skills &amp; instructions age better than prompts — invest there</li>
+                <li>Share what works with the group — one Slack message saves everyone 2 hours</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+        <div class="ibox" style="font-size:0.78em;">
+          💡 You don't need to keep up with every model release. You need to keep up with the <em>workflow changes</em>
+          that affect how you use the tools you already have.
         </div>
       </section>
 
