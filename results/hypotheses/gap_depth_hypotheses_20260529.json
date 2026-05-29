@@ -1,0 +1,63 @@
+{
+  "schema": "HypothesisHandoff/v1",
+  "science_goal": "What mechanisms set the depth of a planet-carved gap in a protoplanetary disc? Varying planet mass, disc viscosity, and dust fragmentation velocity.",
+  "domain": "disk",
+  "hypotheses": [
+    {
+      "id": 1,
+      "description": "Fragmentation velocity sets the ratio of mm-continuum dust gap depth to gas gap depth by controlling the Stokes number of the largest grains and their trapping efficiency at the outer gap edge.",
+      "predicted_observables": [
+        "delta_dust / delta_gas spans 2 orders of magnitude over v_frag = 1–10 m/s at fixed M_p = 0.5 M_Jup",
+        "factor >= 10 contrast in mm gap depth between inside and outside the water snowline for the same planet"
+      ],
+      "parameters": {
+        "v_frag": {"value_or_range": "1–20", "unit": "m/s"},
+        "M_p": {"value_or_range": "0.5 (fixed)", "unit": "M_Jup"},
+        "alpha": {"value_or_range": "1e-3 (fixed)", "unit": "dimensionless"}
+      },
+      "novelty_score": 0.8,
+      "feasibility_score": 0.8,
+      "literature_refs": ["2023A&A...670L...5S", "2019ApJ...885...91D", "2012A&A...539A.148B"]
+    },
+    {
+      "id": 2,
+      "description": "Disc viscosity controls a threshold alpha* below which the outer gap edge exceeds the Rossby Wave Instability criterion, converting an axisymmetric dust ring into an azimuthal crescent observable at mm wavelengths.",
+      "predicted_observables": [
+        "mm azimuthal intensity contrast transitions from C < 1.5 to C > 3 as alpha decreases through alpha* ~ 3e-4 for M_p = 1 M_Jup",
+        "dust crescent drifts in azimuth on timescale tau proportional to alpha^{-1}, detectable in multi-epoch ALMA imaging"
+      ],
+      "parameters": {
+        "alpha": {"value_or_range": "1e-4 – 1e-2", "unit": "dimensionless"},
+        "M_p": {"value_or_range": "1.0 (fixed)", "unit": "M_Jup"},
+        "h_r": {"value_or_range": "0.05 (fixed)", "unit": "dimensionless"}
+      },
+      "novelty_score": 0.6,
+      "feasibility_score": 0.8,
+      "literature_refs": ["2015MNRAS.448..994K", "2016PASJ...68...43K", "2017PASJ...69...97K"]
+    },
+    {
+      "id": 3,
+      "description": "Planet mass drives gap depth as M_p^2 in the sub-thermal regime, but super-Jupiter planets (> 2–3 M_Jup) excite eccentric Lindblad resonances that deepen the gap beyond the Kanagawa formula, potentially causing systematic bias in planet mass inferences from DSHARP-style observations.",
+      "predicted_observables": [
+        "Gap depth vs. M_p follows Kanagawa power law for M_p < 2 M_Jup and flattens/deviates for M_p > 3 M_Jup",
+        "Break mass M_break scales as alpha^{0.5} * (h/r)^{2.5} if gap eccentricity drives the deviation"
+      ],
+      "parameters": {
+        "M_p": {"value_or_range": "0.1–10", "unit": "M_Jup"},
+        "alpha": {"value_or_range": "1e-3 (fixed)", "unit": "dimensionless"},
+        "h_r": {"value_or_range": "0.05 (fixed)", "unit": "dimensionless"}
+      },
+      "novelty_score": 0.4,
+      "feasibility_score": 1.0,
+      "literature_refs": ["2014ApJ...782...88F", "2017PASJ...69...97K", "2022ApJ...925...95T", "2018ApJ...869L..47Z"]
+    }
+  ],
+  "priority_rank": [1, 2, 3],
+  "top_hypothesis_id": 1,
+  "debate_rounds": 3,
+  "warnings": [
+    "RWI threshold alpha* formula is inferred from scaling arguments — verify against Lovelace et al. 1999 and Li et al. 2000 [VERIFY IN ADS]",
+    "Kanagawa formula coefficients (0.04 prefactor) come from 2D isothermal hydro; 3D or non-isothermal corrections may shift thresholds by 20–30%",
+    "The M_break ~ alpha^{0.5} (h/r)^{2.5} scaling is a new analytical prediction from this session — not yet in the literature [VERIFY IN ADS before citing]"
+  ]
+}

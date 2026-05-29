@@ -1,0 +1,94 @@
+{
+  "schema": "AnalyticalHandoff/v1",
+  "domain": "disk",
+  "science_goal": "What mechanisms set the depth of a planet-carved gap in a protoplanetary disc?",
+  "hypothesis_ref": 3,
+  "parameters": {
+    "M_star": "1.0 M_sun",
+    "alpha": 1e-3,
+    "h_r": 0.05,
+    "a_planet": "20 au",
+    "M_p_ref": "1.0 M_jup"
+  },
+  "characteristic_scales": {
+    "thermal_mass_M_th": {
+      "value": 0.1309,
+      "unit": "M_jup",
+      "formula": "M_th = M_star * h^3"
+    },
+    "gap_opening_mass_thermal": {
+      "value": 0.3928,
+      "unit": "M_jup",
+      "formula": "M_gap_th = 3 * M_star * h^3  (R_Hill = H condition: q = 3h^3)",
+      "note": "Hill sphere equals scale height; gap onset criterion"
+    },
+    "gap_opening_mass_viscous_Kanagawa": {
+      "value": 0.0926,
+      "unit": "M_jup",
+      "formula": "M_gap_visc = M_star * sqrt(K_open * h^5 * alpha), K_open=25",
+      "note": "K=25 gives Sigma_gap/Sigma_0=0.5; Kanagawa+2016 PASJ 68 43 [2016PASJ...68...43K]"
+    },
+    "K_parameter_1MJup": {
+      "value": 2916.0,
+      "unit": "dimensionless",
+      "formula": "K = q^2 / (h^5 * alpha)",
+      "note": "Kanagawa+2016 eq.4; 2017PASJ...69...97K [VERIFY IN ADS]"
+    },
+    "Sigma_gap_over_Sigma_0": {
+      "value": 8.5e-3,
+      "unit": "dimensionless",
+      "formula": "Sigma_gap/Sigma_0 = 1 / (1 + 0.04*K)",
+      "note": "~118x gas depletion in gap; Kanagawa+2016 eq.4"
+    }
+  },
+  "stability_criteria": [
+    {
+      "name": "Thermal gap-opening (Hill sphere)",
+      "criterion": "M_p > 3 M_star h^3  (q > 3h^3)",
+      "satisfied": true,
+      "margin": 2.55,
+      "note": "1 M_Jup / M_gap_th = 2.55 — clearly above threshold",
+      "ref_bibcode": "NOT FABRICATED — see Crida+2006; 2006Icar..181..587C [VERIFY IN ADS]"
+    },
+    {
+      "name": "Kanagawa viscous gap-opening (K>25)",
+      "criterion": "K = q^2 / (h^5 alpha) > 25",
+      "satisfied": true,
+      "margin": 116.6,
+      "note": "K=2916 >> 25; gap depth factor = 118",
+      "ref_bibcode": "2016PASJ...68...43K"
+    }
+  ],
+  "predicted_observables": [
+    {
+      "name": "Gas gap depth",
+      "value": 8.5e-3,
+      "unit": "Sigma_gap / Sigma_0",
+      "uncertainty": 0.3,
+      "formula_ref": "Kanagawa+2016 eq.4 [2016PASJ...68...43K]; calibrated on 2D isothermal hydro; 3D/non-isothermal corrections ~20-30% (see hypotheses warnings)"
+    },
+    {
+      "name": "Dust gap depth (mm continuum)",
+      "value": "<<  Sigma_gap_dust / Sigma_0_dust  <<  8.5e-3",
+      "unit": "dimensionless",
+      "uncertainty": "order-of-magnitude; depends on Stokes number and v_frag (Hypothesis 1)",
+      "formula_ref": "Stokes trapping efficiency; requires DustPy run"
+    }
+  ],
+  "linear_regime": false,
+  "nonlinear_trigger": "K = 2916 >> K_open = 25;  q/q_visc = 10.8;  q/(3h^3) = 2.55.  All three dimensionless ratios >> 1.  The Kanagawa formula is empirically calibrated from 2D isothermal simulations up to K ~ O(1000).  At K ~ 3000 the formula is approaching its calibration boundary; predictions carry an additional ~30% systematic uncertainty.  Gap edges at this depth may trigger the Rossby Wave Instability (Hypothesis 2).",
+  "parameter_recommendations": {
+    "resolution": "Minimum 512x1024 (r x phi) to resolve gap width ~ R_H = 0.11 au at 20 au; Δr < R_H/5",
+    "wave_killing_zone": "Apply wave-killing for r < 2 au and r > 150 au to suppress spurious reflections",
+    "time_integration": "Run to t > 1000 orbits at 20 au (~89,000 yr) to reach gap steady state; check gap depth convergence at t=500 and t=1000",
+    "alpha_range_for_Hyp2": "Span alpha = [1e-4, 3e-4, 1e-3, 3e-3] to bracket alpha* ~ 3e-4 (RWI threshold)",
+    "Sigma_floor": "Set Sigma_floor = 1e-5 Sigma_0 to prevent numerical issues in the deep gap"
+  },
+  "benchmark_script": "results/analytical/gap_depth_analytical_20260529.py",
+  "warnings": [
+    "Kanagawa formula 0.04 prefactor calibrated on 2D isothermal hydro; 3D/non-isothermal corrections may shift results 20-30% (see hypothesis file warnings)",
+    "K = 2916 is near/above the empirical calibration range of the Kanagawa formula; treat Sigma_gap/Sigma_0 = 8.5e-3 as a lower bound (actual gap may be slightly shallower)",
+    "Gap edges at K >> 25 likely exceed RWI threshold — dust ring morphology may be azimuthally asymmetric (relevant to Hypothesis 2)",
+    "Bibcode 2017PASJ...69...97K [VERIFY IN ADS] — not independently confirmed in this session; use 2016PASJ...68...43K as the primary reference"
+  ]
+}

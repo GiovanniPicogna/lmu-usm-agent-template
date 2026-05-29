@@ -255,7 +255,7 @@ def run_fargo3d_simulation(params: FARGO3DParams) -> str:
         cmd += ["mpirun", "-n", str(params.n_procs)]
     cmd += [fargo_exe]
     mode_flag = "-m" if params.gpu else "-0"
-    cmd += [mode_flag, patched_par]
+    cmd += [mode_flag, os.path.abspath(patched_par)]
 
     t0 = time.time()
     proc = subprocess.run(
