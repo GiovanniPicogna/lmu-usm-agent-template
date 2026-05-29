@@ -41,20 +41,20 @@ Two mandatory **human gates** prevent automated progression without user confirm
 
 ```mermaid
 flowchart TD
-    U([User]) --> P[@pipeline-agent]
-    P --> L1[@literature-agent\nStage 1: background search]
-    L1 -->|bibliography context| H[@hypothesis-agent]
+    U([User]) --> P["@pipeline-agent"]
+    P --> L1["@literature-agent\nStage 1: background search"]
+    L1 -->|bibliography context| H["@hypothesis-agent"]
     H -->|HypothesisHandoff/v1| GATE1{{⚠ Human Gate 1\nConfirm hypothesis + parameter range}}
-    GATE1 --> A[@analytical-agent]
-    A -->|AnalyticalHandoff/v1| S[@setup-agent]
+    GATE1 --> A["@analytical-agent"]
+    A -->|AnalyticalHandoff/v1| S["@setup-agent"]
     S -->|SimConfigHandoff/v1| SIM["@simulation-agent\n@retrieval-agent\n@spectral-agent"]
-    SIM -->|SimulationHandoff/v1\nSpectralFitHandoff/v1| AN[@analysis-agent]
-    AN -->|AnalysisHandoff/v1| L2[@literature-agent\nStage 7: novelty check]
-    L2 -->|updated bibliography| I[@interpretation-agent]
+    SIM -->|SimulationHandoff/v1\nSpectralFitHandoff/v1| AN["@analysis-agent"]
+    AN -->|AnalysisHandoff/v1| L2["@literature-agent\nStage 7: novelty check"]
+    L2 -->|updated bibliography| I["@interpretation-agent"]
     I -->|InterpretationHandoff/v1| GATE2{{⚠ Human Gate 2\niterate / write / mcmc / stop / abort}}
     GATE2 -->|iterate| H
-    GATE2 -->|mcmc| MC[@mcmc-agent]
-    MC -->|MCMCHandoff/v1| WR[@paper-agent]
+    GATE2 -->|mcmc| MC["@mcmc-agent"]
+    MC -->|MCMCHandoff/v1| WR["@paper-agent"]
     GATE2 -->|write| WR
     WR -->|PaperHandoff/v1| DONE([Done])
     GATE2 -->|stop| DONE
@@ -95,15 +95,15 @@ or fitting a single spectrum. The `@pipeline-agent` is not involved.
 
 ```mermaid
 flowchart TD
-    U([User]) --> L[@literature-agent]
-    U --> S[@simulation-agent]
-    U --> R[@retrieval-agent]
-    U --> X[@spectral-agent]
+    U([User]) --> L["@literature-agent"]
+    U --> S["@simulation-agent"]
+    U --> R["@retrieval-agent"]
+    U --> X["@spectral-agent"]
 
     L -->|bibliography.bib| U
 
     S -->|SimulationHandoff| X
-    S -->|SimulationHandoff| M[@mcmc-agent]
+    S -->|SimulationHandoff| M["@mcmc-agent"]
     X -->|SpectralFitHandoff| M
     R -->|results/fits/*.h5| M
 
