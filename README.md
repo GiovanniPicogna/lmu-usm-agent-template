@@ -37,8 +37,11 @@ at LMU Munich.
 │   ├── dustpy/
 │   │   ├── SKILL.md                #   DustPy: grain growth & radial drift
 │   │   ├── references/
-│   │   │   └── parameters.md       #   Full parameter table (lean SKILL.md pattern)
-│   │   └── scripts/run_dustpy.py   #   Validated runner (Pydantic, SUCCESS/ERROR protocol)
+│   │   │   ├── parameters.md       #   Full parameter table (lean SKILL.md pattern)
+│   │   │   └── handoff.md          #   DustPy-specific SimulationHandoff/v1 emission guide
+│   │   └── scripts/
+│   │       ├── run_dustpy.py       #   Validated runner (SUCCESS/ERROR protocol)
+│   │       └── plot_dustpy.py      #   Publication plots: panel, radial profiles, evolution
 │   ├── fargo3d/
 │   │   ├── SKILL.md                #   FARGO3D: planet–disk interaction & gap opening
 │   │   ├── references/
@@ -87,7 +90,7 @@ docs/                         # GitHub Pages site (Jekyll / minima)
 ├── skills.md                 #   Recommended agent skills by domain
 └── _config.yml               #   Jekyll configuration
 envs/
-└── base.yml                  # Conda environment (Python 3.11 + full astro stack)
+└── base.yml                  # Conda environment (Python 3.12 + full astro stack)
 prompts/
 └── TEMPLATE.md               # Prompt log template (copy for each task)
 src/
@@ -117,7 +120,7 @@ cp .gitignore                       your-project/   # merge carefully
 
 ```bash
 conda env create -f envs/base.yml
-conda activate lmu-astro
+conda activate py312
 pre-commit install          # installs hooks into .git/hooks/ — run once
 ```
 
@@ -145,12 +148,16 @@ export ADS_API_TOKEN="your_token_here"
 # Get your token at: https://ui.adsabs.harvard.edu/user/settings/token
 ```
 
-### 5. Open the project in VS Code
+### 5. Open the project in VS Code / Claude Code
 
-The MCP server starts automatically when VS Code loads. To verify:
+**VS Code + Copilot:** the MCP server starts automatically when VS Code loads. To verify:
 - Open Copilot Chat
 - Type: `@ads search_papers query:"intracluster medium sloshing" limit:3`
 - You should get real ADS results, not hallucinated ones.
+
+**Claude Code:** the ADS MCP server is configured in `.vscode/settings.json` and
+is picked up automatically. To verify in the Claude Code conversation:
+- Use the `mcp__mcp-server-ads__ads_search` tool with `query: "intracluster medium sloshing"`
 
 ### 6. Use the specialist agents
 
@@ -255,11 +262,14 @@ git commit -m "feat: X-ray spectral fit of cluster core [AI-assisted, claude-son
 
 Use this text in your Methods section (adapt to your actual usage):
 
-> "Analysis code was drafted with assistance from GitHub Copilot
-> (GPT-4o, [Month Year], VS Code Agent Mode). Literature references
-> were retrieved and verified via the NASA ADS API
+> "Analysis code was drafted with assistance from [GitHub Copilot / Claude Code]
+> ([model name and version], [Month Year], [VS Code Agent Mode / Claude Code CLI]).
+> Literature references were retrieved and verified via the NASA ADS API
 > (cbyrohl/mcp-server-ads). All AI-generated content was reviewed and
 > validated by the authors, who take full responsibility for all results."
+
+Replace bracketed fields with the actual tool, model, and date used.
+The exact model version is recorded in `prompts/<task_id>_<date>.md`.
 
 ---
 
@@ -300,7 +310,7 @@ provide a validated Python runner with Pydantic parameter checking and a
 
 | Skill | Code | Use case | Key parameters | Prerequisite |
 |---|---|---|---|---|
-| [`dustpy`](.github/skills/dustpy/SKILL.md) | DustPy | Radial dust evolution, grain growth, fragmentation, Stokes numbers | `alpha_viscosity`, `disk_mass_msun`, `t_end_yr`, `snapshot_times_yr` | `pip install dustpy scientific-pydantic` |
+| [`dustpy`](.github/skills/dustpy/SKILL.md) | DustPy | Radial dust evolution, grain growth, fragmentation, Stokes numbers | `--run_dir`, `--alpha`, `--mdisk_msun`, `--t_end_yr`, `--snaps_per_decade` | `pip install dustpy` |
 | [`fargo3d`](.github/skills/fargo3d/SKILL.md) | FARGO3D | Planet–disk interaction, gap opening, type-I/II migration torques | `par_file`, `Alpha`, `PlanetMass`, `Sigma0`, `AspectRatio`, `Tmax` | Compiled `fargo3d` binary + valid `.par` file |
 | [`pluto`](.github/skills/pluto/SKILL.md) | PLUTO | HD/MHD disk or jet simulations; parameter overrides without recompiling | `run_dir`, `tstop`, `CFL`, `[Parameters]` overrides, `n_procs` | Compiled `pluto` binary + valid `pluto.ini` |
 
@@ -317,7 +327,11 @@ Scripts accept individual flags or a single `--json` blob for multi-parameter ca
 ```bash
 # DustPy — 1 Myr dust evolution run
 python .github/skills/dustpy/scripts/run_dustpy.py \
-    --json '{"alpha_viscosity": 1e-3, "disk_mass_msun": 0.05, "t_end_yr": 1e6}'
+    --run_dir data/dust/my_run --alpha 1e-3 --mdisk_msun 0.05 --t_end_yr 1e6
+
+# DustPy — diagnostic plots (panel overview, radial profiles, space-time evolution)
+python .github/skills/dustpy/scripts/plot_dustpy.py \
+    --run_dir data/dust/my_run --plot all --out plots/dust/my_run
 
 # FARGO3D — planet-gap simulation, overriding planet mass and viscosity
 python .github/skills/fargo3d/scripts/run_fargo3d.py \
@@ -381,9 +395,9 @@ rather than producing a plausible-looking but fabricated result.
 ## Pipeline architecture
 
 See [`ARCHITECTURE.md`](ARCHITECTURE.md) for the complete picture:
-Mermaid flowchart of the full 9-stage research pipeline (including both human gates),
-full agent roster table (13 agents), stage-by-stage summary, legacy data-flow
-descriptions, and the quality-gate summary.
+Mermaid flowchart of the full pipeline (including both human gates and the
+Stage 7b literature novelty check), full agent roster table (13 agents),
+stage-by-stage summary, and the quality-gate summary.
 
 ### Structured handoffs between agents
 
@@ -400,7 +414,7 @@ Nine schemas are currently defined:
 | `SimulationHandoff/v1` | `@simulation-agent` | `@analysis-agent`, `@mcmc-agent` |
 | `SpectralFitHandoff/v1` | `@spectral-agent` | `@analysis-agent`, `@mcmc-agent` |
 | `AnalysisHandoff/v1` | `@analysis-agent` | `@interpretation-agent` |
-| `InterpretationHandoff/v1` | `@interpretation-agent` | `@hypothesis-agent` (iterate), `@paper-agent` (write), or user (stop) |
+| `InterpretationHandoff/v1` | `@interpretation-agent` | `@hypothesis-agent` (iterate), `@paper-agent` (write), `@mcmc-agent` (mcmc), or user (stop / abort) |
 | `MCMCHandoff/v1` | `@mcmc-agent` | user |
 | `PaperHandoff/v1` | `@paper-agent` | user |
 
@@ -409,8 +423,10 @@ receiving agent will refuse to proceed if the gate is `false`.
 
 The **two mandatory human gates** in the pipeline are enforced by
 `@hypothesis-agent` (Gate 1 — confirm top hypothesis) and
-`@interpretation-agent` (Gate 2 — confirm write / iterate / stop). Neither
-gate can be bypassed programmatically.
+`@interpretation-agent` (Gate 2 — confirm `iterate` / `write` / `mcmc` /
+`stop` / `abort`). Neither gate can be bypassed programmatically.
+An `abort` decision writes `results/<task_id>/abort_report.json` — a
+citable record of inconclusive or blocked results.
 
 ---
 
@@ -441,7 +457,7 @@ Suggestions and improvements welcome. Open an issue or PR.
 Particularly useful additions:
 - Agent for optical/radio image processing (`@imaging-agent`)
 - NIRVANA-III output readers for disk simulations (name-dropped in `@simulation-agent` but not yet implemented)
-- DustPy post-processing helpers (gap depth, drift flux, SED generation)
+- DustPy post-processing: drift flux time series, SED generation via RADMC-3D integration (`plot_dustpy.py` covers gap/profile diagnostics — these remain)
 - Magneticum weak-lensing / SZ mock-observation pipeline
 - GCM post-processing for hot-Jupiter atmospheric dynamics
 - Euclid / DES weak-lensing pipeline integration
