@@ -1,11 +1,10 @@
 ![AI Agents in Astrophysics: Usage & Best Practices](docs/assets/banner.png)
 
-A first-draft template for using GitHub Copilot (and other AI agents)
-in a reproducible, citable, and policy-compliant way in astrophysics research
-at LMU Munich.
+Template for using GitHub Copilot (and Claude Code) in a reproducible, citable, and
+policy-compliant way in astrophysics research at LMU Munich.
 
 **Status**: community draft — open to contributions from all group members.
-**Maintainer**: Giovanni Picogna
+**Maintainer**: Giovanni Picogna ([@GiovanniPicogna](https://github.com/GiovanniPicogna))
 **Template version**: 1.1 (May 2026)
 
 ---
@@ -37,6 +36,7 @@ at LMU Munich.
 │   ├── dustpy/
 │   │   ├── SKILL.md                #   DustPy: grain growth & radial drift
 │   │   ├── references/
+│   │   │   ├── customisation.md    #   Custom DustPy physics modules
 │   │   │   ├── parameters.md       #   Full parameter table (lean SKILL.md pattern)
 │   │   │   └── handoff.md          #   DustPy-specific SimulationHandoff/v1 emission guide
 │   │   └── scripts/
@@ -454,11 +454,3 @@ Then link it from `docs/index.md`.
 ## Contributing
 
 Suggestions and improvements welcome. Open an issue or PR.
-Particularly useful additions:
-- Agent for optical/radio image processing (`@imaging-agent`)
-- NIRVANA-III output readers for disk simulations (name-dropped in `@simulation-agent` but not yet implemented)
-- DustPy post-processing: drift flux time series, SED generation via RADMC-3D integration (`plot_dustpy.py` covers gap/profile diagnostics — these remain)
-- Magneticum weak-lensing / SZ mock-observation pipeline
-- GCM post-processing for hot-Jupiter atmospheric dynamics
-- Euclid / DES weak-lensing pipeline integration
-- A Chandra/CIAO reduction workflow example
