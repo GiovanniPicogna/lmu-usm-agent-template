@@ -9,15 +9,15 @@ what data flows between them, and what quality gates govern each stage.
 
 ### Research pipeline agents (new)
 
-| Agent | File | Role | Handoff schema |
-|---|---|---|---|
-| `@pipeline-agent` | `pipeline-agent.agent.md` | Full 9-stage research pipeline orchestrator; enforces both human gates | — |
-| `@hypothesis-agent` | `hypothesis-agent.agent.md` | Science question → ranked testable hypotheses via 3-round internal debate | [`HypothesisHandoff/v1`](.github/shared/handoff_schemas.md#hypothesishandoffv1) |
-| `@analytical-agent` | `analytical-agent.agent.md` | Analytical / linear / perturbative pre-analysis; benchmarks for simulation comparison | [`AnalyticalHandoff/v1`](.github/shared/handoff_schemas.md#analyticalhandoffv1) |
-| `@setup-agent` | `setup-agent.agent.md` | Translate `AnalyticalHandoff` to validated simulation configs + optional SLURM/PBS scripts | [`SimConfigHandoff/v1`](.github/shared/handoff_schemas.md#simconfighandoffv1) |
-| `@analysis-agent` | `analysis-agent.agent.md` | Post-process simulation outputs + compare against analytical benchmarks | [`AnalysisHandoff/v1`](.github/shared/handoff_schemas.md#analysishandoffv1) |
+|          Agent          |              File               | Role | Handoff schema |
+|-------------------------|---------------------------------|------|----------------|
+|    `@pipeline-agent`    |    `pipeline-agent.agent.md`    | Full 9-stage research pipeline orchestrator; enforces both human gates | — |
+|   `@hypothesis-agent`   |   `hypothesis-agent.agent.md`   | Science question → ranked testable hypotheses via 3-round internal debate | [`HypothesisHandoff/v1`](.github/shared/handoff_schemas.md#hypothesishandoffv1) |
+|   `@analytical-agent`   |   `analytical-agent.agent.md`   | Analytical / linear / perturbative pre-analysis; benchmarks for simulation comparison | [`AnalyticalHandoff/v1`](.github/shared/handoff_schemas.md#analyticalhandoffv1) |
+|     `@setup-agent`      |     `setup-agent.agent.md`      | Translate `AnalyticalHandoff` to validated simulation configs + optional SLURM/PBS scripts | [`SimConfigHandoff/v1`](.github/shared/handoff_schemas.md#simconfighandoffv1) |
+|    `@analysis-agent`    |    `analysis-agent.agent.md`    | Post-process simulation outputs + compare against analytical benchmarks | [`AnalysisHandoff/v1`](.github/shared/handoff_schemas.md#analysishandoffv1) |
 | `@interpretation-agent` | `interpretation-agent.agent.md` | Physical interpretation + ADS comparison + next-action decision | [`InterpretationHandoff/v1`](.github/shared/handoff_schemas.md#interpretationhandoffv1) |
-| `@paper-agent` | `paper-agent.agent.md` | Manuscript drafting (LaTeX), ADS citations, figure captions, compile + auto-review | [`PaperHandoff/v1`](.github/shared/handoff_schemas.md#paperhandoffv1) |
+|     `@paper-agent`      | `paper-agent.agent.md` | Manuscript drafting (LaTeX), ADS citations, figure captions, compile + auto-review | [`PaperHandoff/v1`](.github/shared/handoff_schemas.md#paperhandoffv1) |
 
 ### Specialist agents (pre-existing)
 
