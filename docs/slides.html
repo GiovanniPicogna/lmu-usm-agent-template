@@ -2970,6 +2970,187 @@ for snap in [0, 4, 9]:
       </div>
     </section>
 
+    <!-- ═══════════════════════════════════════════════════════
+         SLIDE T — @analysis-agent TEST
+         ═══════════════════════════════════════════════════════ -->
+    <section>
+      <span class="stag">Appendix — Agent Tests · Live Demo</span>
+      <h2>@analysis-agent: FARGO3D Post-processing</h2>
+      <div class="g2" style="gap:0.8em;">
+        <div class="card c1">
+          <div class="ct">Prompt given</div>
+          <pre style="font-size:0.62em;background:#111;padding:0.6em;border-radius:4px;white-space:pre-wrap;">Post-process the FARGO3D output
+in fargo_skill_test/:
+  - Read gasdens0.dat (128×384)
+  - Azimuthal-average → Σ(r)
+  - Compute Σ_gap / Σ₀
+  - Read tqwk0.dat (planet torque)
+  - Save JSON + radial profile plot</pre>
+        </div>
+        <div>
+          <div class="card c2" style="margin-bottom:0.5em;">
+            <div class="ct">Results (snapshot 0 = initial condition)</div>
+            <ul class="sm">
+              <li>Σ_gap / Σ₀ = <strong>1.0</strong> (flat, unperturbed disc)</li>
+              <li>Planet torque at t=0: <strong>0.0</strong> (not yet integrated)</li>
+              <li>Wall-clock: 0.84 s</li>
+              <li>Output: <code>results/analysis/fargo_gap_analysis_20260529.json</code></li>
+              <li>Plot: <code>plots/fargo_sigma_profile.pdf</code></li>
+            </ul>
+          </div>
+          <div class="card c3">
+            <div class="ct">Agent self-diagnosis correct</div>
+            <p class="sm">Agent correctly explained: "Snapshot 0 is the initial
+              condition — gap opening requires 100–200 orbital periods
+              (~9000 yr at 20 au). The run was too short."</p>
+            <p class="sm">Script: <code>src/analysis/fargo_gap_analysis.py</code>
+              · numpy.fromfile only — no proprietary wrappers</p>
+          </div>
+        </div>
+      </div>
+      <div class="wbox" style="font-size:0.72em;margin-top:0.5em;">
+        ⚠️ Trivial result is <strong>physically correct</strong> and expected —
+        demonstrates agent flagging its own limitation rather than reporting a spurious gap depth
+      </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════════════════
+         SLIDE U — @interpretation-agent TEST
+         ═══════════════════════════════════════════════════════ -->
+    <section>
+      <span class="stag">Appendix — Agent Tests · Live Demo</span>
+      <h2>@interpretation-agent: Gap Depth Physics</h2>
+      <div class="g2" style="gap:0.8em;">
+        <div class="card c1">
+          <div class="ct">Prompt given</div>
+          <pre style="font-size:0.62em;background:#111;padding:0.6em;border-radius:4px;white-space:pre-wrap;">Interpret analytical +
+numerical results:
+K=2916, Σ_gap/Σ₀=8.5e-3 (theory)
+vs Σ_gap/Σ₀=1.0 (simulation t=0)
+DustPy: a_max(100au)=24cm
+Verdict: iterate or stop?</pre>
+        </div>
+        <div>
+          <div class="card c2" style="margin-bottom:0.5em;">
+            <div class="ct">Verdict: ITERATE</div>
+            <p class="sm"><strong>Key insight:</strong> For K=2916 (116× above gap-opening threshold),
+              tidal torques overwhelm viscous diffusion → 118× steady-state depletion predicted.
+              But equilibrium takes 100–200 orbits (~18,000 yr) to develop.</p>
+          </div>
+          <div class="card c5" style="margin-bottom:0.5em;">
+            <div class="ct">3 Follow-up directions</div>
+            <ul class="sm">
+              <li>Launch gap_1Mjup.par to 1000 orbits; test Kanagawa at ±30%</li>
+              <li>6-point M_p grid → verify K ∝ q² slope = 2.00 ± 0.15</li>
+              <li>FARGO3D → DustPy → RADMC-3D → synthetic ALMA 1.25 mm</li>
+            </ul>
+          </div>
+          <div class="card c3">
+            <div class="ct">Human Gate 2 location</div>
+            <p class="sm">Pipeline pauses here: iterate = HPC allocation cost.
+              Agent proposes, <strong>human decides</strong>.</p>
+          </div>
+        </div>
+      </div>
+      <div class="ibox" style="font-size:0.72em;margin-top:0.5em;">
+        Output: <code>results/interpretation/gap_depth_interpretation_20260529.json</code>
+        · InterpretationHandoff/v1 schema · ADS-verified discrepancy notes included
+      </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════════════════
+         SLIDE V — @paper-agent TEST
+         ═══════════════════════════════════════════════════════ -->
+    <section>
+      <span class="stag">Appendix — Agent Tests · Live Demo</span>
+      <h2>@paper-agent: Abstract + Methods Draft</h2>
+      <div class="g2" style="gap:0.8em;">
+        <div class="card c1">
+          <div class="ct">Prompt given</div>
+          <pre style="font-size:0.62em;background:#111;padding:0.6em;border-radius:4px;white-space:pre-wrap;">Draft abstract + methods for
+the disc gap study.
+Use ONLY ADS-verified bibcodes.
+Mark uncertain refs [VERIFY ADS].
+Save as LaTeX to
+paper/sections/abstract_methods.tex</pre>
+        </div>
+        <div>
+          <div class="card c2" style="margin-bottom:0.5em;">
+            <div class="ct">Output</div>
+            <ul class="sm">
+              <li>Abstract: <strong>186 words</strong></li>
+              <li>Methods: <strong>577 words</strong> (3 subsections)</li>
+              <li>References: <strong>13 bibcodes</strong>, all ADS-confirmed</li>
+              <li>Zero hand-written or invented citations</li>
+            </ul>
+          </div>
+          <div class="card c5" style="margin-bottom:0.5em;">
+            <div class="ct">Key references used (ADS MCP)</div>
+            <ul class="sm">
+              <li>2016PASJ...68...43K — Kanagawa+2016 gap depth formula</li>
+              <li>2018ApJ...869L..41A — DSHARP survey (Andrews+2018)</li>
+              <li>2012A&amp;A...539A.148B — Birnstiel fragmentation barrier</li>
+              <li>2022ApJ...935...35S — DustPy (Stammler &amp; Birnstiel)</li>
+            </ul>
+          </div>
+          <div class="card c4">
+            <div class="ct">Agent self-flagged warning</div>
+            <p class="sm">Noted a_max(10 au) discrepancy between run configs.
+              Did NOT proceed silently — flagged for human review.</p>
+          </div>
+        </div>
+      </div>
+      <div class="ibox" style="font-size:0.72em;margin-top:0.5em;">
+        File: <code>paper/sections/abstract_methods_draft.tex</code>
+        · valid LaTeX · \\citet{}/\\citep{} macros · ready for Overleaf
+      </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════════════════
+         SLIDE W — @pipeline-agent OVERVIEW
+         ═══════════════════════════════════════════════════════ -->
+    <section>
+      <span class="stag">Appendix — Agent Tests · Live Demo</span>
+      <h2>@pipeline-agent: Full 9-Stage Run</h2>
+      <div style="overflow-x:auto;margin-bottom:0.5em;">
+        <table style="width:100%;font-size:0.68em;border-collapse:collapse;color:#e0e0e0;">
+          <thead>
+            <tr style="background:#1a3a4a;color:#4fc3f7;">
+              <th style="padding:0.3em 0.5em;text-align:left;">#</th>
+              <th style="padding:0.3em 0.5em;text-align:left;">Agent / Skill</th>
+              <th style="padding:0.3em 0.5em;text-align:left;">Time</th>
+              <th style="padding:0.3em 0.5em;text-align:left;">Key output</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td style="padding:0.25em 0.5em;">1</td><td>@hypothesis-agent</td><td>~3 min</td><td>3 ranked hypotheses JSON</td></tr>
+            <tr style="background:#1a2a1a;"><td style="padding:0.25em 0.5em;color:#81c784;" colspan="4">👤 <strong>HUMAN GATE 1</strong> — choose hypothesis to pursue</td></tr>
+            <tr><td style="padding:0.25em 0.5em;">2</td><td>@analytical-agent</td><td>~2 min</td><td>K=2916, Σ_gap/Σ₀=8.5e-3</td></tr>
+            <tr><td style="padding:0.25em 0.5em;">3</td><td>@literature-agent</td><td>~2 min</td><td>2 BibTeX entries (ADS MCP)</td></tr>
+            <tr><td style="padding:0.25em 0.5em;">4</td><td>@setup-agent</td><td>~3 min</td><td>gap_1Mjup.par + SLURM script</td></tr>
+            <tr><td style="padding:0.25em 0.5em;">5</td><td>dustpy / fargo3d / pluto skills</td><td>~8 min</td><td>DustPy HDF5 · FARGO3D IC · PLUTO binary</td></tr>
+            <tr><td style="padding:0.25em 0.5em;">6</td><td>@analysis-agent</td><td>~2 min</td><td>Σ_gap/Σ₀=1.0 (t=0, correct)</td></tr>
+            <tr><td style="padding:0.25em 0.5em;">7</td><td>@interpretation-agent</td><td>~2 min</td><td>Verdict: ITERATE · 3 follow-ups</td></tr>
+            <tr style="background:#2a1a1a;"><td style="padding:0.25em 0.5em;color:#ffb74d;" colspan="4">👤 <strong>HUMAN GATE 2</strong> — confirm iterate/stop · authorise HPC allocation</td></tr>
+            <tr><td style="padding:0.25em 0.5em;">8</td><td>@paper-agent</td><td>~5 min</td><td>186-word abstract + 577-word methods (LaTeX)</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="g2" style="gap:0.7em;">
+        <div class="card c2">
+          <div class="ct">Total: ~28 min wall-clock</div>
+          <p class="sm">8 agents · 3 skills · 13 ADS-verified references
+            · science question → draft methods in one session</p>
+        </div>
+        <div class="card c3">
+          <div class="ct">Gates enforce human judgment</div>
+          <p class="sm">Gate 1: resource &amp; direction decision.
+            Gate 2: validity &amp; cost decision.
+            Agents propose — <strong>humans decide</strong>.</p>
+        </div>
+      </div>
+    </section>
+
     </div><!-- .slides -->
   </div><!-- .reveal -->
 

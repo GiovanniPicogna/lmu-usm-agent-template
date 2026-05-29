@@ -1,0 +1,154 @@
+% =============================================================================
+% abstract_methods_draft.tex
+% Paper-agent draft — gap depth study, 1 M_Jup at 20 au
+% Generated: 2026-05-29  |  Model: Claude Sonnet 4.6 (GitHub Copilot)
+% Task ID: paper_agent_gap_depth_20260529
+%
+% Reference bibcodes verified via NASA ADS (mcp_ads_ads_search, 2026-05-29).
+% References marked [VERIFY IN ADS] could not be confirmed at draft time.
+%
+% BibTeX key → ADS bibcode mapping (all verified unless noted):
+%   Kanagawa2016      → 2016PASJ...68...43K
+%   Kanagawa2017      → 2017PASJ...69...97K  [VERIFY IN ADS]
+%   Andrews2018       → 2018ApJ...869L..41A
+%   Huang2018         → 2018ApJ...869L..42H
+%   Zhang2018         → 2018ApJ...869L..47Z
+%   Dullemond2018     → 2018ApJ...869L..46D
+%   Crida2006         → 2006Icar..181..587C
+%   ShakuraSunyaev1973 → 1973A&A....24..337S
+%   Stammler2022      → 2022ApJ...935...35S
+%   BenitezLlambay2016 → 2016ApJS..223...11B
+%   Masset2000        → 2000A&AS..141..165M
+%   Birnstiel2010     → 2010A&A...513A..79B
+%   Birnstiel2012     → 2012A&A...539A.148B
+%   deValBorro2006    → 2006MNRAS.370..529D
+% =============================================================================
+
+% ---------------------------------------------------------------------------
+% ABSTRACT
+% ---------------------------------------------------------------------------
+
+\begin{abstract}
+Planet-carved gaps in protoplanetary discs are powerful tracers of embedded
+giant planets and are now routinely resolved at millimetre wavelengths by
+the Atacama Large Millimetre/submillimetre Array (ALMA), as demonstrated by
+the Disk Substructures at High Angular Resolution Project
+\citep[DSHARP;][]{Andrews2018, Huang2018}.
+We present a combined analytical and numerical investigation of the gap
+opened by a $1\,M_\mathrm{Jup}$ planet orbiting a solar-mass star at
+$a_\mathrm{p} = 20\,\mathrm{au}$ in a disc characterised by a constant
+aspect ratio $h/r = 0.05$ and a Shakura-Sunyaev viscosity parameter
+$\alpha = 10^{-3}$ \citep{ShakuraSunyaev1973}.
+The dimensionless Kanagawa parameter $K \equiv q^2/(h^5\alpha) = 2916$
+places the planet deep in the non-linear gap-opening regime, yielding an
+analytical prediction of $\Sigma_\mathrm{gap}/\Sigma_0 = 8.5\times10^{-3}$
+(118-fold gas depletion; \citealt{Kanagawa2016}).
+Complementary 1D dust-evolution models computed with \textsc{DustPy}
+\citep{Stammler2022} reveal a fragmentation-limited grain population at
+$r = 10\,\mathrm{au}$ ($a_\mathrm{max} \simeq 2\times10^{-4}\,\mathrm{cm}$)
+and a drift-limited regime at $r = 100\,\mathrm{au}$
+($a_\mathrm{max} \simeq 24\,\mathrm{cm}$) after $10^3\,\mathrm{yr}$ of
+evolution with $v_\mathrm{frag} = 10\,\mathrm{m\,s}^{-1}$.
+Full 2D hydrodynamical simulations with \textsc{FARGO3D}
+\citep{BenitezLlambay2016} are underway to provide a direct numerical test
+of the \citet{Kanagawa2016} prediction.
+\end{abstract}
+
+% ---------------------------------------------------------------------------
+% METHODS SECTION
+% ---------------------------------------------------------------------------
+
+\section{Methods}
+\label{sec:methods}
+
+\subsection{Hydrodynamical simulations (\textsc{FARGO3D})}
+\label{sec:fargo}
+
+We perform two-dimensional isothermal hydrodynamical simulations of the
+gas disc using \textsc{FARGO3D} \citep{BenitezLlambay2016}, a
+GPU-oriented, multi-fluid disc code that employs the orbital-advection
+algorithm of \citet{Masset2000} to remove the dominant azimuthal velocity
+component before the Courant integration, allowing time-steps orders of
+magnitude larger than in a standard Eulerian scheme.
+
+The computational domain spans $r \in [6, 60]\,\mathrm{au}$, corresponding
+to $[0.3, 3.0]$ in units of the planet semi-major axis
+$a_\mathrm{p} = 20\,\mathrm{au}$, and is discretised on a polar grid of
+$N_r \times N_\phi = 256 \times 512$ logarithmically spaced radial and
+uniformly spaced azimuthal cells.
+The initial surface-density profile follows a power law,
+$\Sigma(r) = \Sigma_0\,(r/a_\mathrm{p})^{-0.5}$, with normalisation
+$\Sigma_0 = 6.8\times10^{-4}\,M_\star\,a_\mathrm{p}^{-2}$.
+The disc aspect ratio is held constant at $h/r = 0.05$ (zero flaring index),
+and the \citet{ShakuraSunyaev1973} $\alpha$-viscosity prescription is
+applied with $\alpha = 10^{-3}$.
+
+A single planet of mass $M_\mathrm{p} = 1\,M_\mathrm{Jup}$ is placed on a
+fixed circular orbit at $a_\mathrm{p}$; its gravitational potential is
+softened over $0.6\,H$ to avoid numerical singularities.
+Wave-killing zones following \citet{deValBorro2006} are applied inside
+$r < 0.3\times1.15\,a_\mathrm{p}$ and outside
+$r > 3.0/1.15\,a_\mathrm{p}$ to damp spurious reflected waves at the
+radial boundaries.
+The simulation is integrated for 1000 planetary orbits
+($t \approx 89\,\mathrm{kyr}$), which is sufficient for the gap to reach a
+quasi-steady state \citep{Kanagawa2016}.
+
+\subsection{Dust evolution (\textsc{DustPy})}
+\label{sec:dustpy}
+
+We model the 1D radial evolution of the dust size distribution using
+\textsc{DustPy} \citep{Stammler2022}, a Python implementation of the
+coagulation--fragmentation--drift framework of
+\citet{Birnstiel2010}.
+Grain growth, fragmentation, and radial drift are solved self-consistently
+on 80 logarithmically spaced radial cells spanning $r = 1$--$100\,\mathrm{au}$.
+The stellar parameters are $M_\star = 1\,M_\odot$ and
+$T_\star = 4000\,\mathrm{K}$; the total disc mass is
+$M_\mathrm{disc} = 0.05\,M_\odot$.
+We adopt the same turbulence parameter $\alpha = 10^{-3}$ used in the
+hydrodynamical simulations and a fragmentation velocity
+$v_\mathrm{frag} = 10\,\mathrm{m\,s}^{-1}$, consistent with
+laboratory measurements for silicate aggregates \citep{Birnstiel2012}.
+In the inner disc ($r \lesssim 30\,\mathrm{au}$), where the sound speed is
+elevated, turbulence-driven relative velocities set the grain-size ceiling
+(fragmentation barrier); in the cold outer disc grains instead grow until
+radial drift removes them before the next collision \citep{Birnstiel2012}.
+The dust simulation is run for $t_\mathrm{end} = 10^3\,\mathrm{yr}$, and
+the maximum grain size $a_\mathrm{max}(r)$ is recorded at the final snapshot.
+
+\subsection{Analytical benchmark: Kanagawa gap-depth formula}
+\label{sec:analytical}
+
+As an independent benchmark we evaluate the empirical gap-depth formula
+derived by \citet{Kanagawa2016} from a suite of 2D isothermal simulations:
+%
+\begin{equation}
+  \frac{\Sigma_\mathrm{gap}}{\Sigma_0} = \frac{1}{1 + 0.04\,K},
+  \qquad
+  K \equiv \frac{q^2}{h^5\,\alpha},
+  \label{eq:kanagawa_depth}
+\end{equation}
+%
+where $q = M_\mathrm{p}/M_\star$ is the planet-to-star mass ratio.
+For our fiducial parameters ($q = 9.55\times10^{-4}$, $h = 0.05$,
+$\alpha = 10^{-3}$) we obtain $K = 2916$ and
+$\Sigma_\mathrm{gap}/\Sigma_0 = 8.5\times10^{-3}$, a 118-fold depletion.
+The gap-opening condition is evaluated via two complementary criteria: the
+thermal criterion $M_\mathrm{p} > 3\,M_\star h^3$
+($M_\mathrm{p,th} = 0.39\,M_\mathrm{Jup}$; \citealt{Crida2006}) and the
+viscous Kanagawa criterion $K > K_\mathrm{open} = 25$
+($M_\mathrm{p,visc} = 0.09\,M_\mathrm{Jup}$; \citealt{Kanagawa2016}).
+Both thresholds are exceeded by factors of $2.5\times$ and $117\times$,
+respectively, confirming that the planet is strongly non-linear.
+The \citet{Kanagawa2016} formula was calibrated over the range
+$K \lesssim \mathcal{O}(10^3)$; at $K = 2916$ we assign a conservative
+systematic uncertainty of $\pm30\%$ on $\Sigma_\mathrm{gap}/\Sigma_0$
+\citep{Kanagawa2017}.
+Planet masses inferred from gap widths following \citet{Zhang2018} and the
+broader DSHARP gap statistics of \citet{Huang2018} will serve as the
+observational benchmark for the completed simulation.
+
+% ---------------------------------------------------------------------------
+% END OF DRAFT
+% ---------------------------------------------------------------------------
