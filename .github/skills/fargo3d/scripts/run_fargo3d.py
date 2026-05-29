@@ -25,7 +25,6 @@ from typing import Any, Dict, Optional
 import numpy as np
 from pydantic import BaseModel, Field, field_validator, model_validator
 
-
 # ---------------------------------------------------------------------------
 # Pydantic parameter model
 # ---------------------------------------------------------------------------
@@ -43,7 +42,11 @@ class FARGO3DParams(BaseModel):
     PlanetMass: Optional[float] = Field(default=None, ge=0.0)
 
     # Time integration
+    # NOTE: use Ntot for setups that do NOT support Tmax (e.g. fargo, fargo_nu).
+    # Tmax is accepted by some setups (p3diso etc.) but ignored with a warning
+    # in others — always prefer Ntot when uncertain.  Pass only one of the two.
     Tmax: Optional[float] = Field(default=None, gt=0.0)
+    Ntot: Optional[int] = Field(default=None, ge=1)   # total DT steps
     Ninterm: Optional[int] = Field(default=None, ge=1)
     DT: Optional[float] = Field(default=None, gt=0.0)
 
@@ -160,9 +163,7 @@ def _parse_fargo_output(output_dir: str, sigma0_ref: Optional[float]) -> dict:
         return result
 
     # Count gas density outputs (exclude *_2d.dat Stockholm reference files)
-    dens_files = sorted(
-        f for f in out.glob("gasdens*.dat") if "_2d" not in f.name
-    )
+    dens_files = sorted(f for f in out.glob("gasdens*.dat") if "_2d" not in f.name)
     result["n_outputs"] = len(dens_files)
     if not dens_files:
         return result
@@ -208,7 +209,7 @@ def _parse_fargo_output(output_dir: str, sigma0_ref: Optional[float]) -> dict:
                     data = data[np.newaxis, :]
                 # Filter rows with non-zero time (col 9 if 10 cols, else col 0)
                 time_col = 9 if data.shape[1] >= 10 else 0
-                torque_col = 6 if data.shape[1] >= 10 else min(3, data.shape[1]-1)
+                torque_col = 6 if data.shape[1] >= 10 else min(3, data.shape[1] - 1)
                 nz = data[data[:, time_col] > 0]
                 if len(nz) > 0:
                     result["planet_torque"] = float(nz[-1, torque_col])
@@ -224,7 +225,20 @@ def _parse_fargo_output(output_dir: str, sigma0_ref: Optional[float]) -> dict:
 # ---------------------------------------------------------------------------
 
 
-def run_fargo3d_simulation(params: FARGO3DParams) -> str:
+def _fargo3d_version(fargo_exe: str) -> str:
+    """Return git hash of the FARGO3D source tree, or 'unknown'."""
+    try:
+        import subprocess as _sp
+        src_dir = str(Path(fargo_exe).resolve().parent)
+        return _sp.check_output(
+            ["git", "-C", src_dir, "rev-parse", "--short", "HEAD"],
+            text=True, stderr=_sp.DEVNULL,
+        ).strip()
+    except Exception:
+        return "unknown"
+
+
+def run_fargo3d_simulation(params: FARGO3DParams) -> dict:
     os.makedirs(params.output_dir, exist_ok=True)
 
     # Build overrides dict from model (only non-None physical params)
@@ -236,6 +250,7 @@ def run_fargo3d_simulation(params: FARGO3DParams) -> str:
         "FlaringIndex",
         "PlanetMass",
         "Tmax",
+        "Ntot",
         "Ninterm",
         "DT",
         "Nx",
@@ -244,14 +259,19 @@ def run_fargo3d_simulation(params: FARGO3DParams) -> str:
         v = getattr(params, attr)
         if v is not None:
             overrides[attr] = v
-    overrides["OutputDir"] = params.output_dir
+    # Always use an absolute OutputDir so FARGO3D writes to the correct location
+    # regardless of the cwd used to launch the binary (which is typically the
+    # directory containing the FARGO3D executable, not the workspace root).
+    overrides["OutputDir"] = str(Path(params.output_dir).resolve())
     overrides.update(params.extra_params)
 
     # Patch .par and write to output_dir
     patcher = FARGOParPatcher(params.par_file)
     patched_par = os.path.join(params.output_dir, Path(params.par_file).name)
     sigma0_ref = params.Sigma0 or (
-        float(patcher.read_value("Sigma0") or "nan") if patcher.read_value("Sigma0") else None
+        float(patcher.read_value("Sigma0") or "nan")
+        if patcher.read_value("Sigma0")
+        else None
     )
     patcher.apply(overrides)
     patcher.write(patched_par)
@@ -264,7 +284,7 @@ def run_fargo3d_simulation(params: FARGO3DParams) -> str:
             fargo_exe = resolved
 
     if not os.path.isfile(fargo_exe):
-        return f"ERROR: fargo3d binary not found: {fargo_exe!r}"
+        return {"status": "ERROR", "errors": [f"fargo3d binary not found: {fargo_exe!r}"]}
 
     # Build command
     # NOTE: FARGO3D flag semantics:
@@ -291,20 +311,31 @@ def run_fargo3d_simulation(params: FARGO3DParams) -> str:
 
     if proc.returncode != 0:
         stderr_tail = "\n".join(proc.stderr.splitlines()[-15:])
-        return (
-            f"ERROR: fargo3d exited with code {proc.returncode}\n"
-            f"Last 15 lines of stderr:\n{stderr_tail}"
-        )
+        return {
+            "status": "ERROR",
+            "errors": [
+                f"fargo3d exited with code {proc.returncode}",
+                f"Last 15 lines of stderr:\n{stderr_tail}",
+            ],
+        }
 
     diag = _parse_fargo_output(params.output_dir, sigma0_ref)
 
-    return (
-        f"SUCCESS: output_dir={params.output_dir}  wall_clock={t_wall:.1f}s\n"
-        f"  n_outputs={diag['n_outputs']}  last_orbit={diag['last_orbit']:.2f}\n"
-        f"  Sigma_min={diag['Sigma_min']:.3e}  Sigma_max={diag['Sigma_max']:.3e}"
-        f"  gap_depth={diag['gap_depth']:.4f}\n"
-        f"  planet_torque={diag['planet_torque']:.3e} (last output)"
-    )
+    return {
+        "status": "SUCCESS",
+        "run_dir": str(params.output_dir),
+        "output_dir": str(params.output_dir),
+        "code": "FARGO3D",
+        "git_hash": _fargo3d_version(fargo_exe),
+        "n_snapshots": diag["n_outputs"],
+        "last_orbit": diag["last_orbit"],
+        "sigma_min": diag["Sigma_min"],
+        "sigma_max": diag["Sigma_max"],
+        "gap_depth": diag["gap_depth"],
+        "planet_torque": diag["planet_torque"],
+        "wall_time_s": round(t_wall, 1),
+        "errors": [],
+    }
 
 
 # ---------------------------------------------------------------------------
@@ -314,7 +345,9 @@ def run_fargo3d_simulation(params: FARGO3DParams) -> str:
 
 def _build_parser() -> argparse.ArgumentParser:
     p = argparse.ArgumentParser(description="Patch a FARGO3D .par file and run.")
-    p.add_argument("--json", metavar="JSON", help="JSON string or file with all parameters")
+    p.add_argument(
+        "--json", metavar="JSON", help="JSON string or file with all parameters"
+    )
     p.add_argument("--par-file", dest="par_file")
     p.add_argument("--output-dir", dest="output_dir")
     p.add_argument("--AspectRatio", type=float)
@@ -322,7 +355,12 @@ def _build_parser() -> argparse.ArgumentParser:
     p.add_argument("--Alpha", type=float)
     p.add_argument("--FlaringIndex", type=float)
     p.add_argument("--PlanetMass", type=float)
-    p.add_argument("--Tmax", type=float)
+    p.add_argument("--Tmax", type=float,
+                   help="Max simulation time (code units). Not valid for all setups; "
+                        "prefer --Ntot for fargo/fargo_nu.")
+    p.add_argument("--Ntot", type=int,
+                   help="Total number of DT steps (preferred over --Tmax for "
+                        "fargo/fargo_nu setups).")
     p.add_argument("--Ninterm", type=int)
     p.add_argument("--DT", type=float)
     p.add_argument("--Nx", type=int)
@@ -357,8 +395,8 @@ def main() -> None:
         sys.exit(1)
 
     result = run_fargo3d_simulation(params)
-    print(result)
-    if result.startswith("ERROR"):
+    print(json.dumps(result))
+    if result.get("status") != "SUCCESS":
         sys.exit(1)
 
 

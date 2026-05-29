@@ -2595,7 +2595,8 @@ ollama serve   # listens on localhost:11434
               <li>199 domain-specific SKILL.md files (biostatistics, data analysis, scientific writing)</li>
               <li>Agent reads structured Markdown → applies domain knowledge dynamically at inference time</li>
               <li><strong>Directly validates our</strong> <code>dustpy</code>, <code>pluto</code>, <code>fargo3d</code>,
-                <code>radmc3d</code>, <code>sherpa</code>, <code>yt</code> skills</li>
+                <code>radmc3d</code>, <code>sherpa</code>, <code>yt</code> skills
+              </li>
             </ul>
           </div>
           <div>
@@ -2626,176 +2627,178 @@ ollama serve   # listens on localhost:11434
       </section>
 
 
-    <!-- ═══════════════════════════════════════════════════════
+      <!-- ═══════════════════════════════════════════════════════
          SLIDE L — @hypothesis-agent TEST
          ═══════════════════════════════════════════════════════ -->
-    <section>
-      <span class="stag">Appendix — Agent Tests · Live Demo</span>
-      <h2>@hypothesis-agent: Planet Gap Mechanisms</h2>
-      <div class="g2" style="gap:0.8em;">
-        <div class="card c1">
-          <div class="ct">Prompt given</div>
-          <pre style="font-size:0.65em;background:#111;padding:0.6em;border-radius:4px;white-space:pre-wrap;">Science question:
+      <section>
+        <span class="stag">Appendix — Agent Tests · Live Demo</span>
+        <h2>@hypothesis-agent: Planet Gap Mechanisms</h2>
+        <div class="g2" style="gap:0.8em;">
+          <div class="card c1">
+            <div class="ct">Prompt given</div>
+            <pre style="font-size:0.65em;background:#111;padding:0.6em;border-radius:4px;white-space:pre-wrap;">Science question:
 "What mechanisms set the depth
 of a planet-carved gap in a
 protoplanetary disc? Vary M_p,
 α, and v_frag."</pre>
-          <p class="sm" style="margin-top:0.5em;">Agent ran 3-round internal debate →
-            cross-checked NASA ADS</p>
+            <p class="sm" style="margin-top:0.5em;">Agent ran 3-round internal debate →
+              cross-checked NASA ADS</p>
+          </div>
+          <div>
+            <div class="card c2" style="margin-bottom:0.5em;">
+              <div class="ct">H1 (novelty 0.8) — v_frag controls dust/gas contrast</div>
+              <p class="sm">δ_dust/δ_gas spans 2 orders of magnitude over v_frag = 1–10 m s⁻¹
+                at fixed M_p = 0.5 M_Jup; factor ≥10 contrast across snowline</p>
+            </div>
+            <div class="card c3" style="margin-bottom:0.5em;">
+              <div class="ct">H2 (novelty 0.6) — α controls RWI threshold</div>
+              <p class="sm">mm azimuthal contrast transitions C &lt; 1.5 → C &gt; 3
+                as α decreases through α* ~ 3×10⁻⁴ for M_p = 1 M_Jup</p>
+            </div>
+            <div class="card c5">
+              <div class="ct">H3 (novelty 0.4) — M_p² power law and eccentric break</div>
+              <p class="sm">Kanagawa scaling holds for M_p &lt; 2 M_Jup; super-Jupiter
+                deviation biases DSHARP mass inferences</p>
+            </div>
+          </div>
         </div>
-        <div>
-          <div class="card c2" style="margin-bottom:0.5em;">
-            <div class="ct">H1 (novelty 0.8) — v_frag controls dust/gas contrast</div>
-            <p class="sm">δ_dust/δ_gas spans 2 orders of magnitude over v_frag = 1–10 m s⁻¹
-              at fixed M_p = 0.5 M_Jup; factor ≥10 contrast across snowline</p>
-          </div>
-          <div class="card c3" style="margin-bottom:0.5em;">
-            <div class="ct">H2 (novelty 0.6) — α controls RWI threshold</div>
-            <p class="sm">mm azimuthal contrast transitions C &lt; 1.5 → C &gt; 3
-              as α decreases through α* ~ 3×10⁻⁴ for M_p = 1 M_Jup</p>
-          </div>
-          <div class="card c5">
-            <div class="ct">H3 (novelty 0.4) — M_p² power law and eccentric break</div>
-            <p class="sm">Kanagawa scaling holds for M_p &lt; 2 M_Jup; super-Jupiter
-              deviation biases DSHARP mass inferences</p>
-          </div>
+        <div class="ibox" style="font-size:0.72em;margin-top:0.5em;">
+          Output: <code>results/hypotheses/gap_depth_hypotheses_20260529.json</code>
+          · wall-clock ~30 s · priority rank: [1, 2, 3]
         </div>
-      </div>
-      <div class="ibox" style="font-size:0.72em;margin-top:0.5em;">
-        Output: <code>results/hypotheses/gap_depth_hypotheses_20260529.json</code>
-        · wall-clock ~30 s · priority rank: [1, 2, 3]
-      </div>
-    </section>
+      </section>
 
-    <!-- ═══════════════════════════════════════════════════════
+      <!-- ═══════════════════════════════════════════════════════
          SLIDE M — @analytical-agent TEST
          ═══════════════════════════════════════════════════════ -->
-    <section>
-      <span class="stag">Appendix — Agent Tests · Live Demo</span>
-      <h2>@analytical-agent: Gap-Opening Mass Thresholds</h2>
-      <div class="g2" style="gap:0.8em;">
-        <div class="card c1">
-          <div class="ct">Prompt given</div>
-          <pre style="font-size:0.65em;background:#111;padding:0.6em;border-radius:4px;white-space:pre-wrap;">Hypothesis: "1 M_Jup planet
+      <section>
+        <span class="stag">Appendix — Agent Tests · Live Demo</span>
+        <h2>@analytical-agent: Gap-Opening Mass Thresholds</h2>
+        <div class="g2" style="gap:0.8em;">
+          <div class="card c1">
+            <div class="ct">Prompt given</div>
+            <pre style="font-size:0.65em;background:#111;padding:0.6em;border-radius:4px;white-space:pre-wrap;">Hypothesis: "1 M_Jup planet
 opens deep gap in M★=1 M⊙ disc
 with h/r=0.05, α=1e-3."
 Compute gap-opening criteria
 and Kanagawa gap depth.</pre>
-        </div>
-        <div>
-          <div class="card c2" style="margin-bottom:0.5em;">
-            <div class="ct">Analytical results (astropy.units, SymPy)</div>
-            <ul class="sm">
-              <li>Thermal gap-opening mass: <strong>M_th = 0.393 M_Jup</strong> (3 M★ h³)</li>
-              <li>Viscous gap-opening mass: <strong>M_visc = 0.093 M_Jup</strong> (K=25 threshold)</li>
-              <li>Kanagawa parameter: <strong>K = 2916</strong> for q = 9.55×10⁻⁴</li>
-              <li>Gap depth: <strong>Σ_gap/Σ₀ = 8.5×10⁻³</strong> (118× gas depletion)</li>
-              <li>Regime: <strong>deeply nonlinear</strong> (K/K_open = 116.6)</li>
-            </ul>
           </div>
-          <div class="card c3">
-            <div class="ct">Kanagawa+2016 formula validated</div>
-            <p class="sm" style="font-family:monospace;">Σ_gap/Σ₀ = 1/(1 + 0.04 K)
-              K = q² / (h⁵ α)</p>
-            <p class="sm">All quantities propagated with
-              <code>astropy.units</code> — no bare floats</p>
+          <div>
+            <div class="card c2" style="margin-bottom:0.5em;">
+              <div class="ct">Analytical results (astropy.units, SymPy)</div>
+              <ul class="sm">
+                <li>Thermal gap-opening mass: <strong>M_th = 0.393 M_Jup</strong> (3 M★ h³)</li>
+                <li>Viscous gap-opening mass: <strong>M_visc = 0.093 M_Jup</strong> (K=25 threshold)</li>
+                <li>Kanagawa parameter: <strong>K = 2916</strong> for q = 9.55×10⁻⁴</li>
+                <li>Gap depth: <strong>Σ_gap/Σ₀ = 8.5×10⁻³</strong> (118× gas depletion)</li>
+                <li>Regime: <strong>deeply nonlinear</strong> (K/K_open = 116.6)</li>
+              </ul>
+            </div>
+            <div class="card c3">
+              <div class="ct">Kanagawa+2016 formula validated</div>
+              <p class="sm" style="font-family:monospace;">Σ_gap/Σ₀ = 1/(1 + 0.04 K)
+                K = q² / (h⁵ α)</p>
+              <p class="sm">All quantities propagated with
+                <code>astropy.units</code> — no bare floats
+              </p>
+            </div>
           </div>
         </div>
-      </div>
-      <div class="ibox" style="font-size:0.72em;margin-top:0.5em;">
-        Output: <code>results/analytical/gap_depth_analytical_20260529.py</code> +
-        <code>.json</code> · reproducible script runs in &lt;1 s
-      </div>
-    </section>
+        <div class="ibox" style="font-size:0.72em;margin-top:0.5em;">
+          Output: <code>results/analytical/gap_depth_analytical_20260529.py</code> +
+          <code>.json</code> · reproducible script runs in &lt;1 s
+        </div>
+      </section>
 
-    <!-- ═══════════════════════════════════════════════════════
+      <!-- ═══════════════════════════════════════════════════════
          SLIDE N — @literature-agent (ADS MCP) TEST
          ═══════════════════════════════════════════════════════ -->
-    <section>
-      <span class="stag">Appendix — Agent Tests · Live Demo</span>
-      <h2>@literature-agent: Fragmentation Barrier Papers</h2>
-      <div class="g2" style="gap:0.8em;">
-        <div class="card c1">
-          <div class="ct">Prompt given</div>
-          <pre style="font-size:0.65em;background:#111;padding:0.6em;border-radius:4px;white-space:pre-wrap;">Find the key papers on the
+      <section>
+        <span class="stag">Appendix — Agent Tests · Live Demo</span>
+        <h2>@literature-agent: Fragmentation Barrier Papers</h2>
+        <div class="g2" style="gap:0.8em;">
+          <div class="card c1">
+            <div class="ct">Prompt given</div>
+            <pre style="font-size:0.65em;background:#111;padding:0.6em;border-radius:4px;white-space:pre-wrap;">Find the key papers on the
 fragmentation barrier in dust
 coagulation (Birnstiel et al.)
 and export BibTeX to
 paper/bibliography.bib</pre>
-        </div>
-        <div>
-          <div class="card c2" style="margin-bottom:0.5em;">
-            <div class="ct">ADS MCP results (verified bibcodes)</div>
-            <ul class="sm">
-              <li><strong>2012A&amp;A...539A.148B</strong> — Birnstiel, Klahr &amp; Ercolano
-                (739 citations) — fragmentation/drift barrier unified model</li>
-              <li><strong>2010A&amp;A...513A..79B</strong> — Birnstiel, Dullemond &amp; Brauer
-                (579 citations) — coagulation/fragmentation two-population</li>
-            </ul>
           </div>
-          <div class="card c5">
-            <div class="ct">Workflow enforced</div>
-            <ul class="sm">
-              <li>ADS MCP → <code>ads_search</code> → <code>ads_export</code> → BibTeX appended</li>
-              <li>No hand-written entries — DOI field verified by pre-commit hook</li>
-              <li class="sm" style="color:#ef5350;">Never invented or guessed a reference</li>
-            </ul>
+          <div>
+            <div class="card c2" style="margin-bottom:0.5em;">
+              <div class="ct">ADS MCP results (verified bibcodes)</div>
+              <ul class="sm">
+                <li><strong>2012A&amp;A...539A.148B</strong> — Birnstiel, Klahr &amp; Ercolano
+                  (739 citations) — fragmentation/drift barrier unified model</li>
+                <li><strong>2010A&amp;A...513A..79B</strong> — Birnstiel, Dullemond &amp; Brauer
+                  (579 citations) — coagulation/fragmentation two-population</li>
+              </ul>
+            </div>
+            <div class="card c5">
+              <div class="ct">Workflow enforced</div>
+              <ul class="sm">
+                <li>ADS MCP → <code>ads_search</code> → <code>ads_export</code> → BibTeX appended</li>
+                <li>No hand-written entries — DOI field verified by pre-commit hook</li>
+                <li class="sm" style="color:#ef5350;">Never invented or guessed a reference</li>
+              </ul>
+            </div>
           </div>
         </div>
-      </div>
-      <div class="ibox" style="font-size:0.72em;margin-top:0.5em;">
-        BibTeX appended to <code>paper/bibliography.bib</code> · bibcodes are permanent ADS identifiers
-      </div>
-    </section>
+        <div class="ibox" style="font-size:0.72em;margin-top:0.5em;">
+          BibTeX appended to <code>paper/bibliography.bib</code> · bibcodes are permanent ADS identifiers
+        </div>
+      </section>
 
-    <!-- ═══════════════════════════════════════════════════════
+      <!-- ═══════════════════════════════════════════════════════
          SLIDE O — @setup-agent TEST
          ═══════════════════════════════════════════════════════ -->
-    <section>
-      <span class="stag">Appendix — Agent Tests · Live Demo</span>
-      <h2>@setup-agent: FARGO3D Par File + SLURM Script</h2>
-      <div class="g2" style="gap:0.8em;">
-        <div class="card c1">
-          <div class="ct">Prompt given</div>
-          <pre style="font-size:0.65em;background:#111;padding:0.6em;border-radius:4px;white-space:pre-wrap;">Generate FARGO3D par file for
+      <section>
+        <span class="stag">Appendix — Agent Tests · Live Demo</span>
+        <h2>@setup-agent: FARGO3D Par File + SLURM Script</h2>
+        <div class="g2" style="gap:0.8em;">
+          <div class="card c1">
+            <div class="ct">Prompt given</div>
+            <pre style="font-size:0.65em;background:#111;padding:0.6em;border-radius:4px;white-space:pre-wrap;">Generate FARGO3D par file for
 gap depth run: 1 M_Jup at 20 au,
 M★=1 M⊙, h/r=0.05, α=1e-3,
 Nx=384×Ny=128.
 Add SLURM script for LRZ.</pre>
-        </div>
-        <div>
-          <div class="card c2" style="margin-bottom:0.5em;">
-            <div class="ct">Generated files</div>
-            <ul class="sm">
-              <li><code>data/runs/gap_1Mjup/gap_1Mjup.par</code> — patched FARGO3D par</li>
-              <li><code>data/runs/gap_1Mjup/planets/gap_1Mjup.cfg</code> — planet config</li>
-              <li><code>data/runs/gap_1Mjup/submit.sh</code> — LRZ SLURM script</li>
-            </ul>
           </div>
-          <div class="card c3">
-            <div class="ct">Agent self-correction flagged</div>
-            <p class="sm">⚠️ Initial attempt used <code>fargo</code> setup (no α support).
-              Agent detected mismatch and corrected to <code>fargo_nu</code> setup
-              (Shakura-Sunyaev viscosity) — without user prompt.</p>
-            <p class="sm">SLURM script: 48 cores, LRZ SuperMUC-NG, wall-time 24 h</p>
+          <div>
+            <div class="card c2" style="margin-bottom:0.5em;">
+              <div class="ct">Generated files</div>
+              <ul class="sm">
+                <li><code>data/runs/gap_1Mjup/gap_1Mjup.par</code> — patched FARGO3D par</li>
+                <li><code>data/runs/gap_1Mjup/planets/gap_1Mjup.cfg</code> — planet config</li>
+                <li><code>data/runs/gap_1Mjup/submit.sh</code> — LRZ SLURM script</li>
+              </ul>
+            </div>
+            <div class="card c3">
+              <div class="ct">Agent self-correction flagged</div>
+              <p class="sm">⚠️ Initial attempt used <code>fargo</code> setup (no α support).
+                Agent detected mismatch and corrected to <code>fargo_nu</code> setup
+                (Shakura-Sunyaev viscosity) — without user prompt.</p>
+              <p class="sm">SLURM script: 48 cores, LRZ SuperMUC-NG, wall-time 24 h</p>
+            </div>
           </div>
         </div>
-      </div>
-      <div class="wbox" style="font-size:0.72em;margin-top:0.5em;">
-        ⚠️ @setup-agent generates scripts but does <strong>not submit</strong> — HPC job requires explicit user confirmation (Art. 14 gate)
-      </div>
-    </section>
+        <div class="wbox" style="font-size:0.72em;margin-top:0.5em;">
+          ⚠️ @setup-agent generates scripts but does <strong>not submit</strong> — HPC job requires explicit user
+          confirmation (Art. 14 gate)
+        </div>
+      </section>
 
-    <!-- ═══════════════════════════════════════════════════════
+      <!-- ═══════════════════════════════════════════════════════
          SLIDE P — dustpy SKILL TEST
          ═══════════════════════════════════════════════════════ -->
-    <section>
-      <span class="stag">Appendix — Skill Tests · Live Demo</span>
-      <h2>dustpy skill: Ice-line Fragmentation Run</h2>
-      <div class="g2" style="gap:0.8em;">
-        <div class="card c1">
-          <div class="ct">Command executed</div>
-          <pre style="font-size:0.60em;background:#111;padding:0.6em;border-radius:4px;white-space:pre-wrap;">python .github/skills/dustpy/\
+      <section>
+        <span class="stag">Appendix — Skill Tests · Live Demo</span>
+        <h2>dustpy skill: Ice-line Fragmentation Run</h2>
+        <div class="g2" style="gap:0.8em;">
+          <div class="card c1">
+            <div class="ct">Command executed</div>
+            <pre style="font-size:0.60em;background:#111;padding:0.6em;border-radius:4px;white-space:pre-wrap;">python .github/skills/dustpy/\
   scripts/run_dustpy.py \
   --alpha 1e-3 \
   --disk-mass 0.05 \
@@ -2806,43 +2809,44 @@ Add SLURM script for LRZ.</pre>
   --t-end 1e6 \
   --N-snaps 10 \
   --output-dir data/dust/iceline_test</pre>
-        </div>
-        <div>
-          <div class="card c2" style="margin-bottom:0.5em;">
-            <div class="ct">Simulation parameters</div>
-            <ul class="sm">
-              <li>Disk: 0.05 M⊙ · R ∈ [1, 100] au · 80 radial cells</li>
-              <li>Turbulence: α = 10⁻³ (Shakura-Sunyaev)</li>
-              <li>Fragmentation velocity: v_frag = 10 m s⁻¹</li>
-              <li>Evolution: t_end = 1 Myr · 10 snapshots</li>
-            </ul>
           </div>
-          <div class="card c3">
-            <div class="ct">Pydantic v2 validation enforced</div>
-            <ul class="sm">
-              <li>N_snaps ≥ 10 (min constraint validated)</li>
-              <li>Grid geometry checked before run</li>
-              <li>Output: <code>data/dust/iceline_test/data*.hdf5</code></li>
-              <li>Diagnostics: grain size, Stokes number, dust/gas ratio vs radius</li>
-            </ul>
+          <div>
+            <div class="card c2" style="margin-bottom:0.5em;">
+              <div class="ct">Simulation parameters</div>
+              <ul class="sm">
+                <li>Disk: 0.05 M⊙ · R ∈ [1, 100] au · 80 radial cells</li>
+                <li>Turbulence: α = 10⁻³ (Shakura-Sunyaev)</li>
+                <li>Fragmentation velocity: v_frag = 10 m s⁻¹</li>
+                <li>Evolution: t_end = 1 Myr · 10 snapshots</li>
+              </ul>
+            </div>
+            <div class="card c3">
+              <div class="ct">Pydantic v2 validation enforced</div>
+              <ul class="sm">
+                <li>N_snaps ≥ 10 (min constraint validated)</li>
+                <li>Grid geometry checked before run</li>
+                <li>Output: <code>data/dust/iceline_test/data*.hdf5</code></li>
+                <li>Diagnostics: grain size, Stokes number, dust/gas ratio vs radius</li>
+              </ul>
+            </div>
           </div>
         </div>
-      </div>
-      <div class="ibox" style="font-size:0.72em;margin-top:0.5em;">
-        DustPy (Stammler &amp; Birnstiel 2022) · single-call interface with full parameter validation · outputs HDF5 snapshots for plotting
-      </div>
-    </section>
+        <div class="ibox" style="font-size:0.72em;margin-top:0.5em;">
+          DustPy (Stammler &amp; Birnstiel 2022) · single-call interface with full parameter validation · outputs HDF5
+          snapshots for plotting
+        </div>
+      </section>
 
-    <!-- ═══════════════════════════════════════════════════════
+      <!-- ═══════════════════════════════════════════════════════
          SLIDE Q — fargo3d SKILL TEST
          ═══════════════════════════════════════════════════════ -->
-    <section>
-      <span class="stag">Appendix — Skill Tests · Live Demo</span>
-      <h2>fargo3d skill: Patch .par + Launch Simulation</h2>
-      <div class="g2" style="gap:0.8em;">
-        <div class="card c1">
-          <div class="ct">Command executed</div>
-          <pre style="font-size:0.60em;background:#111;padding:0.6em;border-radius:4px;white-space:pre-wrap;">python .github/skills/fargo3d/\
+      <section>
+        <span class="stag">Appendix — Skill Tests · Live Demo</span>
+        <h2>fargo3d skill: Patch .par + Launch Simulation</h2>
+        <div class="g2" style="gap:0.8em;">
+          <div class="card c1">
+            <div class="ct">Command executed</div>
+            <pre style="font-size:0.60em;background:#111;padding:0.6em;border-radius:4px;white-space:pre-wrap;">python .github/skills/fargo3d/\
   scripts/run_fargo3d.py \
   --par-file setups/fargo/fargo.par\
   --output-dir data/runs/fargo_test\
@@ -2852,84 +2856,87 @@ Add SLURM script for LRZ.</pre>
   --Tmax 5 --Ninterm 5 \
   --fargo3d-bin fargo3d \
   --n-procs 1</pre>
-        </div>
-        <div>
-          <div class="card c2" style="margin-bottom:0.5em;">
-            <div class="ct">Result: SUCCESS</div>
-            <ul class="sm">
-              <li>Binary detected: <code>fargo3d</code> (sequential build)</li>
-              <li>Par file patched: AspectRatio, Sigma0, PlanetMass, OutputDir</li>
-              <li>Absolute path passed to binary (cwd fix applied)</li>
-              <li>Output: <code>gasdens*.dat</code>, <code>orbit0.dat</code>, <code>tqwk0.dat</code></li>
-            </ul>
           </div>
-          <div class="card c3">
-            <div class="ct">Bug found &amp; fixed live</div>
-            <p class="sm">Script passed relative par path while binary's cwd was set
-              to the FARGO3D source dir → "Unable to read par file".</p>
-            <p class="sm">Fix: pass <code>os.path.abspath(patched_par)</code> — binary now
-              resolves the path correctly.</p>
+          <div>
+            <div class="card c2" style="margin-bottom:0.5em;">
+              <div class="ct">Result: SUCCESS</div>
+              <ul class="sm">
+                <li>Binary detected: <code>fargo3d</code> (sequential build)</li>
+                <li>Par file patched: AspectRatio, Sigma0, PlanetMass, OutputDir</li>
+                <li>Absolute path passed to binary (cwd fix applied)</li>
+                <li>Output: <code>gasdens*.dat</code>, <code>orbit0.dat</code>, <code>tqwk0.dat</code></li>
+              </ul>
+            </div>
+            <div class="card c3">
+              <div class="ct">Bug found &amp; fixed live</div>
+              <p class="sm">Script passed relative par path while binary's cwd was set
+                to the FARGO3D source dir → "Unable to read par file".</p>
+              <p class="sm">Fix: pass <code>os.path.abspath(patched_par)</code> — binary now
+                resolves the path correctly.</p>
+            </div>
           </div>
         </div>
-      </div>
-      <div class="ibox" style="font-size:0.72em;margin-top:0.5em;">
-        Fix committed to <code>.github/skills/fargo3d/scripts/run_fargo3d.py</code> · demonstrates live agent self-correction during demo
-      </div>
-    </section>
+        <div class="ibox" style="font-size:0.72em;margin-top:0.5em;">
+          Fix committed to <code>.github/skills/fargo3d/scripts/run_fargo3d.py</code> · demonstrates live agent
+          self-correction during demo
+        </div>
+      </section>
 
-    <!-- ═══════════════════════════════════════════════════════
+      <!-- ═══════════════════════════════════════════════════════
          SLIDE R — pluto SKILL TEST
          ═══════════════════════════════════════════════════════ -->
-    <section>
-      <span class="stag">Appendix — Skill Tests · Live Demo</span>
-      <h2>pluto skill: Compile Disk_Planet Problem</h2>
-      <div class="g2" style="gap:0.8em;">
-        <div class="card c1">
-          <div class="ct">Command executed</div>
-          <pre style="font-size:0.60em;background:#111;padding:0.6em;border-radius:4px;white-space:pre-wrap;">python .github/skills/pluto/\
+      <section>
+        <span class="stag">Appendix — Skill Tests · Live Demo</span>
+        <h2>pluto skill: Compile Disk_Planet Problem</h2>
+        <div class="g2" style="gap:0.8em;">
+          <div class="card c1">
+            <div class="ct">Command executed</div>
+            <pre style="font-size:0.60em;background:#111;padding:0.6em;border-radius:4px;white-space:pre-wrap;">python .github/skills/pluto/\
   scripts/compile_pluto.py \
   --run-dir .../Test_Problems/\
              HD/Disk_Planet \
   --pluto-dir .../pluto-code \
   --with-fargo \
   --make-jobs 4</pre>
-        </div>
-        <div>
-          <div class="card c2" style="margin-bottom:0.5em;">
-            <div class="ct">Result: SUCCESS</div>
-            <ul class="sm">
-              <li>Arch auto-detected: <code>Darwin.gcc.defs</code></li>
-              <li>FARGO orbital advection: enabled (<code>--with-fargo</code>)</li>
-              <li>Binary: <code>Test_Problems/HD/Disk_Planet/pluto</code></li>
-              <li>Wall-clock: <strong>3.0 s</strong> (4 parallel make jobs)</li>
-              <li>Physics config written to <code>physics_config.md</code></li>
-            </ul>
           </div>
-          <div class="card c5">
-            <div class="ct">Non-interactive compile</div>
-            <p class="sm">PLUTO's <code>setup.py</code> normally requires interactive input.
-              The skill drives it non-interactively via
-              <code>definitions.h</code> pre-selection + <code>pexpect</code>.</p>
-            <p class="sm">Ready to run with <code>run_pluto.py</code> + <code>plot_pluto.py</code></p>
+          <div>
+            <div class="card c2" style="margin-bottom:0.5em;">
+              <div class="ct">Result: SUCCESS</div>
+              <ul class="sm">
+                <li>Arch auto-detected: <code>Darwin.gcc.defs</code></li>
+                <li>FARGO orbital advection: enabled (<code>--with-fargo</code>)</li>
+                <li>Binary: <code>Test_Problems/HD/Disk_Planet/pluto</code></li>
+                <li>Wall-clock: <strong>3.0 s</strong> (4 parallel make jobs)</li>
+                <li>Physics config written to <code>physics_config.md</code></li>
+              </ul>
+            </div>
+            <div class="card c5">
+              <div class="ct">Non-interactive compile</div>
+              <p class="sm">PLUTO's <code>setup.py</code> normally requires interactive input.
+                The skill drives it non-interactively via
+                <code>definitions.h</code> pre-selection + <code>pexpect</code>.
+              </p>
+              <p class="sm">Ready to run with <code>run_pluto.py</code> + <code>plot_pluto.py</code></p>
+            </div>
           </div>
         </div>
-      </div>
-      <div class="ibox" style="font-size:0.72em;margin-top:0.5em;">
-        PLUTO HD/MHD solver · FARGO orbital advection reduces CFL cost in Keplerian discs · compile → run → plot in three script calls
-      </div>
-    </section>
+        <div class="ibox" style="font-size:0.72em;margin-top:0.5em;">
+          PLUTO HD/MHD solver · FARGO orbital advection reduces CFL cost in Keplerian discs · compile → run → plot in
+          three script calls
+        </div>
+      </section>
 
 
-    <!-- ═══════════════════════════════════════════════════════
+      <!-- ═══════════════════════════════════════════════════════
          SLIDE S — matplotlib SKILL TEST
          ═══════════════════════════════════════════════════════ -->
-    <section>
-      <span class="stag">Appendix — Skill Tests · Live Demo</span>
-      <h2>matplotlib skill: DustPy Grain Size Evolution</h2>
-      <div class="g2" style="gap:0.8em;">
-        <div class="card c1">
-          <div class="ct">Script used</div>
-          <pre style="font-size:0.58em;background:#111;padding:0.6em;border-radius:4px;white-space:pre-wrap;">import h5py, numpy as np
+      <section>
+        <span class="stag">Appendix — Skill Tests · Live Demo</span>
+        <h2>matplotlib skill: DustPy Grain Size Evolution</h2>
+        <div class="g2" style="gap:0.8em;">
+          <div class="card c1">
+            <div class="ct">Script used</div>
+            <pre style="font-size:0.58em;background:#111;padding:0.6em;border-radius:4px;white-space:pre-wrap;">import h5py, numpy as np
 import matplotlib.pyplot as plt
 
 for snap in [0, 4, 9]:
@@ -2943,213 +2950,259 @@ for snap in [0, 4, 9]:
   St_max = St[np.arange(Nr), i]
   ax[0].semilogy(r, a_max)
   ax[1].semilogy(r, St_max)</pre>
-        </div>
-        <div>
-          <div class="card c2" style="margin-bottom:0.5em;">
-            <div class="ct">Key results at t = 1000 yr</div>
-            <ul class="sm">
-              <li>a_max(10 au) ≈ <strong>1.95 × 10⁻⁴ cm</strong> (fragmentation limited)</li>
-              <li>a_max(100 au) ≈ <strong>24 cm</strong> (drift limited outer disc)</li>
-              <li>Stokes number St ∝ r in outer disc — drift-dominated</li>
-              <li>Final dust mass: <strong>3.6 × 10⁻⁴ M⊙</strong></li>
-            </ul>
           </div>
-          <div class="card c3">
-            <div class="ct">Skill conventions followed</div>
-            <ul class="sm">
-              <li>300 dpi PDF + PNG saved to <code>plots/</code></li>
-              <li>cividis/tab10 palette · axes labeled with units</li>
-              <li>Dark background for slide compatibility</li>
-            </ul>
+          <div>
+            <div class="card c2" style="margin-bottom:0.5em;">
+              <div class="ct">Key results at t = 1000 yr</div>
+              <ul class="sm">
+                <li>a_max(10 au) ≈ <strong>1.95 × 10⁻⁴ cm</strong> (fragmentation limited)</li>
+                <li>a_max(100 au) ≈ <strong>24 cm</strong> (drift limited outer disc)</li>
+                <li>Stokes number St ∝ r in outer disc — drift-dominated</li>
+                <li>Final dust mass: <strong>3.6 × 10⁻⁴ M⊙</strong></li>
+              </ul>
+            </div>
+            <div class="card c3">
+              <div class="ct">Skill conventions followed</div>
+              <ul class="sm">
+                <li>300 dpi PDF + PNG saved to <code>plots/</code></li>
+                <li>cividis/tab10 palette · axes labeled with units</li>
+                <li>Dark background for slide compatibility</li>
+              </ul>
+            </div>
           </div>
         </div>
-      </div>
-      <div class="ibox" style="font-size:0.72em;margin-top:0.5em;">
-        Figure: <code>plots/dustpy_grain_size_evolution.pdf</code>
-        · wall-clock 15 s total (DustPy 1000 yr run + plot) · reproducible from HDF5 snapshots
-      </div>
-    </section>
+        <div class="ibox" style="font-size:0.72em;margin-top:0.5em;">
+          Figure: <code>plots/dustpy_grain_size_evolution.pdf</code>
+          · wall-clock 15 s total (DustPy 1000 yr run + plot) · reproducible from HDF5 snapshots
+        </div>
+      </section>
 
-    <!-- ═══════════════════════════════════════════════════════
+      <!-- ═══════════════════════════════════════════════════════
          SLIDE T — @analysis-agent TEST
          ═══════════════════════════════════════════════════════ -->
-    <section>
-      <span class="stag">Appendix — Agent Tests · Live Demo</span>
-      <h2>@analysis-agent: FARGO3D Post-processing</h2>
-      <div class="g2" style="gap:0.8em;">
-        <div class="card c1">
-          <div class="ct">Prompt given</div>
-          <pre style="font-size:0.62em;background:#111;padding:0.6em;border-radius:4px;white-space:pre-wrap;">Post-process the FARGO3D output
+      <section>
+        <span class="stag">Appendix — Agent Tests · Live Demo</span>
+        <h2>@analysis-agent: FARGO3D Post-processing</h2>
+        <div class="g2" style="gap:0.8em;">
+          <div class="card c1">
+            <div class="ct">Prompt given</div>
+            <pre style="font-size:0.62em;background:#111;padding:0.6em;border-radius:4px;white-space:pre-wrap;">Post-process the FARGO3D output
 in fargo_skill_test/:
   - Read gasdens0.dat (128×384)
   - Azimuthal-average → Σ(r)
   - Compute Σ_gap / Σ₀
   - Read tqwk0.dat (planet torque)
   - Save JSON + radial profile plot</pre>
-        </div>
-        <div>
-          <div class="card c2" style="margin-bottom:0.5em;">
-            <div class="ct">Results (snapshot 0 = initial condition)</div>
-            <ul class="sm">
-              <li>Σ_gap / Σ₀ = <strong>1.0</strong> (flat, unperturbed disc)</li>
-              <li>Planet torque at t=0: <strong>0.0</strong> (not yet integrated)</li>
-              <li>Wall-clock: 0.84 s</li>
-              <li>Output: <code>results/analysis/fargo_gap_analysis_20260529.json</code></li>
-              <li>Plot: <code>plots/fargo_sigma_profile.pdf</code></li>
-            </ul>
           </div>
-          <div class="card c3">
-            <div class="ct">Agent self-diagnosis correct</div>
-            <p class="sm">Agent correctly explained: "Snapshot 0 is the initial
-              condition — gap opening requires 100–200 orbital periods
-              (~9000 yr at 20 au). The run was too short."</p>
-            <p class="sm">Script: <code>src/analysis/fargo_gap_analysis.py</code>
-              · numpy.fromfile only — no proprietary wrappers</p>
+          <div>
+            <div class="card c2" style="margin-bottom:0.5em;">
+              <div class="ct">Results (snapshot 0 = initial condition)</div>
+              <ul class="sm">
+                <li>Σ_gap / Σ₀ = <strong>1.0</strong> (flat, unperturbed disc)</li>
+                <li>Planet torque at t=0: <strong>0.0</strong> (not yet integrated)</li>
+                <li>Wall-clock: 0.84 s</li>
+                <li>Output: <code>results/analysis/fargo_gap_analysis_20260529.json</code></li>
+                <li>Plot: <code>plots/fargo_sigma_profile.pdf</code></li>
+              </ul>
+            </div>
+            <div class="card c3">
+              <div class="ct">Agent self-diagnosis correct</div>
+              <p class="sm">Agent correctly explained: "Snapshot 0 is the initial
+                condition — gap opening requires 100–200 orbital periods
+                (~9000 yr at 20 au). The run was too short."</p>
+              <p class="sm">Script: <code>src/analysis/fargo_gap_analysis.py</code>
+                · numpy.fromfile only — no proprietary wrappers</p>
+            </div>
           </div>
         </div>
-      </div>
-      <div class="wbox" style="font-size:0.72em;margin-top:0.5em;">
-        ⚠️ Trivial result is <strong>physically correct</strong> and expected —
-        demonstrates agent flagging its own limitation rather than reporting a spurious gap depth
-      </div>
-    </section>
+        <div class="wbox" style="font-size:0.72em;margin-top:0.5em;">
+          ⚠️ Trivial result is <strong>physically correct</strong> and expected —
+          demonstrates agent flagging its own limitation rather than reporting a spurious gap depth
+        </div>
+      </section>
 
-    <!-- ═══════════════════════════════════════════════════════
+      <!-- ═══════════════════════════════════════════════════════
          SLIDE U — @interpretation-agent TEST
          ═══════════════════════════════════════════════════════ -->
-    <section>
-      <span class="stag">Appendix — Agent Tests · Live Demo</span>
-      <h2>@interpretation-agent: Gap Depth Physics</h2>
-      <div class="g2" style="gap:0.8em;">
-        <div class="card c1">
-          <div class="ct">Prompt given</div>
-          <pre style="font-size:0.62em;background:#111;padding:0.6em;border-radius:4px;white-space:pre-wrap;">Interpret analytical +
+      <section>
+        <span class="stag">Appendix — Agent Tests · Live Demo</span>
+        <h2>@interpretation-agent: Gap Depth Physics</h2>
+        <div class="g2" style="gap:0.8em;">
+          <div class="card c1">
+            <div class="ct">Prompt given</div>
+            <pre style="font-size:0.62em;background:#111;padding:0.6em;border-radius:4px;white-space:pre-wrap;">Interpret analytical +
 numerical results:
 K=2916, Σ_gap/Σ₀=8.5e-3 (theory)
 vs Σ_gap/Σ₀=1.0 (simulation t=0)
 DustPy: a_max(100au)=24cm
 Verdict: iterate or stop?</pre>
+          </div>
+          <div>
+            <div class="card c2" style="margin-bottom:0.5em;">
+              <div class="ct">Verdict: ITERATE</div>
+              <p class="sm"><strong>Key insight:</strong> For K=2916 (116× above gap-opening threshold),
+                tidal torques overwhelm viscous diffusion → 118× steady-state depletion predicted.
+                But equilibrium takes 100–200 orbits (~18,000 yr) to develop.</p>
+            </div>
+            <div class="card c5" style="margin-bottom:0.5em;">
+              <div class="ct">3 Follow-up directions</div>
+              <ul class="sm">
+                <li>Launch gap_1Mjup.par to 1000 orbits; test Kanagawa at ±30%</li>
+                <li>6-point M_p grid → verify K ∝ q² slope = 2.00 ± 0.15</li>
+                <li>FARGO3D → DustPy → RADMC-3D → synthetic ALMA 1.25 mm</li>
+              </ul>
+            </div>
+            <div class="card c3">
+              <div class="ct">Human Gate 2 location</div>
+              <p class="sm">Pipeline pauses here: iterate = HPC allocation cost.
+                Agent proposes, <strong>human decides</strong>.</p>
+            </div>
+          </div>
         </div>
-        <div>
-          <div class="card c2" style="margin-bottom:0.5em;">
-            <div class="ct">Verdict: ITERATE</div>
-            <p class="sm"><strong>Key insight:</strong> For K=2916 (116× above gap-opening threshold),
-              tidal torques overwhelm viscous diffusion → 118× steady-state depletion predicted.
-              But equilibrium takes 100–200 orbits (~18,000 yr) to develop.</p>
-          </div>
-          <div class="card c5" style="margin-bottom:0.5em;">
-            <div class="ct">3 Follow-up directions</div>
-            <ul class="sm">
-              <li>Launch gap_1Mjup.par to 1000 orbits; test Kanagawa at ±30%</li>
-              <li>6-point M_p grid → verify K ∝ q² slope = 2.00 ± 0.15</li>
-              <li>FARGO3D → DustPy → RADMC-3D → synthetic ALMA 1.25 mm</li>
-            </ul>
-          </div>
-          <div class="card c3">
-            <div class="ct">Human Gate 2 location</div>
-            <p class="sm">Pipeline pauses here: iterate = HPC allocation cost.
-              Agent proposes, <strong>human decides</strong>.</p>
-          </div>
+        <div class="ibox" style="font-size:0.72em;margin-top:0.5em;">
+          Output: <code>results/interpretation/gap_depth_interpretation_20260529.json</code>
+          · InterpretationHandoff/v1 schema · ADS-verified discrepancy notes included
         </div>
-      </div>
-      <div class="ibox" style="font-size:0.72em;margin-top:0.5em;">
-        Output: <code>results/interpretation/gap_depth_interpretation_20260529.json</code>
-        · InterpretationHandoff/v1 schema · ADS-verified discrepancy notes included
-      </div>
-    </section>
+      </section>
 
-    <!-- ═══════════════════════════════════════════════════════
+      <!-- ═══════════════════════════════════════════════════════
          SLIDE V — @paper-agent TEST
          ═══════════════════════════════════════════════════════ -->
-    <section>
-      <span class="stag">Appendix — Agent Tests · Live Demo</span>
-      <h2>@paper-agent: Abstract + Methods Draft</h2>
-      <div class="g2" style="gap:0.8em;">
-        <div class="card c1">
-          <div class="ct">Prompt given</div>
-          <pre style="font-size:0.62em;background:#111;padding:0.6em;border-radius:4px;white-space:pre-wrap;">Draft abstract + methods for
+      <section>
+        <span class="stag">Appendix — Agent Tests · Live Demo</span>
+        <h2>@paper-agent: Abstract + Methods Draft</h2>
+        <div class="g2" style="gap:0.8em;">
+          <div class="card c1">
+            <div class="ct">Prompt given</div>
+            <pre style="font-size:0.62em;background:#111;padding:0.6em;border-radius:4px;white-space:pre-wrap;">Draft abstract + methods for
 the disc gap study.
 Use ONLY ADS-verified bibcodes.
 Mark uncertain refs [VERIFY ADS].
 Save as LaTeX to
 paper/sections/abstract_methods.tex</pre>
+          </div>
+          <div>
+            <div class="card c2" style="margin-bottom:0.5em;">
+              <div class="ct">Output</div>
+              <ul class="sm">
+                <li>Abstract: <strong>186 words</strong></li>
+                <li>Methods: <strong>577 words</strong> (3 subsections)</li>
+                <li>References: <strong>13 bibcodes</strong>, all ADS-confirmed</li>
+                <li>Zero hand-written or invented citations</li>
+              </ul>
+            </div>
+            <div class="card c5" style="margin-bottom:0.5em;">
+              <div class="ct">Key references used (ADS MCP)</div>
+              <ul class="sm">
+                <li>2016PASJ...68...43K — Kanagawa+2016 gap depth formula</li>
+                <li>2018ApJ...869L..41A — DSHARP survey (Andrews+2018)</li>
+                <li>2012A&amp;A...539A.148B — Birnstiel fragmentation barrier</li>
+                <li>2022ApJ...935...35S — DustPy (Stammler &amp; Birnstiel)</li>
+              </ul>
+            </div>
+            <div class="card c4">
+              <div class="ct">Agent self-flagged warning</div>
+              <p class="sm">Noted a_max(10 au) discrepancy between run configs.
+                Did NOT proceed silently — flagged for human review.</p>
+            </div>
+          </div>
         </div>
-        <div>
-          <div class="card c2" style="margin-bottom:0.5em;">
-            <div class="ct">Output</div>
-            <ul class="sm">
-              <li>Abstract: <strong>186 words</strong></li>
-              <li>Methods: <strong>577 words</strong> (3 subsections)</li>
-              <li>References: <strong>13 bibcodes</strong>, all ADS-confirmed</li>
-              <li>Zero hand-written or invented citations</li>
-            </ul>
-          </div>
-          <div class="card c5" style="margin-bottom:0.5em;">
-            <div class="ct">Key references used (ADS MCP)</div>
-            <ul class="sm">
-              <li>2016PASJ...68...43K — Kanagawa+2016 gap depth formula</li>
-              <li>2018ApJ...869L..41A — DSHARP survey (Andrews+2018)</li>
-              <li>2012A&amp;A...539A.148B — Birnstiel fragmentation barrier</li>
-              <li>2022ApJ...935...35S — DustPy (Stammler &amp; Birnstiel)</li>
-            </ul>
-          </div>
-          <div class="card c4">
-            <div class="ct">Agent self-flagged warning</div>
-            <p class="sm">Noted a_max(10 au) discrepancy between run configs.
-              Did NOT proceed silently — flagged for human review.</p>
-          </div>
+        <div class="ibox" style="font-size:0.72em;margin-top:0.5em;">
+          File: <code>paper/sections/abstract_methods_draft.tex</code>
+          · valid LaTeX · \\citet{}/\\citep{} macros · ready for Overleaf
         </div>
-      </div>
-      <div class="ibox" style="font-size:0.72em;margin-top:0.5em;">
-        File: <code>paper/sections/abstract_methods_draft.tex</code>
-        · valid LaTeX · \\citet{}/\\citep{} macros · ready for Overleaf
-      </div>
-    </section>
+      </section>
 
-    <!-- ═══════════════════════════════════════════════════════
+      <!-- ═══════════════════════════════════════════════════════
          SLIDE W — @pipeline-agent OVERVIEW
          ═══════════════════════════════════════════════════════ -->
-    <section>
-      <span class="stag">Appendix — Agent Tests · Live Demo</span>
-      <h2>@pipeline-agent: Full 9-Stage Run</h2>
-      <div style="overflow-x:auto;margin-bottom:0.5em;">
-        <table style="width:100%;font-size:0.68em;border-collapse:collapse;color:#e0e0e0;">
-          <thead>
-            <tr style="background:#1a3a4a;color:#4fc3f7;">
-              <th style="padding:0.3em 0.5em;text-align:left;">#</th>
-              <th style="padding:0.3em 0.5em;text-align:left;">Agent / Skill</th>
-              <th style="padding:0.3em 0.5em;text-align:left;">Time</th>
-              <th style="padding:0.3em 0.5em;text-align:left;">Key output</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr><td style="padding:0.25em 0.5em;">1</td><td>@hypothesis-agent</td><td>~3 min</td><td>3 ranked hypotheses JSON</td></tr>
-            <tr style="background:#1a2a1a;"><td style="padding:0.25em 0.5em;color:#81c784;" colspan="4">👤 <strong>HUMAN GATE 1</strong> — choose hypothesis to pursue</td></tr>
-            <tr><td style="padding:0.25em 0.5em;">2</td><td>@analytical-agent</td><td>~2 min</td><td>K=2916, Σ_gap/Σ₀=8.5e-3</td></tr>
-            <tr><td style="padding:0.25em 0.5em;">3</td><td>@literature-agent</td><td>~2 min</td><td>2 BibTeX entries (ADS MCP)</td></tr>
-            <tr><td style="padding:0.25em 0.5em;">4</td><td>@setup-agent</td><td>~3 min</td><td>gap_1Mjup.par + SLURM script</td></tr>
-            <tr><td style="padding:0.25em 0.5em;">5</td><td>dustpy / fargo3d / pluto skills</td><td>~8 min</td><td>DustPy HDF5 · FARGO3D IC · PLUTO binary</td></tr>
-            <tr><td style="padding:0.25em 0.5em;">6</td><td>@analysis-agent</td><td>~2 min</td><td>Σ_gap/Σ₀=1.0 (t=0, correct)</td></tr>
-            <tr><td style="padding:0.25em 0.5em;">7</td><td>@interpretation-agent</td><td>~2 min</td><td>Verdict: ITERATE · 3 follow-ups</td></tr>
-            <tr style="background:#2a1a1a;"><td style="padding:0.25em 0.5em;color:#ffb74d;" colspan="4">👤 <strong>HUMAN GATE 2</strong> — confirm iterate/stop · authorise HPC allocation</td></tr>
-            <tr><td style="padding:0.25em 0.5em;">8</td><td>@paper-agent</td><td>~5 min</td><td>186-word abstract + 577-word methods (LaTeX)</td></tr>
-          </tbody>
-        </table>
-      </div>
-      <div class="g2" style="gap:0.7em;">
-        <div class="card c2">
-          <div class="ct">Total: ~28 min wall-clock</div>
-          <p class="sm">8 agents · 3 skills · 13 ADS-verified references
-            · science question → draft methods in one session</p>
+      <section>
+        <span class="stag">Appendix — Agent Tests · Live Demo</span>
+        <h2>@pipeline-agent: Full 9-Stage Run</h2>
+        <div style="overflow-x:auto;margin-bottom:0.5em;">
+          <table style="width:100%;font-size:0.68em;border-collapse:collapse;color:#e0e0e0;">
+            <thead>
+              <tr style="background:#1a3a4a;color:#4fc3f7;">
+                <th style="padding:0.3em 0.5em;text-align:left;">#</th>
+                <th style="padding:0.3em 0.5em;text-align:left;">Agent / Skill</th>
+                <th style="padding:0.3em 0.5em;text-align:left;">Time</th>
+                <th style="padding:0.3em 0.5em;text-align:left;">Key output</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td style="padding:0.25em 0.5em;">1</td>
+                <td>@hypothesis-agent</td>
+                <td>~3 min</td>
+                <td>3 ranked hypotheses JSON</td>
+              </tr>
+              <tr style="background:#1a2a1a;">
+                <td style="padding:0.25em 0.5em;color:#81c784;" colspan="4">👤 <strong>HUMAN GATE 1</strong> — choose
+                  hypothesis to pursue</td>
+              </tr>
+              <tr>
+                <td style="padding:0.25em 0.5em;">2</td>
+                <td>@analytical-agent</td>
+                <td>~2 min</td>
+                <td>K=2916, Σ_gap/Σ₀=8.5e-3</td>
+              </tr>
+              <tr>
+                <td style="padding:0.25em 0.5em;">3</td>
+                <td>@literature-agent</td>
+                <td>~2 min</td>
+                <td>2 BibTeX entries (ADS MCP)</td>
+              </tr>
+              <tr>
+                <td style="padding:0.25em 0.5em;">4</td>
+                <td>@setup-agent</td>
+                <td>~3 min</td>
+                <td>gap_1Mjup.par + SLURM script</td>
+              </tr>
+              <tr>
+                <td style="padding:0.25em 0.5em;">5</td>
+                <td>dustpy / fargo3d / pluto skills</td>
+                <td>~8 min</td>
+                <td>DustPy HDF5 · FARGO3D IC · PLUTO binary</td>
+              </tr>
+              <tr>
+                <td style="padding:0.25em 0.5em;">6</td>
+                <td>@analysis-agent</td>
+                <td>~2 min</td>
+                <td>Σ_gap/Σ₀=1.0 (t=0, correct)</td>
+              </tr>
+              <tr>
+                <td style="padding:0.25em 0.5em;">7</td>
+                <td>@interpretation-agent</td>
+                <td>~2 min</td>
+                <td>Verdict: ITERATE · 3 follow-ups</td>
+              </tr>
+              <tr style="background:#2a1a1a;">
+                <td style="padding:0.25em 0.5em;color:#ffb74d;" colspan="4">👤 <strong>HUMAN GATE 2</strong> — confirm
+                  iterate/stop · authorise HPC allocation</td>
+              </tr>
+              <tr>
+                <td style="padding:0.25em 0.5em;">8</td>
+                <td>@paper-agent</td>
+                <td>~5 min</td>
+                <td>186-word abstract + 577-word methods (LaTeX)</td>
+              </tr>
+            </tbody>
+          </table>
         </div>
-        <div class="card c3">
-          <div class="ct">Gates enforce human judgment</div>
-          <p class="sm">Gate 1: resource &amp; direction decision.
-            Gate 2: validity &amp; cost decision.
-            Agents propose — <strong>humans decide</strong>.</p>
+        <div class="g2" style="gap:0.7em;">
+          <div class="card c2">
+            <div class="ct">Total: ~28 min wall-clock</div>
+            <p class="sm">8 agents · 3 skills · 13 ADS-verified references
+              · science question → draft methods in one session</p>
+          </div>
+          <div class="card c3">
+            <div class="ct">Gates enforce human judgment</div>
+            <p class="sm">Gate 1: resource &amp; direction decision.
+              Gate 2: validity &amp; cost decision.
+              Agents propose — <strong>humans decide</strong>.</p>
+          </div>
         </div>
-      </div>
-    </section>
+      </section>
 
     </div><!-- .slides -->
   </div><!-- .reveal -->

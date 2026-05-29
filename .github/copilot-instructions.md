@@ -15,7 +15,8 @@
 # in prompts/project_context.md or a project-level AGENTS.md.
 # ─────────────────────────────────────────────────────────────────────────────
 
-> **This repository** is the USM group template for new computational research projects. > Fork it to scaffold a new project; fill in all `<PLACEHOLDER>` fields in `AGENTS.md`
+> **This repository** is the USM group template for new computational research projects.
+> Fork it to scaffold a new project; fill in all `<PLACEHOLDER>` fields in `AGENTS.md`
 > before your first agent session.
 > Project-specific commands, HPC paths, and MCP servers are listed in
 > `AGENTS.md` §"Key commands" and §"MCP servers configured for this project".
@@ -67,9 +68,9 @@ when starting a project (`simulation/`, `analysis/`, `retrieval/`, `reduction/`,
 
 ## 2. Programming language & environment
 
-- **Language**: Python 3.11+ by default. Julia (GadgetIO.jl) and shell
-  scripts are acceptable for simulation I/O and pipeline tasks.
-  Fortran interfaces exist in PLUTO/FARGO3D; do not rewrite them.
+- **Language**: Python 3.12+ by default (active conda env: `py312`). Julia
+  (GadgetIO.jl) and shell scripts are acceptable for simulation I/O and
+  pipeline tasks. Fortran interfaces exist in PLUTO/FARGO3D; do not rewrite them.
 - **Package manager**: conda or mamba (environment files in `envs/`).
 - **Key libraries by domain** (prefer these over ad-hoc alternatives):
 
@@ -91,8 +92,10 @@ when starting a project (`simulation/`, `analysis/`, `retrieval/`, `reduction/`,
   - `radmc3dPy` — Python interface to RADMC-3D radiative transfer
   - `pyPLUTO` — Python interface to PLUTO (if available); otherwise parse binary
     `.dat` files directly with `numpy.fromfile`
-  - `fargopy` — FARGO3D output reader (if available); otherwise parse
-    binary `.dat` files directly with `numpy.fromfile`
+  - FARGO3D output: parse binary `.dat` files directly with `numpy.fromfile`
+    (HDF5 outputs with `h5py`); use the bundled skill readers in
+    `.github/skills/fargo3d/references/output_conventions.md` — do not
+    rely on `fargopy` which is not a standard distributed package
 
   *Cosmological simulation analysis*
   - `yt` — volumetric analysis and rendering of SPH/AMR snapshots
@@ -246,6 +249,11 @@ At minimum, record:
   before treating them as science-ready. Flag any result where the
   statistical metric is excellent but the physical interpretation is
   unclear or untested.
+- **Pipeline next_action routing**: after `@interpretation-agent` produces an
+  `InterpretationHandoff`, check `next_action` before proceeding. Valid values:
+  `iterate` (back to hypothesis), `write` (to paper), `mcmc` (posterior
+  sampling before writing), `stop` (inconclusive, no blocker), `abort`
+  (fundamental blocker — write `abort_report.json` before stopping).
 
 ## 10. What this agent must never do
 
@@ -258,6 +266,9 @@ At minimum, record:
 - Submit jobs to a cluster or remote machine without explicit user confirmation.
 - Delete or overwrite existing results files (always write to a new path
   or prompt for confirmation).
+- Silently terminate a pipeline on a fundamental blocker — always write
+  `results/<task_id>/abort_report.json` with the reason, findings so far,
+  and follow-up suggestions before stopping (`next_action: abort`).
 - Use a non-deterministic random seed without logging it to the output.
 - Silently subsample or filter data without documenting the selection.
 - **Claim or imply that AI-generated science outputs are ready for publication
@@ -352,7 +363,7 @@ See `ARCHITECTURE.md` for the canonical list and trigger phrases.
 
 The agents in this repository are classified as **Research / Knowledge** and
 **Coding / DevOps** agents under the EU AI Act taxonomy (Regulation 2024/1689).
-Analysis following Nannini et al. (arXiv:2604.04604, April 2026):
+Analysis following Nannini et al. (arXiv:2604.04604, April 2026 — ⚠ unverified via ADS):
 
 **Risk classification** — Not high-risk (no Annex III use cases for astrophysics
 research). Article 50 transparency obligations apply to all agent interactions.
@@ -412,12 +423,16 @@ research). Article 50 transparency obligations apply to all agent interactions.
 
 ### 12.7 GPAI model disclosure
 - These agents run on general-purpose AI models (Claude Sonnet, GitHub Copilot).
-  Document the **model name and version** in every prompt log (§7).
+  Document the **exact model name and version** in every prompt log (§7).
+  Read the version at runtime from the environment (e.g. `$CLAUDE_MODEL`,
+  Copilot model selector) — do not hardcode a model name in prompts or scripts.
 - If agents are fine-tuned or adapted using more than one-third of original
   training compute, the group becomes a GPAI provider under Art. 51.
 
 > **Reference**: Nannini et al. (2026). "AI Agents Under EU Law: A Compliance
 > Architecture for AI Providers." arXiv:2604.04604 [cs.CY].
+> ⚠ This reference has not been verified via NASA ADS. Verify with the ADS MCP
+> before citing in any manuscript (per §6 citation policy).
 
 ---
 

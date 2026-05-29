@@ -126,10 +126,16 @@ Run ALL checks regardless of domain.
    - `iterate`: significant discrepancies remain; propose refined hypotheses
      or parameter changes and feed back to `@hypothesis-agent`.
    - `write`: results are conclusive; all plausibility flags are clear.
-   - `stop`: simulation reveals a fundamental blocker (instrument limits,
-     wrong physical model, missing physics).
+   - `mcmc`: results are conclusive but parameter uncertainties need
+     formal posterior sampling before writing.
+   - `stop`: results are inconclusive; no clear path forward within
+     current resources, but the approach is sound — revisit later.
+   - `abort`: simulation reveals a fundamental blocker (wrong physical
+     model, missing physics, instrument limits, data quality). Populate
+     `abort_reason` with a one-sentence diagnosis. The pipeline will
+     write `results/<task_id>/abort_report.json` as a citable record.
 9. **Present `InterpretationHandoff`** to user.
-  **Wait for Human Gate 2 confirmation** before concluding or iterating.
+   **Wait for Human Gate 2 confirmation** before concluding or iterating.
 
 ---
 
@@ -156,7 +162,8 @@ Save to `results/interpretation/<task_id>_interpretation_<YYYYMMDD>.json`:
   "plausibility_flags": [],
   "caveats": [],
   "followup_suggestions": [],
-  "next_action": "<iterate|write|stop>",
+  "next_action": "<iterate|write|mcmc|stop|abort>",
+  "abort_reason": null,
   "human_gate_2_confirmed": false,
   "warnings": []
 }

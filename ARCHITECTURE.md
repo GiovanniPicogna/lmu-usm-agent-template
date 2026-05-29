@@ -42,24 +42,28 @@ Two mandatory **human gates** prevent automated progression without user confirm
 ```mermaid
 flowchart TD
     U([User]) --> P[@pipeline-agent]
-    P --> L[@literature-agent]
-    P --> H[@hypothesis-agent]
-    H -->|HypothesisHandoff/v1| GATE1{{⚠ Human Gate 1\nConfirm top hypothesis}}
+    P --> L1[@literature-agent\nStage 1: background search]
+    L1 -->|bibliography context| H[@hypothesis-agent]
+    H -->|HypothesisHandoff/v1| GATE1{{⚠ Human Gate 1\nConfirm hypothesis + parameter range}}
     GATE1 --> A[@analytical-agent]
     A -->|AnalyticalHandoff/v1| S[@setup-agent]
     S -->|SimConfigHandoff/v1| SIM["@simulation-agent\n@retrieval-agent\n@spectral-agent"]
-    SIM -->|SimulationHandoff / SpectralFitHandoff| AN[@analysis-agent]
-    AN -->|AnalysisHandoff/v1| I[@interpretation-agent]
-    I -->|InterpretationHandoff/v1| GATE2{{⚠ Human Gate 2\nConfirm write / iterate}}
-    GATE2 -->|next_action: iterate| H
-    GATE2 -->|next_action: write| WR[@paper-agent]
+    SIM -->|SimulationHandoff/v1\nSpectralFitHandoff/v1| AN[@analysis-agent]
+    AN -->|AnalysisHandoff/v1| L2[@literature-agent\nStage 7: novelty check]
+    L2 -->|updated bibliography| I[@interpretation-agent]
+    I -->|InterpretationHandoff/v1| GATE2{{⚠ Human Gate 2\niterate / write / mcmc / stop / abort}}
+    GATE2 -->|iterate| H
+    GATE2 -->|mcmc| MC[@mcmc-agent]
+    MC -->|MCMCHandoff/v1| WR[@paper-agent]
+    GATE2 -->|write| WR
     WR -->|PaperHandoff/v1| DONE([Done])
-    GATE2 -->|next_action: stop| DONE
+    GATE2 -->|stop| DONE
+    GATE2 -->|abort| AB([abort_report.json])
 
     style WR fill:#cfc,stroke:#060,color:#000
-
     style GATE1 fill:#f9f,stroke:#a00,color:#000
     style GATE2 fill:#f9f,stroke:#a00,color:#000
+    style AB fill:#ffc,stroke:#880,color:#000
 ```
 
 ### Stage summary
@@ -67,20 +71,27 @@ flowchart TD
 | Stage | Agent | Output |
 |---|---|---|
 | 1 QUESTION | `@pipeline-agent` | Creates `prompts/<task_id>_<date>.md` |
-| 2 LITERATURE | `@literature-agent` | Appends to `paper/bibliography.bib` |
+| 2 LITERATURE | `@literature-agent` | Appends to `paper/bibliography.bib` (background search) |
 | 3 HYPOTHESIS | `@hypothesis-agent` | `results/hypotheses/<task_id>_<date>.json` |
-| **Gate 1** | User | Confirm top hypothesis |
+| **Gate 1** | User | Confirm top hypothesis + parameter range |
 | 4 ANALYTICAL | `@analytical-agent` | `results/analytical/<task_id>_<date>.py` + JSON |
 | 5 SETUP | `@setup-agent` | Config files in `data/runs/<task_id>/` + optional SLURM/PBS script |
 | 6 SIMULATE | `@simulation-agent` / `@retrieval-agent` / `@spectral-agent` | Binary/HDF5 outputs in `data/` |
 | 7 ANALYSE | `@analysis-agent` | Figures in `plots/` + `AnalysisHandoff` JSON |
+| 7b NOVELTY CHECK | `@literature-agent` | Updates `bibliography.bib`; flags prior work on same result |
 | 8 INTERPRET | `@interpretation-agent` | `results/interpretation/<task_id>_<date>.json` |
-| **Gate 2** | User | Confirm iterate / write / stop |
+| **Gate 2** | User | Confirm: iterate / write / mcmc / stop / abort |
+| 8b MCMC | `@mcmc-agent` (optional) | `MCMCHandoff/v1` → feeds into Stage 9 |
 | 9 WRITE | `@paper-agent` | `paper/<task_id>_<date>/manuscript.pdf` + `referee_notes.md` |
+| — ABORT | — | `results/<task_id>/abort_report.json` |
 
 ---
 
-## Legacy pipeline stages (pre-pipeline-agent)
+## Direct invocation mode (without pipeline-agent)
+
+Use this when you want to call a single specialist agent without running the
+full 9-stage cycle — e.g. rerunning only the analysis after a parameter change,
+or fitting a single spectrum. The `@pipeline-agent` is not involved.
 
 ```mermaid
 flowchart TD

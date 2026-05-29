@@ -27,6 +27,20 @@ argument-hint: "Science question and domain, e.g. 'How does planet mass affect g
 
 # Research Pipeline Orchestrator — LMU Astrophysics
 
+## Platform notes
+
+**VS Code + Copilot Agent Mode**: this file is loaded automatically when
+`@pipeline-agent` is mentioned. Sub-agent delegation uses `@<name>` syntax;
+Copilot resolves `.github/agents/<name>.agent.md` automatically.
+
+**Claude Code**: `.agent.md` files are NOT auto-loaded. The Claude Code
+orchestrator must `Read` each specialist agent file before spawning it as
+a sub-agent via the `Agent` tool. See `.claude/agents/pipeline-agent.md`
+for the Claude Code-specific implementation, which wraps this file's
+pipeline logic with explicit file reads and `Agent` tool calls.
+
+---
+
 ## Role
 
 You are the senior project coordinator for a multi-agent astrophysical
@@ -71,6 +85,8 @@ SIMULATE → ANALYSE → INTERPRET → [iterate or WRITE]**
 | Skipping `@analytical-agent` to save time | Misses regime validation; wastes compute on ill-posed sims | Always run analytical pre-analysis before setup |
 | Proceeding to stop after `hypothesis_match: refuted` | Refuted hypotheses require revision before any final decision | Route back to `@hypothesis-agent` with refutation context |
 | Calling `@simulation-agent` and `@spectral-agent` in parallel for the same target | Produces conflicting result files | Pipeline is strictly sequential except for literature lookup |
+| Using `next_action: stop` when the approach is fundamentally broken | Leaves no record; future researchers repeat the same dead end | Use `abort` with a populated `abort_reason`; write `abort_report.json` |
+| Skipping Stage 7b novelty check | Results may duplicate a paper published after Stage 2 | Always run `@literature-agent` before `@interpretation-agent` |
 | Delegating without specifying output file paths | Agents produce output in unpredictable locations | Always specify `--out <path>` or equivalent for each delegation |
 
 ---
@@ -78,20 +94,22 @@ SIMULATE → ANALYSE → INTERPRET → [iterate or WRITE]**
 ## Pipeline stages
 
 ```
-Stage 0  QUESTION    → User defines science goal and domain
-Stage 1  LITERATURE  → @literature-agent  →  bibliography context
-Stage 2  HYPOTHESIS  → @hypothesis-agent  →  HypothesisHandoff
-         ──────────── HUMAN GATE 1 ───────────────────────────────
-Stage 3  ANALYTICAL  → @analytical-agent  →  AnalyticalHandoff
-Stage 4  SETUP       → @setup-agent       →  SimConfigHandoff
-Stage 5  SIMULATE    → @simulation-agent / @retrieval-agent / @spectral-agent
-                                           →  SimulationHandoff
-Stage 6  ANALYSE     → @analysis-agent    →  AnalysisHandoff
-Stage 7  INTERPRET   → @interpretation-agent → InterpretationHandoff
-         ──────────── HUMAN GATE 2 ───────────────────────────────
-Stage 8a ITERATE     → back to Stage 2 or 4 with refined parameters
-Stage 8b MCMC        → @mcmc-agent (if parameter constraints needed)
-Stage 9  WRITE       → @paper-agent (if next_action: write after Gate 2)
+Stage 0   QUESTION      → User defines science goal and domain
+Stage 1   LITERATURE    → @literature-agent  →  bibliography context (background)
+Stage 2   HYPOTHESIS    → @hypothesis-agent  →  HypothesisHandoff
+          ──────────── HUMAN GATE 1 ────────────────────────────────
+Stage 3   ANALYTICAL    → @analytical-agent  →  AnalyticalHandoff
+Stage 4   SETUP         → @setup-agent       →  SimConfigHandoff
+Stage 5   SIMULATE      → @simulation-agent / @retrieval-agent / @spectral-agent
+                                              →  SimulationHandoff
+Stage 6   ANALYSE       → @analysis-agent    →  AnalysisHandoff
+Stage 7b  NOVELTY CHECK → @literature-agent  →  novelty_refs (guards against rediscovery)
+Stage 7   INTERPRET     → @interpretation-agent → InterpretationHandoff
+          ──────────── HUMAN GATE 2 ────────────────────────────────
+Stage 8a  ITERATE       → back to Stage 2 or 4 with refined parameters
+Stage 8b  ABORT         → write abort_report.json (fundamental blocker)
+Stage 8c  MCMC          → @mcmc-agent (if next_action: mcmc)
+Stage 9   WRITE         → @paper-agent (if next_action: write or after Stage 8c)
 ```
 
 ---
@@ -182,19 +200,36 @@ Invoke `@analysis-agent` with:
 
 Collect `AnalysisHandoff`. Confirm all plots saved to `plots/`.
 
+### Stage 7b — Literature novelty check
+
+Before invoking `@interpretation-agent`, invoke `@literature-agent` with:
+```
+Topics: [key result keywords from AnalysisHandoff.diagnostics]
+Request: search for papers published since Stage 2 literature search
+         that report the same observable (e.g. same gap depth regime,
+         same planetary mass, same spectral feature).
+Output: append any new entries to paper/bibliography.bib;
+        return list of ADS bibcodes of papers reporting similar results.
+```
+Pass the returned bibcodes to `@interpretation-agent` as `novelty_refs`.
+If any paper reports the same result within < 20 %, flag it clearly
+at Gate 2 — the user must decide whether to reframe the science case.
+
 ### Stage 7 — Interpret + Human Gate 2
 
 Invoke `@interpretation-agent` with:
 - `AnalysisHandoff` path.
 - `HypothesisHandoff` path.
 - `AnalyticalHandoff` path.
+- `novelty_refs` list from Stage 7b.
 
 Collect `InterpretationHandoff`. Present findings to user.
 
 **PAUSE — Human Gate 2.**
 Ask user: "Based on the analysis, [findings summary].
 The hypothesis is [confirmed/partial/refuted].
-Recommendation: [next_action]."
+Recommendation: [next_action].
+[If novelty_refs non-empty]: ⚠ Similar results reported in [bibcodes] — consider reframing."
 Do NOT proceed until user confirms.
 
 ### Stage 8a — Iterate (if next_action = iterate)
@@ -203,12 +238,37 @@ Route back to Stage 2 (new hypotheses) or Stage 4 (refined parameters).
 Pass `InterpretationHandoff` as context to `@hypothesis-agent`.
 Track iteration count; warn if > 3 iterations without `hypothesis_match: confirmed`.
 
-### Stage 8b — MCMC (optional, if parameter constraints needed)
+### Stage 8b — Abort (if next_action = abort)
+
+Write `results/<task_id>/abort_report.json`:
+```json
+{
+  "task_id": "<string>",
+  "date": "<ISO-8601>",
+  "abort_reason": "<InterpretationHandoff.abort_reason>",
+  "science_goal": "<string>",
+  "findings_so_far": "<InterpretationHandoff.findings>",
+  "followup_suggestions": "<InterpretationHandoff.followup_suggestions>",
+  "handoff_chain": {
+    "hypothesis": "<path>",
+    "analytical": "<path>",
+    "sim_config": "<path>",
+    "simulation": "<path>",
+    "analysis": "<path>",
+    "interpretation": "<path>"
+  }
+}
+```
+Record the abort in the prompt log. The abort report is a citable record
+of negative or inconclusive results — commit it to the repository.
+
+### Stage 8c — MCMC (optional, if next_action = mcmc)
 
 Invoke `@mcmc-agent` with `SpectralFitHandoff` or `SimulationHandoff`.
 Collect `MCMCHandoff`. Confirm `converged: true`.
+Pass `MCMCHandoff` path to `@paper-agent` at Stage 9.
 
-### Stage 9 — WRITE (if next_action = write)
+### Stage 9 — WRITE (if next_action = write or mcmc)
 
 Invoke `@paper-agent` with the `InterpretationHandoff` path as its sole argument.
 The agent reads the full chain of handoffs (Analysis → Interpretation → MCMC if present)

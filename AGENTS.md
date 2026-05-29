@@ -19,6 +19,13 @@
 # Replace all <PLACEHOLDER> fields before committing.
 # Keep this file updated as the project evolves.
 # Commit AGENTS.md in every PR that changes the science model or data.
+#
+# ── For agents reading this file ─────────────────────────────────────────────
+# If any field below still contains angle-bracket placeholders such as
+# <PROJECT_NAME> or <PI_NAME>, this project has not been configured yet.
+# Do NOT substitute example values from your training data.
+# Instead emit: [DATA MISSING: AGENTS.md not filled in — ask the user to
+# complete the placeholders before proceeding.]
 # ─────────────────────────────────────────────────────────────────────────────
 
 ## Project overview
@@ -57,9 +64,14 @@ data/
 **Processed results** (committed if < 10 MB):
 ```
 results/
-├── fits/           # JSON parameter files, chains (.h5)
+├── hypotheses/     # HypothesisHandoff JSON files
+├── analytical/     # AnalyticalHandoff JSON + benchmark scripts
+├── analysis/       # AnalysisHandoff JSON files
+├── interpretation/ # InterpretationHandoff JSON files
+├── fits/           # spectral / MCMC parameter files, chains (.h5)
 ├── maps/           # thermodynamic / column density maps (FITS)
-└── populations/    # planet population outputs (HDF5 / CSV)
+├── populations/    # planet population outputs (HDF5 / CSV)
+└── <task_id>/      # per-run directory: abort_report.json, handoff chain
 ```
 
 **Do not** read from or write to any path outside `data/`, `results/`,
@@ -165,7 +177,12 @@ pre-commit install            # run style/BibTeX checks on every commit
 # ── Bundled skill runners (use these directly or via agents) ────────────────
 # DustPy — dust evolution
 python .github/skills/dustpy/scripts/run_dustpy.py \
-    --setup <setup_module.py> --out data/dust/<run_name>/
+    --run_dir data/dust/<run_name> \
+    --alpha 1e-3 --mdisk_msun 0.05 --t_end_yr 1e6
+
+# DustPy — diagnostic plots
+python .github/skills/dustpy/scripts/plot_dustpy.py \
+    --run_dir data/dust/<run_name> --plot all --out plots/dust/<run_name>
 
 # FARGO3D — planet–disk simulation
 python .github/skills/fargo3d/scripts/run_fargo3d.py \
@@ -189,14 +206,20 @@ python .github/skills/radmc3d/scripts/run_radmc3d.py \
 # @literature-agent Find all papers citing 2025A&A...703A.270R since 2025
 #                   and append BibTeX to paper/bibliography.bib
 
-# ── Full research pipeline (via @pipeline-agent) ───────────────────────────
-# In Copilot Chat, start the 9-stage pipeline:
+# ── Full research pipeline ────────────────────────────────────────────────
+# In Copilot (Agent Mode):
 # @pipeline-agent  Science question: "How does planet mass affect gap depth?"
 #                  Domain: disk  |  Compute mode: local
 #
-# The pipeline pauses at two human gates:
-#   Gate 1 — after hypothesis generation (you choose which to pursue)
-#   Gate 2 — after interpretation (you decide: iterate or stop)
+# In Claude Code (conversation prompt):
+# Read .github/agents/pipeline-agent.agent.md and
+# .claude/agents/pipeline-agent.md, then start the research pipeline.
+# Science question: "How does planet mass affect gap depth?"
+# Domain: disk | Compute mode: local
+#
+# The pipeline pauses at two mandatory human gates:
+#   Gate 1 — after hypothesis generation (confirm which to pursue)
+#   Gate 2 — after interpretation (choose: iterate / write / mcmc / stop / abort)
 
 # ── MCMC sampling (via @mcmc-agent) ───────────────────────────────────────
 # @mcmc-agent  results/spectral/core_fit.json
@@ -216,7 +239,8 @@ pre-commit run --all-files
    you are continuing an already-started pipeline at a specific stage.
 2. **Human gates are blocking.** Gate 1 (after hypothesis) and Gate 2 (after
    interpretation) require explicit user confirmation before the pipeline
-   continues. Agents must not auto-proceed.
+   continues. Agents must not auto-proceed. Gate 2 options: `iterate`,
+   `write`, `mcmc`, `stop`, `abort` (see `InterpretationHandoff.next_action`).
 3. **Handoff schemas are contracts.** Every inter-agent handoff must
    conform to the schema in `.github/shared/handoff_schemas.md`.
    `[DATA MISSING]` is the required placeholder for any field the agent
@@ -230,8 +254,9 @@ pre-commit run --all-files
    (`data/spectra/bkg_region/`) before running on the full grid.
 6. **MCMC**: Always set and log a random seed. Default: `seed = 42`.
    Store it in the output HDF5 as an attribute.
-7. **Figures**: Use the colour scale defined in `src/utils/style.py`.
-   Do not override it without discussion.
+7. **Figures**: Use the colour scale defined in `src/utils/style.py` if it
+   exists; otherwise follow the group defaults in `copilot-instructions.md §5`
+   (tab10 palette, cividis/viridis for 2D maps, 300 dpi, PDF output).
 
 ### Data & outputs
 8. **Results files**: Write to `results/<category>/<descriptive_name>.json`
@@ -256,6 +281,6 @@ See `.vscode/settings.json` for the full MCP configuration.
 | Server | Purpose | Requires |
 |--------|---------|---------|
 | `cbyrohl/mcp-server-ads` | Literature search, BibTeX retrieval | `ADS_API_TOKEN` env var |
-| `adamzacharia/alma_mcp` | ALMA archive queries (if needed) | `ALMA_TOKEN` env var |
+| `adamzacharia/alma_mcp` | ALMA archive queries (uncomment in `.vscode/settings.json` to enable) | `ALMA_TOKEN` env var |
 
 To get an ADS API token: https://ui.adsabs.harvard.edu/user/settings/token

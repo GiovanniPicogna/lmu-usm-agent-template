@@ -199,7 +199,8 @@ Consumed by `@hypothesis-agent` (if `next_action: iterate`) or directly returned
   "plausibility_flags": ["<string>"],
   "caveats": ["<string>"],
   "followup_suggestions": ["<string>"],
-  "next_action": "<iterate | write | stop>",
+  "next_action": "<iterate | write | mcmc | stop | abort>",
+  "abort_reason": "<string | null — required when next_action is abort>",
   "human_gate_2_confirmed": "<bool>",
   "warnings": ["<string>"]
 }
@@ -209,8 +210,10 @@ Consumed by `@hypothesis-agent` (if `next_action: iterate`) or directly returned
 - `human_gate_2_confirmed` must be `true` before the user makes a final decision.
 - `plausibility_flags` must be empty or explicitly acknowledged by the user before stopping work.
 - `findings` must contain at least 1 entry with `literature_refs`.
-- `hypothesis_match: refuted` requires `next_action: iterate` or `stop`.
-  Never stop on refuted hypotheses without iteration.
+- `hypothesis_match: refuted` requires `next_action: iterate` or `abort`.
+  Never stop on refuted hypotheses without iteration or explicit abort.
+- `next_action: abort` requires a non-null `abort_reason` and triggers writing
+  `results/<task_id>/abort_report.json` (see pipeline-agent Stage 9 abort path).
 
 ---
 
@@ -222,26 +225,35 @@ Consumed by `@spectral-agent` or `@mcmc-agent`.
 ```json
 {
   "schema": "SimulationHandoff/v1",
+  "task_id": "<string — snake_case label matching prompts/ log>",
   "run_dir": "<string — absolute path to run directory>",
+  "run_manifest": "<string — absolute path to run_manifest.json>",
   "code": "<FARGO3D | PLUTO | DustPy | Magneticum>",
-  "code_version": "<string — git hash or release tag>",
+  "code_version": "<string — git hash or release tag; read from skill envelope>",
+  "skill_script": "<string — absolute path to skill script used>",
+  "skill_script_version": "<string — tag or hash>",
+  "param_file": "<string — absolute path to main config / par / setup file>",
+  "param_file_md5": "<string — MD5 hex of param_file at launch time>",
   "output_dir": "<string — directory containing output files>",
-  "output_files": ["<string>"],
+  "output_files": ["<string — absolute paths verified readable by emitting agent>"],
   "diagnostics": {
     "n_snapshots": "<int>",
     "last_snap": "<int>",
     "t_end_code": "<float — final time in code units>",
-    "rho_max": "<float — code units>",
-    "rho_min": "<float — code units>",
+    "rho_field": "<string — name of density field, e.g. 'gasdens' | 'rho' | 'Sigma_gas'>",
+    "rho_units": "<string — code units of rho_max/rho_min, e.g. 'M_sun/AU^2'>",
+    "rho_max": "<float — in rho_units>",
+    "rho_min": "<float — in rho_units>",
     "wall_clock_s": "<float>"
   },
   "units": {
     "length": "<string — e.g. 'AU'>",
     "mass":   "<string — e.g. 'M_sun'>",
-    "time":   "<string — e.g. 'yr'>"
+    "time":   "<string — e.g. 'yr'>",
+    "density":"<string — e.g. 'M_sun/AU^2' for FARGO3D surface density>"
   },
   "sanity_passed": "<bool>",
-  "warnings": ["<string>"]
+  "warnings": ["<string — collected [SANITY WARN] messages from analysis step 4>"]
 }
 ```
 
@@ -249,7 +261,13 @@ Consumed by `@spectral-agent` or `@mcmc-agent`.
 - `sanity_passed` must be `true` before handing off to a downstream agent.
   If `false`, the agent must report the failure and stop.
 - `warnings` should be empty or contain only non-blocking advisories.
-- `output_files` paths must be accessible from the receiving agent's working directory.
+- `output_files` must contain only absolute paths that have been verified readable
+  (using `os.access(p, os.R_OK)`) in the **emitting** agent's session.
+- `code_version` must not be the string `"unknown"` — read from the skill script
+  JSON envelope or `run_manifest.json`.
+- `rho_units` must be explicitly populated — never leave it as `"unknown"`.
+  Use the per-code convention table in `simulation-agent.agent.md § step 5`.
+- `run_manifest` path must exist on disk; if absent, emit `[DATA MISSING: run_manifest.json]`.
 
 ---
 
