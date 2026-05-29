@@ -159,16 +159,24 @@ def _parse_fargo_output(output_dir: str, sigma0_ref: Optional[float]) -> dict:
     if not out.is_dir():
         return result
 
-    # Count gas density outputs
-    dens_files = sorted(out.glob("gasdens*.dat"))
+    # Count gas density outputs (exclude *_2d.dat Stockholm reference files)
+    dens_files = sorted(
+        f for f in out.glob("gasdens*.dat") if "_2d" not in f.name
+    )
     result["n_outputs"] = len(dens_files)
     if not dens_files:
         return result
 
-    # Read last density file
+    # Read last density file (azimuthal average for gap depth)
     last_dens = dens_files[-1]
     try:
-        sigma = np.fromfile(str(last_dens), dtype=np.float64)
+        raw = np.fromfile(str(last_dens), dtype=np.float64)
+        # Try to compute azimuthal average; fall back to raw if shape unknown
+        nr, nphi = 128, 384
+        if raw.size == nr * nphi:
+            sigma = raw.reshape(nr, nphi).mean(axis=1)
+        else:
+            sigma = raw
         result["Sigma_min"] = float(sigma.min())
         result["Sigma_max"] = float(sigma.max())
         if sigma0_ref and sigma0_ref > 0:
@@ -187,14 +195,23 @@ def _parse_fargo_output(output_dir: str, sigma0_ref: Optional[float]) -> dict:
         except Exception:
             pass
 
-    # Planet torque: try tqwk0.dat (col 3) then bigplanet0.dat (col 3)
+    # Planet torque from tqwk0.dat
+    # Column layout (fargo_nu + STOCKHOLM, 10 cols):
+    # 0:output_num  1-5:partial_torques  6:total_torque  7:work  8:work_res  9:time
+    # Use last non-zero time row, col 6 = total torque.
     for fname in ("tqwk0.dat", "bigplanet0.dat"):
         fpath = out / fname
         if fpath.is_file():
             try:
                 data = np.loadtxt(str(fpath))
-                if data.ndim == 2 and data.shape[1] >= 4:
-                    result["planet_torque"] = float(data[-1, 3])
+                if data.ndim == 1:
+                    data = data[np.newaxis, :]
+                # Filter rows with non-zero time (col 9 if 10 cols, else col 0)
+                time_col = 9 if data.shape[1] >= 10 else 0
+                torque_col = 6 if data.shape[1] >= 10 else min(3, data.shape[1]-1)
+                nz = data[data[:, time_col] > 0]
+                if len(nz) > 0:
+                    result["planet_torque"] = float(nz[-1, torque_col])
                 break
             except Exception:
                 pass
@@ -250,12 +267,18 @@ def run_fargo3d_simulation(params: FARGO3DParams) -> str:
         return f"ERROR: fargo3d binary not found: {fargo_exe!r}"
 
     # Build command
+    # NOTE: FARGO3D flag semantics:
+    #   -0  → OnlyInit (write initial condition only, NO time stepping) — do NOT use
+    #   -m  → Merge output files from parallel ranks (harmless for sequential)
+    #   (no flag) → sequential CPU run with full time evolution
     cmd: list[str] = []
     if params.n_procs > 1:
         cmd += ["mpirun", "-n", str(params.n_procs)]
     cmd += [fargo_exe]
-    mode_flag = "-m" if params.gpu else "-0"
-    cmd += [mode_flag, os.path.abspath(patched_par)]
+    if params.gpu:
+        cmd += ["-m"]  # GPU/parallel merge mode
+    # Sequential CPU: pass par file directly — no flag that would set OnlyInit
+    cmd += [os.path.abspath(patched_par)]
 
     t0 = time.time()
     proc = subprocess.run(

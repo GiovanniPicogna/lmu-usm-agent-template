@@ -1,315 +1,251 @@
-"""Post-process a FARGO3D disc simulation snapshot.
+"""Post-process a FARGO3D disc simulation.
 
-Computes the azimuthally-averaged surface density profile, gap depth,
-and planet torque from binary output files.  Saves a summary JSON and
-a dark-background radial profile figure.
+Reads all snapshots from a FARGO3D binary output directory, computes
+azimuthally-averaged surface density profiles, gap depth evolution,
+and planet torque history.  Saves a two-panel diagnostic figure (PDF/PNG)
+and a summary JSON file.
 
-Inputs
-------
-input_dir : Path
-    Directory containing the FARGO3D binary output files.
-
-Outputs
--------
-results/analysis/fargo_gap_analysis_20260529.json
-plots/fargo_sigma_profile.pdf
-plots/fargo_sigma_profile.png
+Usage
+-----
+python src/analysis/fargo_gap_analysis.py \
+    --input-dir data/runs/fargo_nu_1Mjup \
+    --output-json results/analysis/fargo_gap_analysis.json \
+    --output-plot plots/disk/fargo_nu_1Mjup_gap
 """
 
 from __future__ import annotations
 
 import argparse
+import datetime
 import json
 import time
 from pathlib import Path
 
-import astropy.units as u
+import matplotlib
+matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import numpy as np
 
-# ── Simulation constants (from variables.par) ─────────────────────────────────
-SNAPSHOT_INDEX = 0
-N_RADIAL = 128         # NY
-N_AZIMUTHAL = 384      # NX
-NGHOST = 3             # FARGO3D default ghost-cell count
-SIGMA_0 = 6.37e-4      # code units; SIGMASLOPE=0 → flat initial profile
-PLANET_MASS_CODE = 9.548e-4  # M★ = 1 M_Jup / 1 M_sun
+# ── Grid constants (from variables.par) ───────────────────────────────────────
+N_RADIAL = 128     # NY
+N_AZIMUTHAL = 384  # NX
+NGHOST = 3         # FARGO3D NGHY (ghost cells per side in radial direction)
 
-# ── Plot style ─────────────────────────────────────────────────────────────────
-FIGURE_FACECOLOR = "#1a1a2e"
-AXES_FACECOLOR = "#0d0d1a"
-TEXT_COLOR = "white"
-ACCENT_COLOR = "#e94560"
-GRID_COLOR = "#3a3a5c"
+# ── Physical parameters ────────────────────────────────────────────────────────
+Q_PLANET = 0.001   # M_p / M_star  (jupiter.cfg)
+H_DISK = 0.05      # AspectRatio
+ALPHA_DISK = 1e-3  # viscosity alpha
 
 
-def load_radial_grid(domain_y_path: Path) -> np.ndarray:
-    """Return 1-D array of radial cell-centre coordinates in code units (au).
+# ── Readers ───────────────────────────────────────────────────────────────────
 
-    FARGO3D writes Ny + 2*NGHOST + 1 interface values.  The physical
-    interfaces are indices [NGHOST : NGHOST + Ny + 1]; cell centres are
-    the midpoints of consecutive interface pairs.
+def load_radial_grid(run_dir: Path) -> np.ndarray:
+    """Return 1-D array of radial cell-centre coordinates [code units = AU].
 
-    Parameters
-    ----------
-    domain_y_path : Path
-        Path to ``domain_y.dat``.
-
-    Returns
-    -------
-    r_centers : np.ndarray, shape (Ny,)
-        Radial cell centres in code units (au for the fargo setup).
+    FARGO3D writes Ny + 2*NGHOST + 1 interface values including ghost zones.
+    Physical interfaces are indices [NGHOST : NGHOST+Ny+1].
     """
-    domain_y = np.fromfile(domain_y_path, dtype="float64", sep="\n")
-    r_interfaces = domain_y[NGHOST : NGHOST + N_RADIAL + 1]
-    r_centers = 0.5 * (r_interfaces[:-1] + r_interfaces[1:])
-    return r_centers
+    edges_all = np.loadtxt(run_dir / "domain_y.dat")
+    edges = edges_all[NGHOST : NGHOST + N_RADIAL + 1]  # 129 real edges
+    return 0.5 * (edges[:-1] + edges[1:])              # 128 cell centres
 
 
-def load_surface_density(gasdens_path: Path) -> np.ndarray:
-    """Read a 2-D surface density array from a FARGO3D binary file.
+def load_sigma_profile(run_dir: Path, snap: int) -> np.ndarray:
+    """Return azimuthally averaged Σ(r) [code units] for snapshot `snap`."""
+    fpath = run_dir / f"gasdens{snap}.dat"
+    field = np.fromfile(fpath, dtype=np.float64).reshape(N_RADIAL, N_AZIMUTHAL)
+    return field.mean(axis=1)
 
-    Parameters
-    ----------
-    gasdens_path : Path
-        Path to the binary gas-density file (e.g. ``gasdens0.dat``).
 
-    Returns
-    -------
-    sigma_2d : np.ndarray, shape (Ny, Nx)
-        Surface density in code units.
+def load_tqwk(run_dir: Path) -> tuple[np.ndarray, np.ndarray]:
+    """Return (time [code units], total_torque [code units]) from tqwk0.dat.
+
+    Column layout (FARGO3D fargo_nu + STOCKHOLM):
+    0: output_number  1-5: partial torques  6: total_torque
+    7: work  8: work_res  9: cumulative_time
     """
-    raw = np.fromfile(gasdens_path, dtype="float64")
-    expected_size = N_RADIAL * N_AZIMUTHAL
-    if raw.size != expected_size:
-        raise ValueError(
-            f"Expected {expected_size} values in {gasdens_path.name}; "
-            f"got {raw.size}.  Check NY and NX."
-        )
-    return raw.reshape(N_RADIAL, N_AZIMUTHAL)
+    data = np.loadtxt(run_dir / "tqwk0.dat")
+    mask = data[:, 9] > 0
+    data = data[mask]
+    _, idx = np.unique(data[:, 9], return_index=True)
+    data = data[idx]
+    return data[:, 9], data[:, 6]   # time, total_torque
 
 
-def azimuthal_average(sigma_2d: np.ndarray) -> np.ndarray:
-    """Return the azimuthal mean of a 2-D array along the azimuthal axis.
+# ── Kanagawa+ 2015 prediction ─────────────────────────────────────────────────
 
-    Parameters
-    ----------
-    sigma_2d : np.ndarray, shape (Ny, Nx)
-        2-D surface density.
+def kanagawa_gap_depth(q: float, h: float, alpha: float) -> float:
+    """Steady-state Σ_gap / Σ_0 from Kanagawa et al. 2015, ApJ 806 L15.
 
-    Returns
-    -------
-    sigma_avg : np.ndarray, shape (Ny,)
-        Azimuthally averaged surface density.
+    K = (M_p/M_*)^2 * (h/r)^{-5} * alpha^{-1}
+    delta = 1 / (1 + 0.04 K)
     """
-    return sigma_2d.mean(axis=1)
+    k = (q ** 2) * (h ** -5) / alpha
+    return 1.0 / (1.0 + 0.04 * k)
 
 
-def compute_gap_depth(
-    sigma_avg: np.ndarray,
-    sigma_0: float,
-) -> tuple[float, float]:
-    """Compute the gap depth as Σ_gap / Σ_0.
-
-    Parameters
-    ----------
-    sigma_avg : np.ndarray, shape (Ny,)
-        Azimuthally averaged surface density profile.
-    sigma_0 : float
-        Unperturbed surface density at r = 1 au (code units).
-
-    Returns
-    -------
-    gap_depth : float
-        Σ_gap / Σ_0 (< 1 means a gap is present).
-    gap_index : int
-        Radial index of the minimum surface density.
-    """
-    gap_index = int(np.argmin(sigma_avg))
-    gap_depth = float(sigma_avg[gap_index]) / sigma_0
-    return gap_depth, gap_index
-
-
-def load_torques(tqwk_path: Path) -> np.ndarray:
-    """Load the torque file and return a 2-D array.
-
-    FARGO3D writes one row per output time step.  Column 0 is time;
-    the remaining columns are torque contributions.  The exact number
-    of columns depends on the FARGO3D version and setup.
-
-    Parameters
-    ----------
-    tqwk_path : Path
-        Path to the torque file (e.g. ``tqwk0.dat``).
-
-    Returns
-    -------
-    torque_data : np.ndarray, shape (n_steps, n_cols)
-        Torque data array.
-    """
-    torque_data = np.loadtxt(tqwk_path)
-    if torque_data.ndim == 1:
-        torque_data = torque_data[np.newaxis, :]
-    return torque_data
-
-
-def make_sigma_profile_plot(
-    r_centers: np.ndarray,
-    sigma_avg: np.ndarray,
-    gap_index: int,
-    output_stem: Path,
-) -> None:
-    """Create and save a dark-background radial surface density profile.
-
-    Parameters
-    ----------
-    r_centers : np.ndarray
-        Radial cell centres in au.
-    sigma_avg : np.ndarray
-        Azimuthally averaged surface density in code units.
-    gap_index : int
-        Index of the minimum surface density (gap location).
-    output_stem : Path
-        Output path without extension; ``.pdf`` and ``.png`` are appended.
-    """
-    r_au = (r_centers * u.au).value
-
-    fig, ax = plt.subplots(figsize=(8, 5), facecolor=FIGURE_FACECOLOR)
-    ax.set_facecolor(AXES_FACECOLOR)
-
-    ax.plot(r_au, sigma_avg, color=ACCENT_COLOR, lw=2, label=r"$\langle\Sigma\rangle_\phi$")
-    ax.axvline(
-        r_au[gap_index],
-        color="gold",
-        lw=1.2,
-        ls="--",
-        label=f"Gap minimum  r = {r_au[gap_index]:.2f} au",
-    )
-    ax.axhline(SIGMA_0, color="white", lw=0.8, ls=":", alpha=0.6, label=r"$\Sigma_0$")
-
-    ax.set_xlabel("Radius [au]", color=TEXT_COLOR, fontsize=12)
-    ax.set_ylabel(r"$\langle\Sigma\rangle_\phi$ [code units]", color=TEXT_COLOR, fontsize=12)
-    ax.set_title(
-        "FARGO3D — Azimuthal mean surface density  (snapshot 0)",
-        color=TEXT_COLOR,
-        fontsize=13,
-    )
-
-    for spine in ax.spines.values():
-        spine.set_edgecolor(GRID_COLOR)
-    ax.tick_params(colors=TEXT_COLOR, labelsize=10)
-    ax.xaxis.label.set_color(TEXT_COLOR)
-    ax.yaxis.label.set_color(TEXT_COLOR)
-    ax.grid(color=GRID_COLOR, ls="--", lw=0.5, alpha=0.5)
-
-    legend = ax.legend(fontsize=10, facecolor=FIGURE_FACECOLOR, edgecolor=GRID_COLOR)
-    for text in legend.get_texts():
-        text.set_color(TEXT_COLOR)
-
-    fig.tight_layout()
-    fig.savefig(output_stem.with_suffix(".pdf"), dpi=300)
-    fig.savefig(output_stem.with_suffix(".png"), dpi=300)
-    plt.close(fig)
-
-
-def count_snapshots(input_dir: Path) -> int:
-    """Count how many gas-density snapshots are present in *input_dir*."""
-    return len(list(input_dir.glob("gasdens*.dat")))
-
+# ── Analysis ──────────────────────────────────────────────────────────────────
 
 def run_analysis(input_dir: Path, output_json: Path, output_plot_stem: Path) -> dict:
-    """Execute the full post-processing pipeline and return a summary dict.
-
-    Parameters
-    ----------
-    input_dir : Path
-        Directory containing FARGO3D binary outputs.
-    output_json : Path
-        Destination for the summary JSON file.
-    output_plot_stem : Path
-        Stem (no extension) for the output figure files.
-
-    Returns
-    -------
-    summary : dict
-        All computed diagnostics.
-    """
+    """Execute the full post-processing pipeline and return a summary dict."""
     t_start = time.perf_counter()
 
-    # ── Load data ──────────────────────────────────────────────────────────────
-    r_centers = load_radial_grid(input_dir / "domain_y.dat")
-    sigma_2d = load_surface_density(input_dir / f"gasdens{SNAPSHOT_INDEX}.dat")
-    sigma_avg = azimuthal_average(sigma_2d)
-    torque_data = load_torques(input_dir / f"tqwk{SNAPSHOT_INDEX}.dat")
+    run_dir = input_dir.resolve()
+    r = load_radial_grid(run_dir)
 
-    # ── Diagnostics ────────────────────────────────────────────────────────────
-    gap_depth, gap_index = compute_gap_depth(sigma_avg, SIGMA_0)
-    gap_location_au = float(r_centers[gap_index])
-    n_torque_cols = torque_data.shape[1]
-    planet_torque_last = float(torque_data[-1, -1])
+    # Locate all non-2D snapshots
+    snaps = sorted(
+        int(p.stem.replace("gasdens", ""))
+        for p in run_dir.glob("gasdens*.dat")
+        if "2d" not in p.name
+    )
+    n_snaps = len(snaps)
+
+    # DT = pi/10, Ninterm = 10  →  one output per pi code time = 0.5 orbital period
+    dt_per_output = np.pi  # DT * Ninterm
+    times_orbits = np.array([s * dt_per_output / (2.0 * np.pi) for s in snaps])
+
+    # Initial reference profile
+    sig0 = load_sigma_profile(run_dir, snaps[0])
+
+    # Gap region for gap depth (planet at r=1 AU)
+    gap_mask = (r >= 0.6) & (r <= 1.5)
+
+    # Gap depth evolution
+    gap_depths = []
+    r_gaps = []
+    for s in snaps:
+        sig = load_sigma_profile(run_dir, s)
+        idx_min = int(np.argmin(sig[gap_mask]))
+        gap_depths.append(sig[gap_mask][idx_min] / sig0[gap_mask][idx_min])
+        r_gaps.append(float(r[gap_mask][idx_min]))
+
+    gap_depths = np.array(gap_depths)
+    r_gaps = np.array(r_gaps)
+
+    # Load all profiles (for the figure)
+    all_profiles = {s: load_sigma_profile(run_dir, s) for s in snaps}
+
+    # Torque
+    t_torque, torque = load_tqwk(run_dir)
+    t_torque_orbits = t_torque / (2.0 * np.pi)
+
+    # Kanagawa prediction
+    delta_kanagawa = kanagawa_gap_depth(Q_PLANET, H_DISK, ALPHA_DISK)
 
     # ── Figure ─────────────────────────────────────────────────────────────────
     output_plot_stem.parent.mkdir(parents=True, exist_ok=True)
-    make_sigma_profile_plot(r_centers, sigma_avg, gap_index, output_plot_stem)
 
-    # ── Summary ────────────────────────────────────────────────────────────────
+    fig, axes = plt.subplots(1, 2, figsize=(11, 4.5))
+    fig.subplots_adjust(wspace=0.32)
+    cmap = plt.get_cmap("tab10")
+
+    # Panel 1: Σ(r)/Σ_0(r) profiles at t=0, midpoint, end
+    ax = axes[0]
+    snap_subset = [snaps[0], snaps[n_snaps // 2], snaps[-1]]
+    t_subset = [times_orbits[0], times_orbits[n_snaps // 2], times_orbits[-1]]
+    for i, (s, t_orb) in enumerate(zip(snap_subset, t_subset)):
+        ax.plot(r, all_profiles[s] / sig0, color=cmap(i),
+                label=rf"$t = {t_orb:.1f}$ orbits", lw=1.5)
+    ax.axhline(delta_kanagawa, color="red", ls="--", lw=1.2,
+               label=rf"Kanagawa+15 steady state ($\delta={delta_kanagawa:.4f}$)")
+    ax.axvline(1.0, color="gray", ls=":", lw=1.0, label="Planet ($r=1$ AU)")
+    ax.set_xlabel(r"$r$ [AU]", fontsize=11)
+    ax.set_ylabel(r"$\Sigma(r)\,/\,\Sigma_0(r)$", fontsize=11)
+    ax.set_title("Surface density profile", fontsize=11)
+    ax.legend(fontsize=8, loc="upper right")
+    ax.set_xlim(0.4, 2.5)
+    ax.set_ylim(0, 2.0)
+    ax.tick_params(labelsize=9)
+
+    # Panel 2: gap depth vs time
+    ax2 = axes[1]
+    ax2.plot(times_orbits, gap_depths, "o-", color=cmap(0), ms=4, lw=1.5,
+             label=r"$\Sigma_{\rm gap}/\Sigma_0$ (simulation)")
+    ax2.axhline(delta_kanagawa, color="red", ls="--", lw=1.2,
+                label="Kanagawa+15 steady state")
+    ax2.set_xlabel(r"Time [orbits at $r=1$ AU]", fontsize=11)
+    ax2.set_ylabel(r"$\Sigma_{\rm gap}/\Sigma_0$", fontsize=11)
+    ax2.set_title("Gap depth evolution", fontsize=11)
+    ax2.legend(fontsize=9)
+    ax2.set_ylim(0, 1.1)
+    ax2.tick_params(labelsize=9)
+    ax2.annotate(
+        rf"$\delta={gap_depths[-1]:.3f}$ at $t={times_orbits[-1]:.0f}$ orbits",
+        xy=(times_orbits[-1], gap_depths[-1]),
+        xytext=(times_orbits[-1] * 0.45, gap_depths[-1] + 0.12),
+        arrowprops=dict(arrowstyle="->", color="k", lw=0.8),
+        fontsize=8,
+    )
+
+    fig.suptitle(
+        r"FARGO3D: 1 $M_{\rm Jup}$, $h/r=0.05$, $\alpha=10^{-3}$",
+        fontsize=12, y=1.01,
+    )
+    pdf_path = output_plot_stem.with_suffix(".pdf")
+    png_path = output_plot_stem.with_suffix(".png")
+    fig.savefig(pdf_path, dpi=300, bbox_inches="tight")
+    fig.savefig(png_path, dpi=300, bbox_inches="tight")
+    plt.close(fig)
+    print(f"Saved: {pdf_path}, {png_path}")
+
+    # ── Summary dict ───────────────────────────────────────────────────────────
     wall_clock = time.perf_counter() - t_start
-    n_snaps = count_snapshots(input_dir)
-
     summary = {
         "agent": "analysis-agent",
-        "task": "fargo_gap_depth_post_processing",
-        "input_dir": str(input_dir),
-        "n_snapshots_found": n_snaps,
-        "snapshot_analysed": SNAPSHOT_INDEX,
-        "Sigma_gap_over_Sigma0": round(gap_depth, 6),
-        "Sigma_gap_code_units": round(float(sigma_avg[gap_index]), 8),
-        "Sigma_0_code_units": SIGMA_0,
-        "gap_location_au": round(gap_location_au, 4),
-        "n_torque_columns": n_torque_cols,
-        "planet_torque_last": planet_torque_last,
-        "output_json": str(output_json),
-        "output_plot": str(output_plot_stem.with_suffix(".pdf")),
+        "task": "fargo_gap_depth_multi_snapshot",
+        "date": datetime.date.today().isoformat(),
+        "input_dir": str(run_dir),
+        "code": "FARGO3D 2.0-41-gf3593281",
+        "setup": "fargo_nu",
+        "n_snapshots": n_snaps,
+        "q_planet": Q_PLANET,
+        "h_disk": H_DISK,
+        "alpha": ALPHA_DISK,
+        "gap_depth_last": round(float(gap_depths[-1]), 6),
+        "r_gap_last_au": round(float(r_gaps[-1]), 4),
+        "t_last_orbits": round(float(times_orbits[-1]), 4),
+        "gap_depth_kanagawa_steady": round(float(delta_kanagawa), 6),
+        "planet_torque_last": round(float(torque[-1]), 8) if len(torque) else None,
+        "gap_depth_vs_time": {
+            "t_orbits": times_orbits.tolist(),
+            "delta": gap_depths.tolist(),
+        },
+        "figures": [str(pdf_path), str(png_path)],
         "wall_clock_s": round(wall_clock, 3),
     }
 
     output_json.parent.mkdir(parents=True, exist_ok=True)
-    with output_json.open("w") as file_handle:
-        json.dump(summary, file_handle, indent=2)
+    with open(output_json, "w") as fh:
+        json.dump(summary, fh, indent=2)
+    print(f"Results JSON: {output_json}")
 
     return summary
 
 
+# ── CLI ───────────────────────────────────────────────────────────────────────
+
 def main() -> None:
-    """CLI entry point for ``fargo_gap_analysis.py``."""
+    """CLI entry point."""
     repo_root = Path(__file__).resolve().parents[2]
 
-    parser = argparse.ArgumentParser(
-        description="Post-process a FARGO3D snapshot and compute gap diagnostics."
-    )
-    parser.add_argument(
-        "--input-dir",
-        type=Path,
-        default=Path("/Users/giovanni/Codes/fargo3d/data/runs/fargo_skill_test"),
-        help="Path to the FARGO3D binary output directory.",
-    )
-    parser.add_argument(
-        "--output-json",
-        type=Path,
-        default=repo_root / "results" / "analysis" / "fargo_gap_analysis_20260529.json",
-        help="Destination JSON file for the summary.",
-    )
-    parser.add_argument(
-        "--output-plot",
-        type=Path,
-        default=repo_root / "plots" / "fargo_sigma_profile",
-        help="Output figure stem (no extension; .pdf and .png are appended).",
-    )
-    args = parser.parse_args()
+    p = argparse.ArgumentParser(description=__doc__)
+    p.add_argument("--input-dir", type=Path,
+                   default=repo_root / "data" / "runs" / "fargo_nu_1Mjup")
+    p.add_argument("--output-json", type=Path,
+                   default=repo_root / "results" / "analysis" / "fargo_gap_analysis.json")
+    p.add_argument("--output-plot", type=Path,
+                   default=repo_root / "plots" / "disk" / "fargo_nu_1Mjup_gap")
+    args = p.parse_args()
 
     summary = run_analysis(args.input_dir, args.output_json, args.output_plot)
 
-    print(json.dumps(summary, indent=2))
+    print(f"\nGap depth at {summary['t_last_orbits']:.1f} orbits : "
+          f"{summary['gap_depth_last']:.4f}")
+    print(f"Kanagawa+15 steady-state         : "
+          f"{summary['gap_depth_kanagawa_steady']:.4f}")
+    print(f"Planet total torque (last output): "
+          f"{summary['planet_torque_last']:.4e}")
 
 
 if __name__ == "__main__":
