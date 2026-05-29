@@ -46,7 +46,7 @@ class FARGO3DParams(BaseModel):
     # Tmax is accepted by some setups (p3diso etc.) but ignored with a warning
     # in others — always prefer Ntot when uncertain.  Pass only one of the two.
     Tmax: Optional[float] = Field(default=None, gt=0.0)
-    Ntot: Optional[int] = Field(default=None, ge=1)   # total DT steps
+    Ntot: Optional[int] = Field(default=None, ge=1)  # total DT steps
     Ninterm: Optional[int] = Field(default=None, ge=1)
     DT: Optional[float] = Field(default=None, gt=0.0)
 
@@ -229,10 +229,12 @@ def _fargo3d_version(fargo_exe: str) -> str:
     """Return git hash of the FARGO3D source tree, or 'unknown'."""
     try:
         import subprocess as _sp
+
         src_dir = str(Path(fargo_exe).resolve().parent)
         return _sp.check_output(
             ["git", "-C", src_dir, "rev-parse", "--short", "HEAD"],
-            text=True, stderr=_sp.DEVNULL,
+            text=True,
+            stderr=_sp.DEVNULL,
         ).strip()
     except Exception:
         return "unknown"
@@ -269,9 +271,7 @@ def run_fargo3d_simulation(params: FARGO3DParams) -> dict:
     patcher = FARGOParPatcher(params.par_file)
     patched_par = os.path.join(params.output_dir, Path(params.par_file).name)
     sigma0_ref = params.Sigma0 or (
-        float(patcher.read_value("Sigma0") or "nan")
-        if patcher.read_value("Sigma0")
-        else None
+        float(patcher.read_value("Sigma0") or "nan") if patcher.read_value("Sigma0") else None
     )
     patcher.apply(overrides)
     patcher.write(patched_par)
@@ -345,9 +345,7 @@ def run_fargo3d_simulation(params: FARGO3DParams) -> dict:
 
 def _build_parser() -> argparse.ArgumentParser:
     p = argparse.ArgumentParser(description="Patch a FARGO3D .par file and run.")
-    p.add_argument(
-        "--json", metavar="JSON", help="JSON string or file with all parameters"
-    )
+    p.add_argument("--json", metavar="JSON", help="JSON string or file with all parameters")
     p.add_argument("--par-file", dest="par_file")
     p.add_argument("--output-dir", dest="output_dir")
     p.add_argument("--AspectRatio", type=float)
@@ -355,12 +353,17 @@ def _build_parser() -> argparse.ArgumentParser:
     p.add_argument("--Alpha", type=float)
     p.add_argument("--FlaringIndex", type=float)
     p.add_argument("--PlanetMass", type=float)
-    p.add_argument("--Tmax", type=float,
-                   help="Max simulation time (code units). Not valid for all setups; "
-                        "prefer --Ntot for fargo/fargo_nu.")
-    p.add_argument("--Ntot", type=int,
-                   help="Total number of DT steps (preferred over --Tmax for "
-                        "fargo/fargo_nu setups).")
+    p.add_argument(
+        "--Tmax",
+        type=float,
+        help="Max simulation time (code units). Not valid for all setups; "
+        "prefer --Ntot for fargo/fargo_nu.",
+    )
+    p.add_argument(
+        "--Ntot",
+        type=int,
+        help="Total number of DT steps (preferred over --Tmax for " "fargo/fargo_nu setups).",
+    )
     p.add_argument("--Ninterm", type=int)
     p.add_argument("--DT", type=float)
     p.add_argument("--Nx", type=int)
