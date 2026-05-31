@@ -32,9 +32,8 @@ from typing import Any, Dict, List, Optional
 
 import numpy as np
 from pydantic import BaseModel, Field, field_validator, model_validator
-from scientific_pydantic.numpy import NDArrayAdapter
 
-SYSCONF_NAME = "sysconf.out"  # written by compile_pluto_v4
+SYSCONF_NAME = "sysconf.out"  # written by compile_pluto.py
 _SKILL_DIR = Path(__file__).resolve().parent
 
 
@@ -53,9 +52,7 @@ class PLUTOParams(BaseModel):
     first_dt: Optional[float] = Field(default=None, gt=0.0)
 
     # Staged run — mutually exclusive with tstop
-    checkpoint_times: ty.Optional[
-        ty.Annotated[np.ndarray, NDArrayAdapter(ndim=1, dtype="float64", gt=0.0)]
-    ] = None
+    checkpoint_times: ty.Optional[ty.List[float]] = None
 
     # ── Solver (patches [Solver] in pluto.ini) ────────────────────────────────
     solver: Optional[str] = None  # e.g. "hll", "roe", "tvdlf"
@@ -111,9 +108,9 @@ class PLUTOParams(BaseModel):
                 pass
         return v
 
-    @field_validator("parameters", mode="before")
+    @field_validator("parameters", "checkpoint_times", mode="before")
     @classmethod
-    def coerce_parameters(cls, v):
+    def coerce_json_fields(cls, v):
         if isinstance(v, str):
             return json.loads(v)
         return v
@@ -608,7 +605,7 @@ def _compile_if_needed(params: PLUTOParams, pluto_exe: str) -> None:
     if not params.auto_compile and not params.force_compile:
         return
 
-    compile_script = os.path.expanduser("~/.agents/skills/pluto/scripts/compile_pluto.py")
+    compile_script = str(_SKILL_DIR / "compile_pluto.py")
     sc = _read_sysconf(params.run_dir)
 
     cmd = [sys.executable, compile_script, "--run-dir", params.run_dir]

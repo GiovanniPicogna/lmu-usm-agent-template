@@ -224,6 +224,139 @@ python compile_pluto.py --run-dir "/path/to/resistive_jet" --parallel
 
 ---
 
+## 12. pyPLUTO v4.4 analysis workflows  *(post-run, no recompile)*
+
+All examples use the bundled pyPLUTO installed from `$PLUTO_DIR/Tools/pyPLUTO/`.
+Install once: `pip install -e $PLUTO_DIR/Tools/pyPLUTO`
+
+```python
+import numpy as np
+import pyPLUTO as pp
+import pyPLUTO.pload as ppl
+import matplotlib.pyplot as plt
+
+WDIR = "runs/disk/"    # adjust to your run_dir
+
+# ── 1. Load last snapshot ──────────────────────────────────────────────────
+info = pp.nlast_info(w_dir=WDIR)
+N    = info['nlast']
+t    = info['time']
+D    = ppl.pload(N, w_dir=WDIR, datatype='dbl')
+
+# ── 2. Array layout: D.rho.shape == (nx2, nx1) == (nphi, nr) for POLAR ──
+nr, nphi = D.rho.shape[1], D.rho.shape[0]
+r   = D.x1      # 1-D radial cell centres
+phi = D.x2      # 1-D azimuthal cell centres
+
+# ── 3. Azimuthal average (axis=0 = phi axis for POLAR) ────────────────────
+rho_mean = D.rho.mean(axis=0)   # shape (nr,) — radial density profile
+vr_mean  = D.vx1.mean(axis=0)
+
+# ── 4. Disc surface density (Σ ≈ ρ * Δz for 2-D; requires unit conversion)
+# Σ [g/cm²] = rho_code * UNIT_DENSITY * Δr * UNIT_LENGTH
+UNIT_DENSITY = 1.67e-24   # read from physics_config.md
+UNIT_LENGTH  = 1.496e13   # 1 AU in cm
+sigma = D.rho.mean(axis=0) * UNIT_DENSITY * np.diff(np.concatenate([[0], D.x1])) * UNIT_LENGTH
+
+# ── 5. Gap depth: min density between r=0.8 and r=1.2 code units ──────────
+mask     = (r >= 0.8) & (r <= 1.2)
+gap_rho  = rho_mean[mask]
+gap_min  = gap_rho.min()
+print(f"Gap min density (code): {gap_min:.3e}  at t={t:.2f}")
+
+# ── 6. Spiral arm detection: azimuthal density fluctuation at r=1.0 ───────
+ir  = np.argmin(np.abs(r - 1.0))
+phi_rho = D.rho[:, ir]   # shape (nphi,) — phi slice at r=1 AU
+
+# ── 7. Quick 2-D disc plot (r-phi → Cartesian) ────────────────────────────
+R, PHI = np.meshgrid(r, phi, indexing='ij')  # (nr, nphi)
+X = R * np.cos(PHI)
+Y = R * np.sin(PHI)
+# D.rho is (nphi, nr) — transpose to (nr, nphi) for meshgrid
+fig, ax = plt.subplots(figsize=(7, 6))
+pcm = ax.pcolormesh(X, Y, D.rho.T, cmap='viridis',
+                    norm=plt.matplotlib.colors.LogNorm(), shading='auto')
+fig.colorbar(pcm, ax=ax, label=r'$\rho$ [code]')
+ax.set_aspect('equal')
+ax.set_xlabel('x [AU]'); ax.set_ylabel('y [AU]')
+ax.set_title(f'Density  t={t:.2f}  n={N}')
+fig.savefig('plots/rho_disc.pdf', bbox_inches='tight')
+plt.close(fig)
+
+# ── 8. Time series: load all snapshots and track gap depth ────────────────
+from pathlib import Path
+import re
+
+# Parse dbl.out for all (n, t) pairs
+times, gap_depths = [], []
+for line in Path(WDIR + "dbl.out").read_text().splitlines():
+    parts = line.split()
+    if parts:
+        n_snap, t_snap = int(parts[0]), float(parts[1])
+        Ds = ppl.pload(n_snap, w_dir=WDIR, datatype='dbl')
+        rho_r = Ds.rho.mean(axis=0)
+        m = (Ds.x1 >= 0.8) & (Ds.x1 <= 1.2)
+        times.append(t_snap)
+        gap_depths.append(rho_r[m].min())
+
+fig, ax = plt.subplots()
+ax.semilogy(times, gap_depths)
+ax.set_xlabel('t [code]'); ax.set_ylabel(r'$\rho_{\rm gap,min}$')
+fig.savefig('plots/gap_depth_timeseries.pdf', bbox_inches='tight')
+plt.close(fig)
+```
+
+---
+
+## 13. Spherical disc + FARGO  *(MHD, VTK output)*
+
+Based on `Test_Problems/MHD/FARGO/Spherical_Disk/`.
+
+```bash
+python compile_pluto.py --json '{
+  "run_dir": "$PLUTO_DIR/Test_Problems/MHD/FARGO/Spherical_Disk",
+  "with_fargo": true}'
+
+python run_pluto.py --json '{
+  "run_dir": "$PLUTO_DIR/Test_Problems/MHD/FARGO/Spherical_Disk",
+  "tstop": 10.0}'
+
+python plot_pluto.py --run-dir "$PLUTO_DIR/Test_Problems/MHD/FARGO/Spherical_Disk" \
+  --snap last --variables rho Bx1 --datatype vtk
+```
+
+Python analysis (r-phi midplane slice at θ = π/2):
+```python
+import pyPLUTO.pload as ppl, pyPLUTO.Image as img
+D = ppl.pload(N, w_dir=wdir, datatype='vtk')
+I = img.Image()
+# r-phi midplane: rphi=True, x2cut = index of equatorial plane
+I.pltSphData(D, w_dir=wdir, datatype='vtk', plvar='Bx1',
+             logvar=False, rphi=True, x2cut=D.n2//2)
+```
+
+---
+
+## 14. Cosmic-ray particle tracking  *(Particles module)*
+
+```bash
+python compile_pluto.py --run-dir "$PLUTO_DIR/Test_Problems/Particles/CR_Transport" \
+  --with-cr-transport
+
+python run_pluto.py --run-dir "$PLUTO_DIR/Test_Problems/Particles/CR_Transport" --tstop 1.0
+```
+
+Load particle data:
+```python
+import pyPLUTO.ploadparticles as plp
+P = plp.ploadparticles(N, w_dir=wdir, datatype='dbl', ptype='CR')
+# P.x1, P.x2, P.x3  — particle positions
+# P.vx1, P.vx2, P.vx3 — velocities
+# P.identity — particle IDs
+```
+
+---
+
 ## Common errors and fixes
 
 | Symptom | Cause | Fix |

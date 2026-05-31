@@ -2,21 +2,12 @@
 name: pluto
 description: >
   Compile, configure, and run PLUTO (HD/MHD/RHD/RMHD/ResRMHD) simulations.
-  Trigger on: PLUTO, pluto.ini, definitions.h, init.c, setup.py, PLUTO_DIR,
-  tstop, CFL, Riemann solver, .dbl/.h5/.vtk, snapshot, restart, make PLUTO,
-  pyPLUTO, MHD disc/wind/jet, shearing box, FARGO, AMR, Chombo, FARGO3D.
-  Do NOT trigger for Athena++, RAMSES, FARGO3D, GADGET, AREPO.
-
-# ── File map ────────────────────────────────────────────────────────────────
-# SKILL.md (this file)  ← routing, physics context, safety rules, quick ref
-# parameters.md         ← full compile + run parameter tables
-# examples.md           ← ready-to-run commands for common workflows
-# compile_pluto.py      ← script: compile_pluto(PLUTOCompileParams)
-# run_pluto.py          ← script: run_pluto_simulation(PLUTOParams)
-# ────────────────────────────────────────────────────────────────────────────
-argument-hint: >
-  'runs/disk compile config_num=1'  |  'runs/disk tstop=500 ALPHA=1e-3 n_procs=4'
-  'runs/disk restart=12 tstop=800'  |  'runs/amr compile with_chombo=true chombo_mpi=true'
+  Use this skill whenever the user mentions PLUTO, pluto.ini, definitions.h,
+  init.c, setup.py, PLUTO_DIR, tstop, CFL, Riemann solver, .dbl/.h5/.vtk,
+  snapshot, restart, make PLUTO, pyPLUTO, MHD disc/wind/jet, shearing box,
+  FARGO orbital advection, AMR, Chombo, or FARGO3D. Invoke for any compile,
+  run, restart, plot, or analysis task involving PLUTO output.
+  Do NOT trigger for Athena++, RAMSES, standalone FARGO3D code, GADGET, AREPO.
 ---
 
 # PLUTO Skill
@@ -192,7 +183,7 @@ Staged runs, monitoring, background mode → `examples.md`.
 
 ---
 
-## STEP 4 — Post-run diagnostics
+## STEP 4 — Post-run diagnostics & plotting
 
 ### 4.1 What to check
 
@@ -217,13 +208,60 @@ grep -iE "nan|inf|negative|! error|! warn|! fatal" pluto.0.log | head -20
 - AGN photon index: Γ ∈ [1.0, 3.0]
 - Wind Mach at outer boundary: < 20
 
-### 4.2 Post-run analysis
+### 4.2 Plot script call
+
+```bash
+python plot_pluto.py --run-dir runs/disk --snap last --variables rho vx1
+python plot_pluto.py --run-dir runs/disk --snap all  --variables rho prs --format pdf
+python plot_pluto.py --run-dir runs/disk --snap last --variables rho --velocity-overlay
+
+# JSON form (agent preferred)
+python plot_pluto.py --json '{
+  "run_dir": "runs/disk",
+  "snap": "last",
+  "variables": ["rho", "vx1", "Bx1"],
+  "velocity_overlay": true,
+  "format": "pdf"
+}'
+```
+
+Full parameter list → `parameters.md §Plot`.
+Ready-to-run workflows → `examples.md`.
+
+### 4.3 pyPLUTO v4.4 quick reference  *(bundled in PLUTO/Tools/pyPLUTO/)*
 
 ```python
-import pyPLUTO as pp          # pip install pypluto  (arXiv:2501.09748)
-d = pp.Load(12, w_dir="runs/disk/", datatype="dbl")
-# d.rho, d.vx1, d.vx2, d.Bx3, d.x1, d.x2 ...
+import pyPLUTO as pp
+import pyPLUTO.pload as ppl   # ← the class lives in the sub-module
+
+# Get last snapshot index (also prints info to stdout)
+info = pp.nlast_info(w_dir="runs/disk/")   # → {'nlast': N, 'time': t, 'dt': dt, 'Nstep': s}
+N    = info['nlast']
+
+# Load snapshot N
+D = ppl.pload(N, w_dir="runs/disk/", datatype="dbl")
+# D.rho   — density,     shape (nx2, nx1)   [note: PLUTO stores in (x2, x1) order]
+# D.vx1   — velocity x1, shape (nx2, nx1)
+# D.x1    — x1 cell-centre coords, 1-D
+# D.x2    — x2 cell-centre coords, 1-D
+# D.SimTime  — simulation time
+# D.Dt       — last timestep
+
+# Radial profile (azimuthal mean for disc problem in POLAR geometry)
+import numpy as np
+rho_mean = D.rho.mean(axis=0)    # axis=0 is phi in (nx2, nx1) layout
+r = D.x1
+
+# VTK files
+D = ppl.pload(N, w_dir="runs/disk/", datatype="vtk")
+
+# AMR / HDF5 at refinement level 3
+D = ppl.pload(N, w_dir="runs/amr/", datatype="hdf5", level=3)
 ```
+
+> ⚠️  The PLUTO-bundled pyPLUTO v4.4 stores 2-D arrays as `(nx2, nx1)` — always
+>     transpose or use `axis=0/1` carefully.
+>     Do **not** use `pp.Load()` — that API only exists in the newer pip `pypluto` package.
 
 Report always: `last_snapshot N`, `t`, `dt`, `nstep`, `rho_max`, `rho_min`.
 
@@ -368,12 +406,78 @@ Predefined physical constants available in `init.c`: `CONST_mp`, `CONST_kB`, `CO
 
 ---
 
+## STEP 9 — Handoff JSON  *(emit after each phase)*
+
+The PLUTO skill participates in two pipeline handoff points.
+Write the JSON to `results/<task_id>/` and report the path before finishing.
+
+### 9.1 After compile / config  →  `SimConfigHandoff/v1`
+
+Emit when the compile step completes (typically via `@setup-agent`).
+
+| Field | PLUTO value |
+|-------|-------------|
+| `code` | `"PLUTO"` |
+| `code_version` | Read `PLUTO_VERSION` from `$PLUTO_DIR/Src/pluto.h`; fall back to `sysconf.out` |
+| `config_path` | Absolute path to `pluto.ini` in `run_dir` |
+| `skill_invoked` | Absolute path to `compile_pluto.py` |
+| `physics_params` | Capture from `definitions.h`: `PHYSICS`, `GEOMETRY`, `DIMENSIONS`, `EOS`, module flags |
+| `run_cmd` | `"python run_pluto.py --json '...'"` (set `null` if `hpc_mode: true`) |
+| `validated` | `true` only after `make` exits 0 **and** `./pluto` exists and is executable |
+
+Full schema → `.github/shared/handoff_schemas.md §SimConfigHandoff/v1`.
+
+### 9.2 After run  →  `SimulationHandoff/v1`
+
+Emit when the run step completes (typically via `@simulation-agent`).
+
+| Field | PLUTO value |
+|-------|-------------|
+| `code` | `"PLUTO"` |
+| `code_version` | Same as 9.1 |
+| `skill_script` | Absolute path to `run_pluto.py` |
+| `param_file` | Absolute path to `pluto.ini` at launch time |
+| `param_file_md5` | MD5 hex of `pluto.ini` at launch time |
+| `rho_field` | `"rho"` — always; PLUTO's density variable is invariably named `rho` |
+| `rho_units` | Code unit string from `physics_config.md`, e.g. `"UNIT_DENSITY [g/cm³]"` |
+| `last_snap` | Column 0 of the last line of `dbl.out` |
+| `t_end_code` | Column 1 of the last line of `dbl.out` |
+
+Populate `diagnostics` with pyPLUTO v4.4:
+
+```python
+import pyPLUTO as pp
+import pyPLUTO.pload as ppl
+info     = pp.nlast_info(w_dir=run_dir)
+D        = ppl.pload(info['nlast'], w_dir=run_dir, datatype='dbl')
+rho_flat = D.rho.flatten()
+diagnostics = {
+    "n_snapshots": info['nlast'] + 1,
+    "last_snap":   info['nlast'],
+    "t_end_code":  float(info['time']),
+    "rho_field":   "rho",
+    "rho_units":   "<from physics_config.md>",
+    "rho_max":     float(rho_flat.max()),
+    "rho_min":     float(rho_flat[rho_flat > 0].min()),
+    "wall_clock_s": <elapsed_wall_time>
+}
+```
+
+Full schema → `.github/shared/handoff_schemas.md §SimulationHandoff/v1`.
+
+---
+
 ## Quick-ref card
 
 ```
 COMPILE:  python compile_pluto.py --json '{...}'   → parameters.md §Compile
 RUN:      python run_pluto.py     --json '{...}'   → parameters.md §Run
-EXAMPLES: examples.md                              → HD, MHD, AMR, FARGO, SB, parallel
+PLOT:     python plot_pluto.py    --json '{...}'   → parameters.md §Plot  |  STEP 4.2
+pyPLUTO:  import pyPLUTO.pload as ppl              → STEP 4.3  (v4.4 bundled API)
+          D = ppl.pload(N, w_dir=..., datatype=...) → D.rho (nx2, nx1)  D.x1 D.x2
+HANDOFF:  after compile → SimConfigHandoff/v1      → STEP 9.1
+          after run     → SimulationHandoff/v1     → STEP 9.2  |  handoff_schemas.md
+EXAMPLES: examples.md                              → HD, MHD, AMR, FARGO, SB, parallel, analysis
 PHYSICS:  STEP 5 above                             → PHYSICS, GEOMETRY, TIME_STEPPING,
                                                      RECONSTRUCTION, EOS, viscosity/TC
 UNITS:    STEP 6 above                             → UNIT_DENSITY, UNIT_LENGTH, UNIT_VELOCITY

@@ -1,16 +1,17 @@
 #!/usr/bin/env python3
 """
-PLUTO post-run plotter — v1.
+PLUTO post-run plotter.
 Mignone et al. 2007  •  https://plutocode.ph.unito.it
-Based on PLUTO v4.4-patch3  •  Requires pyPLUTO (arXiv:2501.09748)
+Based on PLUTO v4.4  •  Requires pyPLUTO (bundled in PLUTO/Tools/pyPLUTO/)
 
 Produces publication-quality figures from PLUTO snapshots:
   - Geometry-aware axes (r, φ, z, x, y in physical units from physics_config.md)
-  - Multi-variable multi-panel layout, one file per snapshot
+  - Multi-variable panels, one file per variable per snapshot
   - Optional velocity quiver overlay
+  - Polar/Spherical r-phi projection to Cartesian for disc problems
   - Colorblind-safe palettes (viridis/cividis) at 300 dpi
   - PDF (vector) + PNG (raster) dual output
-  - Works with: .dbl, .flt, .dbl.h5, .flt.h5, Chombo data.nnnn.hdf5
+  - Works with: .dbl, .flt, .dbl.h5, .flt.h5, vtk, Chombo data.nnnn.hdf5
 
 Usage:
     python plot_pluto.py --run-dir runs/disk --snap last
@@ -23,7 +24,7 @@ Usage:
         "velocity_overlay": true,
         "format": "pdf"}'
 
-Outputs (one per snapshot):
+Outputs (one per variable per snapshot):
     <output_dir>/<varname>_n<NNNN>.<format>
 
 physics_config.md (written by compile_pluto.py) is read for:
@@ -42,13 +43,80 @@ from typing import Any, List, Optional, Union
 
 import numpy as np
 
+# ── pyPLUTO: bundled v4.4 API ────────────────────────────────────────────────
+# Use:  import pyPLUTO.pload as ppl; D = ppl.pload(n, w_dir=..., datatype=...)
+# NOT:  import pyPLUTO as pp; pp.pload(...)  — that calls the MODULE not the class
+# nlast_info returns {'nlast': N, 'time': t, 'dt': dt, 'Nstep': s}
+
+
+def _pypluto_load(run_dir: str, snap_n: int, datatype: str = "dbl"):
+    """
+    Load a PLUTO snapshot using pyPLUTO v4.4 API.
+    Returns a pload object with attributes: rho, vx1, vx2, x1, x2, x3, Dt, SimTime …
+    Raises ImportError if pyPLUTO is not installed.
+    """
+    try:
+        import pyPLUTO.pload as ppl
+    except ImportError:
+        raise ImportError(
+            "pyPLUTO is required for plot_pluto.py.\n"
+            "Install the bundled version: pip install -e $PLUTO_DIR/Tools/pyPLUTO\n"
+            "Or the PyPI version: pip install pypluto"
+        )
+    # Map 'dbl.h5' / 'flt.h5' to the correct datatype token for pload
+    dtype_map = {
+        "dbl": "dbl",
+        "flt": "flt",
+        "vtk": "vtk",
+        "hdf5": "hdf5",
+        "dbl.h5": "dbl",
+        "flt.h5": "flt",
+    }
+    dt = dtype_map.get(datatype, datatype)
+    return ppl.pload(snap_n, w_dir=run_dir, datatype=dt)
+
+
+def _nlast_index(run_dir: str, datatype: str = "dbl") -> int:
+    """Return the last snapshot index using pyPLUTO.nlast_info, then file-scan fallback."""
+    # Primary: pyPLUTO.nlast_info (reads dbl.out / flt.out)
+    try:
+        import pyPLUTO as pp
+
+        dt = {"dbl.h5": "dbl", "flt.h5": "flt"}.get(datatype, datatype)
+        info = pp.nlast_info(w_dir=run_dir, datatype=dt if dt != "dbl" else None)
+        return int(info["nlast"])
+    except Exception:
+        pass
+
+    # Fallback: parse dbl.out / flt.out directly
+    ext = "flt" if datatype.startswith("flt") else "dbl"
+    desc = Path(run_dir) / f"{ext}.out"
+    if desc.is_file():
+        lines = [line for line in desc.read_text().splitlines() if line.strip()]
+        if lines:
+            try:
+                return int(lines[-1].split()[0])
+            except Exception:
+                pass
+
+    # Fallback: glob for data.NNNN.dbl etc.
+    for pat in ("*.dbl.h5", "*.flt.h5", "*.dbl", "*.flt", "*.vtk", "data.*.hdf5"):
+        files = sorted(Path(run_dir).glob(pat))
+        if files:
+            try:
+                return int(files[-1].name.split(".")[1 if "data." in files[-1].name else 0])
+            except Exception:
+                pass
+    return -1
+
+
 # ── Axis-label maps per geometry ─────────────────────────────────────────────
 
 _AXIS_LABELS = {
     "CARTESIAN": {1: "x", 2: "y", 3: "z"},
-    "POLAR": {1: "r", 2: r"$\phi$", 3: "z"},
-    "SPHERICAL": {1: "r", 2: r"$\theta$", 3: r"$\phi$"},
-    "CYLINDRICAL": {1: "r", 2: "z", 3: r"$\phi$"},
+    "POLAR": {1: "r", 2: r"$\phi$ [rad]", 3: "z"},
+    "SPHERICAL": {1: "r", 2: r"$\theta$ [rad]", 3: r"$\phi$ [rad]"},
+    "CYLINDRICAL": {1: "r", 2: "z", 3: r"$\phi$ [rad]"},
 }
 
 _COLORMAPS = {
@@ -68,71 +136,73 @@ _COLORMAPS = {
     "_default": "viridis",
 }
 
-_SYMLOG_VARS = {"vx1", "vx2", "vx3", "Bx1", "Bx2", "Bx3"}  # signed; use symlog
-_LOG_VARS = {"rho", "prs", "Density", "Pressure"}  # positive; use log
+_SYMLOG_VARS = {"vx1", "vx2", "vx3", "Bx1", "Bx2", "Bx3"}
+_LOG_VARS = {"rho", "prs", "Density", "Pressure"}
 
 
 def _cmap_for(varname: str) -> str:
     return _COLORMAPS.get(varname, _COLORMAPS["_default"])
 
 
-# ── pyPLUTO loader ───────────────────────────────────────────────────────────
-
-
-def _load_snapshot(run_dir: str, snap_n: int, datatype: str = "dbl"):
-    """
-    Load a PLUTO snapshot.  Returns pyPLUTO Data object or raises.
-    Tries new API (pp.Load) then legacy (pp.pload).
-    """
-    try:
-        import pyPLUTO as pp
-
-        try:
-            return pp.Load(snap_n, w_dir=run_dir, datatype=datatype)
-        except TypeError:
-            # Legacy API signature
-            return pp.pload(snap_n, w_dir=run_dir, datatype=datatype)
-    except ImportError:
-        raise ImportError(
-            "pyPLUTO is required for plot_pluto.py.\n"
-            "Install with: pip install pypluto\n"
-            "Reference: arXiv:2501.09748"
-        )
+# ── Coordinate helpers ────────────────────────────────────────────────────────
 
 
 def _get_array(d, varname: str) -> Optional[np.ndarray]:
-    """Retrieve a variable array from a pyPLUTO Data object."""
+    """Retrieve a variable array from a pyPLUTO pload object."""
     for attr in (varname, varname.lower(), varname.upper()):
         val = getattr(d, attr, None)
         if val is not None:
-            return np.asarray(val)
+            arr = np.asarray(val)
+            if arr.ndim > 0:  # reject empty
+                return arr
     return None
 
 
-def _get_coords(d, geometry: str) -> tuple[np.ndarray, np.ndarray]:
+def _get_coords(d) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
+    """Return (x1, x2, x3) 1-D coordinate arrays from a pload object."""
+    x1 = np.asarray(getattr(d, "x1", np.arange(10)))
+    x2 = np.asarray(getattr(d, "x2", np.arange(10)))
+    x3 = np.asarray(getattr(d, "x3", np.array([0.0])))
+    return x1, x2, x3
+
+
+def _polar_to_cartesian(
+    r: np.ndarray, phi: np.ndarray, arr: np.ndarray
+) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
     """
-    Return (x1_grid, x2_grid) 1-D coordinate arrays from pyPLUTO Data.
-    New pyPLUTO uses d.x1, d.x2; legacy uses d.x1, d.x2 too but may differ.
+    Project a 2-D r-phi array onto a Cartesian (x, y) grid for pcolormesh.
+    Returns (X_cart, Y_cart, arr_2d) on a regular Cartesian mesh.
     """
-    x1 = getattr(d, "x1", None)
-    x2 = getattr(d, "x2", None)
-    if x1 is None:
-        # Try alternative attribute names
-        x1 = getattr(d, "X1", getattr(d, "r", np.arange(10)))
-    if x2 is None:
-        x2 = getattr(d, "X2", getattr(d, "phi", np.arange(10)))
-    return np.asarray(x1), np.asarray(x2)
+    R, PHI = np.meshgrid(r, phi, indexing="ij")  # shape (nr, nphi)
+    X = R * np.cos(PHI)
+    Y = R * np.sin(PHI)
+    # arr from pload is shape (nx2, nx1) = (nphi, nr), so transpose → (nr, nphi)
+    if arr.shape == (len(phi), len(r)):
+        arr = arr.T
+    return X, Y, arr
+
+
+def _unit_label(unit_length_cm: Optional[float]) -> str:
+    if unit_length_cm is None:
+        return " [code]"
+    au = 1.49597870700e13
+    pc = 3.08567758149e18
+    rsun = 6.96e10
+    if abs(unit_length_cm - au) / au < 0.05:
+        return " [AU]"
+    if abs(unit_length_cm - pc) / pc < 0.05:
+        return " [pc]"
+    if abs(unit_length_cm - rsun) / rsun < 0.05:
+        return r" [$R_\odot$]"
+    return f" [×{unit_length_cm:.2e} cm]"
 
 
 # ── Snapshot index helpers ────────────────────────────────────────────────────
 
 
 def _all_snapshot_indices(run_dir: str, datatype: str) -> list[int]:
-    """Return sorted list of all snapshot indices from dbl.out or file glob."""
-    # Primary: *.out descriptor
-    ext_map = {"dbl": "dbl", "flt": "flt", "dbl.h5": "dbl", "flt.h5": "flt"}
-    desc_ext = ext_map.get(datatype, "dbl")
-    desc = Path(run_dir) / f"{desc_ext}.out"
+    ext = "flt" if datatype.startswith("flt") else ("vtk" if datatype == "vtk" else "dbl")
+    desc = Path(run_dir) / f"{ext}.out"
     if desc.is_file():
         indices = []
         for line in desc.read_text().splitlines():
@@ -143,54 +213,34 @@ def _all_snapshot_indices(run_dir: str, datatype: str) -> list[int]:
                 except (IndexError, ValueError):
                     pass
         if indices:
-            return indices
+            return sorted(set(indices))
 
-    # Fallback: file glob
-    patterns = {
-        "dbl": "*.dbl",
-        "flt": "*.flt",
-        "dbl.h5": "*.dbl.h5",
-        "flt.h5": "*.flt.h5",
-        "vtk": "*.vtk",
-    }
-    pat = patterns.get(datatype, "*.dbl")
-    files = sorted(Path(run_dir).glob(pat))
-    indices = []
-    for f in files:
-        # Chombo: data.0005.hdf5
-        parts = f.name.split(".")
-        try:
-            indices.append(int(parts[-2] if len(parts) >= 3 else parts[0]))
-        except ValueError:
-            pass
-    return sorted(set(indices))
+    # Fallback: glob
+    for pat in ("*.dbl.h5", "*.flt.h5", "*.dbl", "*.flt", "*.vtk"):
+        files = sorted(Path(run_dir).glob(pat))
+        if files:
+            out = []
+            for f in files:
+                stem = f.name.split(".")[0]
+                try:
+                    out.append(int(stem))
+                except ValueError:
+                    pass
+            if out:
+                return sorted(set(out))
 
+    # Chombo data.NNNN.hdf5
+    chombo = sorted(Path(run_dir).glob("data.*.hdf5"))
+    if chombo:
+        out = []
+        for f in chombo:
+            try:
+                out.append(int(f.name.split(".")[1]))
+            except Exception:
+                pass
+        return sorted(set(out))
 
-def _last_snapshot_index(run_dir: str, datatype: str) -> int:
-    idxs = _all_snapshot_indices(run_dir, datatype)
-    return idxs[-1] if idxs else -1
-
-
-# ── Unit helpers ──────────────────────────────────────────────────────────────
-
-
-def _unit_label(key: str, unit_length_cm: Optional[float]) -> str:
-    """Return a human-readable axis unit label."""
-    if unit_length_cm is None:
-        return " [code units]"
-    au = 1.49597870700e13
-    pc = 3.08567758149e18
-    rsun = 6.96e10
-    if abs(unit_length_cm - au) / au < 0.01:
-        return " [AU]"
-    if abs(unit_length_cm - pc) / pc < 0.01:
-        return " [pc]"
-    if abs(unit_length_cm - rsun) / rsun < 0.01:
-        return r" [$R_\odot$]"
-    # Generic: choose best SI prefix
-    if unit_length_cm >= 1e18:
-        return f" [×{unit_length_cm:.2e} cm]"
-    return " [code units]"
+    return []
 
 
 # ── Core plot function ────────────────────────────────────────────────────────
@@ -210,6 +260,7 @@ def plot_snapshot(
     velocity_overlay: bool = False,
     quiver_subsample: int = 8,
     log_scale: Optional[Union[bool, list[bool]]] = None,
+    polar_projection: bool = False,
     output_dir: str = "",
     fmt: str = "pdf",
     dpi: int = 300,
@@ -218,8 +269,12 @@ def plot_snapshot(
     show: bool = False,
 ) -> list[str]:
     """
-    Plot one snapshot.  Returns list of output file paths.
-    One PDF/PNG file is produced per variable.
+    Plot one PLUTO snapshot.  Returns list of output file paths.
+    One PDF/PNG file per variable.
+
+    polar_projection=True converts r-phi data to a Cartesian (x, y) display
+    for POLAR and SPHERICAL geometries (disc midplane view).
+    Automatically enabled for POLAR/SPHERICAL when geometry is detected.
     """
     try:
         import matplotlib
@@ -230,18 +285,19 @@ def plot_snapshot(
     except ImportError:
         raise ImportError("matplotlib is required: pip install matplotlib")
 
-    d = _load_snapshot(run_dir, snap_n, datatype)
-    x1, x2 = _get_coords(d, geometry)
+    d = _pypluto_load(run_dir, snap_n, datatype)
+    x1, x2, x3 = _get_coords(d)
 
-    ax_labels = _AXIS_LABELS.get(geometry, {1: "x1", 2: "x2", 3: "x3"})
-    unit_sfx = _unit_label("length", unit_length_cm) if physical_axes else " [code]"
+    # Auto-enable polar projection for disc geometries
+    do_polar = polar_projection or geometry in ("POLAR",)
 
-    os.makedirs(output_dir or Path(run_dir) / "plots", exist_ok=True)
+    ax_labels = _AXIS_LABELS.get(geometry, {1: "x1", 2: "x2"})
+    unit_sfx = _unit_label(unit_length_cm) if physical_axes else " [code]"
+
     out_dir = output_dir or str(Path(run_dir) / "plots")
+    os.makedirs(out_dir, exist_ok=True)
 
-    # Build 2-D coordinate meshes for pcolormesh
-    # pyPLUTO returns 1-D cell-centre arrays; we need 2-D for plotting
-    X1, X2 = np.meshgrid(x1, x2, indexing="ij")
+    sim_time = getattr(d, "SimTime", getattr(d, "Dt", float("nan")))
 
     output_paths: list[str] = []
 
@@ -267,76 +323,93 @@ def plot_snapshot(
 
         fig, ax = plt.subplots(figsize=fs, dpi=dpi)
 
-        # Geometry-aware transpose: arr shape may be (nx1, nx2) or (nx2, nx1)
-        # pyPLUTO returns (nx2, nx1) for 2-D — transpose to match (x1, x2) meshes
-        if arr.ndim == 2:
-            if arr.shape == X1.shape:
-                plot_arr = arr
-            elif arr.T.shape == X1.shape:
-                plot_arr = arr.T
-            else:
-                plot_arr = arr  # best effort
-        else:
-            # 1-D slice
+        if arr.ndim == 1:
             ax.plot(x1, arr)
             ax.set_xlabel(ax_labels.get(1, "x1") + unit_sfx, fontsize=11)
             ax.set_ylabel(varname, fontsize=11)
-            ax.set_title(f"{varname}  |  n={snap_n}", fontsize=12)
+            ax.set_title(f"{varname}  |  n={snap_n}  t={sim_time:.4g}", fontsize=12)
 
-        if arr.ndim == 2:
+        elif arr.ndim == 2:
+            # pload returns arrays as (nx2, nx1), i.e. (nphi/ntheta, nr)
+            # Transpose so arr.shape == (nx1, nx2) = (nr, nphi) for pcolormesh
+            if arr.shape == (len(x2), len(x1)):
+                arr2d = arr.T  # → (nx1, nx2)
+            elif arr.shape == (len(x1), len(x2)):
+                arr2d = arr
+            else:
+                arr2d = arr  # best effort
+
+            if do_polar:
+                # Project r-phi onto Cartesian for disc visualization
+                X, Y, arr2d = _polar_to_cartesian(x1, x2, arr2d)
+                xlabel = f"x{unit_sfx}"
+                ylabel = f"y{unit_sfx}"
+            else:
+                X, Y = np.meshgrid(x1, x2, indexing="ij")
+                xlabel = ax_labels.get(1, "x1") + unit_sfx
+                ylabel = ax_labels.get(2, "x2") + unit_sfx
+
             if do_symlog:
-                norm = mcolors.SymLogNorm(
-                    linthresh=max(np.abs(plot_arr).max() * 1e-3, 1e-30),
-                    vmin=plot_arr.min(),
-                    vmax=plot_arr.max(),
-                )
-                pcm = ax.pcolormesh(X1, X2, plot_arr, cmap=cmap, norm=norm, shading="auto")
+                linthresh = max(np.abs(arr2d).max() * 1e-3, 1e-30)
+                norm = mcolors.SymLogNorm(linthresh=linthresh, vmin=arr2d.min(), vmax=arr2d.max())
+                pcm = ax.pcolormesh(X, Y, arr2d, cmap=cmap, norm=norm, shading="auto")
             elif do_log:
-                pos = plot_arr.copy()
+                pos = arr2d.copy()
                 pos[pos <= 0] = np.nan
                 norm = mcolors.LogNorm(vmin=np.nanmin(pos), vmax=np.nanmax(pos))
-                pcm = ax.pcolormesh(X1, X2, pos, cmap=cmap, norm=norm, shading="auto")
+                pcm = ax.pcolormesh(X, Y, pos, cmap=cmap, norm=norm, shading="auto")
             else:
-                pcm = ax.pcolormesh(X1, X2, plot_arr, cmap=cmap, shading="auto")
+                pcm = ax.pcolormesh(X, Y, arr2d, cmap=cmap, shading="auto")
 
-            cbar = fig.colorbar(pcm, ax=ax, fraction=0.046, pad=0.04)
-            cbar.set_label(varname, fontsize=10)
+            fig.colorbar(pcm, ax=ax, fraction=0.046, pad=0.04).set_label(varname, fontsize=10)
 
             # Velocity quiver overlay
             if velocity_overlay:
                 vx1_arr = _get_array(d, "vx1")
                 vx2_arr = _get_array(d, "vx2")
                 if vx1_arr is not None and vx2_arr is not None:
-                    vx1_2d = vx1_arr.T if vx1_arr.T.shape == X1.shape else vx1_arr
-                    vx2_2d = vx2_arr.T if vx2_arr.T.shape == X1.shape else vx2_arr
+                    # Transpose vx arrays the same way as the data
+                    def _prep(v):
+                        v = np.asarray(v, dtype=float)
+                        return v.T if v.shape == (len(x2), len(x1)) else v
+
+                    if do_polar:
+                        # In polar, vx1=vr, vx2=vphi → project to Cartesian components
+                        vr = _prep(vx1_arr)
+                        vphi = _prep(vx2_arr)
+                        # Use same R, PHI grids
+                        R_g, PHI_g = np.meshgrid(x1, x2, indexing="ij")
+                        vx_cart = vr * np.cos(PHI_g) - vphi * np.sin(PHI_g)
+                        vy_cart = vr * np.sin(PHI_g) + vphi * np.cos(PHI_g)
+                        vx_plot, vy_plot = vx_cart, vy_cart
+                    else:
+                        vx_plot = _prep(vx1_arr)
+                        vy_plot = _prep(vx2_arr)
+
+                    ny, nx = X.shape
                     qs = quiver_subsample
-                    ny, nx = X1.shape
-                    iy = slice(0, ny, qs)
-                    ix = slice(0, nx, qs)
+                    iy, ix = slice(0, ny, qs), slice(0, nx, qs)
                     ax.quiver(
-                        X1[iy, ix],
-                        X2[iy, ix],
-                        vx1_2d[iy, ix],
-                        vx2_2d[iy, ix],
+                        X[iy, ix],
+                        Y[iy, ix],
+                        vx_plot[iy, ix],
+                        vy_plot[iy, ix],
                         color="white",
                         alpha=0.65,
                         scale_units="xy",
                         width=0.002,
                     )
 
-            ax.set_xlabel(ax_labels.get(1, "x1") + unit_sfx, fontsize=11)
-            ax.set_ylabel(ax_labels.get(2, "x2") + unit_sfx, fontsize=11)
-            ax.set_title(
-                f"{varname}  |  n={snap_n}  t={getattr(d, 't', float('nan')):.4g}", fontsize=12
-            )
-            ax.set_aspect("auto")
+            ax.set_xlabel(xlabel, fontsize=11)
+            ax.set_ylabel(ylabel, fontsize=11)
+            ax.set_title(f"{varname}  |  n={snap_n}  t={sim_time:.4g}", fontsize=12)
+            ax.set_aspect("equal" if do_polar else "auto")
 
         fig.tight_layout()
         stem = f"{varname}_n{snap_n:05d}"
         outpath = str(Path(out_dir) / f"{stem}.{fmt}")
         fig.savefig(outpath, dpi=dpi, bbox_inches="tight")
         if fmt != "png":
-            # Always save a PNG companion for quick inspection
             fig.savefig(str(Path(out_dir) / f"{stem}.png"), dpi=150, bbox_inches="tight")
         if show:
             plt.show()
@@ -377,6 +450,7 @@ if HAS_PYDANTIC:
         log_scale: Optional[Union[bool, List[bool]]] = None
         colormap: Optional[str] = None
         figsize: Optional[List[float]] = None
+        polar_projection: bool = False
         show: bool = False
 
         # Output
@@ -392,7 +466,6 @@ if HAS_PYDANTIC:
             # Load physics_config.md if present
             cfg_path = Path(self.run_dir) / self.physics_config
             if not cfg_path.is_file():
-                # Try resolving as an absolute path
                 cfg_path = Path(self.physics_config)
 
             if cfg_path.is_file():
@@ -410,7 +483,12 @@ if HAS_PYDANTIC:
                     if "UNIT_VELOCITY_CGS" in cfg and self.unit_velocity_cgs is None:
                         self.unit_velocity_cgs = float(cfg["UNIT_VELOCITY_CGS"])
                 except Exception:
-                    pass  # silently proceed without physics_config
+                    pass
+
+            # Auto-enable polar projection for disc geometry
+            if self.geometry == "POLAR" and not self.polar_projection:
+                self.polar_projection = True
+
             return self
 
 
@@ -423,7 +501,7 @@ def _resolve_snaps(snap_arg: Union[int, list, str], run_dir: str, datatype: str)
     if isinstance(snap_arg, list):
         return [int(s) for s in snap_arg]
     if snap_arg == "last":
-        idx = _last_snapshot_index(run_dir, datatype)
+        idx = _nlast_index(run_dir, datatype)
         return [idx] if idx >= 0 else []
     if snap_arg == "all":
         return _all_snapshot_indices(run_dir, datatype)
@@ -457,6 +535,7 @@ def run_plot(params: "PLUTOPlotParams") -> str:
                 velocity_overlay=params.velocity_overlay,
                 quiver_subsample=params.quiver_subsample,
                 log_scale=params.log_scale,
+                polar_projection=params.polar_projection,
                 output_dir=out_dir,
                 fmt=params.format,
                 dpi=params.dpi,
@@ -485,14 +564,10 @@ def _build_parser() -> argparse.ArgumentParser:
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog=__doc__,
     )
-    p.add_argument(
-        "--json", metavar="JSON", help="JSON string or path to JSON file with all parameters"
-    )
+    p.add_argument("--json", metavar="JSON")
     p.add_argument("--run-dir", dest="run_dir")
-    p.add_argument("--snap", nargs="+", help="Snapshot index(es), 'last', or 'all'")
-    p.add_argument(
-        "--variables", nargs="+", dest="variables", help="Variable names: rho vx1 vx2 Bx1 prs …"
-    )
+    p.add_argument("--snap", nargs="+")
+    p.add_argument("--variables", nargs="+", dest="variables")
     p.add_argument(
         "--datatype",
         dest="datatype",
@@ -503,6 +578,7 @@ def _build_parser() -> argparse.ArgumentParser:
     p.add_argument("--geometry", dest="geometry")
     p.add_argument("--no-physical-axes", dest="physical_axes", action="store_false", default=True)
     p.add_argument("--velocity-overlay", dest="velocity_overlay", action="store_true")
+    p.add_argument("--polar-projection", dest="polar_projection", action="store_true")
     p.add_argument("--quiver-subsample", dest="quiver_subsample", type=int)
     p.add_argument("--log", dest="log_scale", action="store_true", default=None)
     p.add_argument("--colormap", dest="colormap")
@@ -519,7 +595,7 @@ def main() -> None:
 
     raw: dict[str, Any] = {k: v for k, v in vars(args).items() if v is not None and k != "json"}
 
-    # Normalise --snap
+    # Normalise --snap list
     if "snap" in raw and isinstance(raw["snap"], list):
         if len(raw["snap"]) == 1 and raw["snap"][0] in ("last", "all"):
             raw["snap"] = raw["snap"][0]
@@ -531,11 +607,7 @@ def main() -> None:
 
     if args.json:
         src = args.json.strip()
-        if os.path.isfile(src):
-            with open(src) as fh:
-                raw = json.load(fh)
-        else:
-            raw = json.loads(src)
+        raw = json.load(open(src)) if os.path.isfile(src) else json.loads(src)
 
     if HAS_PYDANTIC:
         try:
@@ -545,7 +617,6 @@ def main() -> None:
             sys.exit(1)
         result = run_plot(params)
     else:
-        # Pydantic not available — run without validation
         snap_arg = raw.get("snap", "last")
         snaps = _resolve_snaps(snap_arg, raw["run_dir"], raw.get("datatype", "dbl"))
         out_dir = raw.get("output_dir", str(Path(raw["run_dir"]) / "plots"))
@@ -559,6 +630,7 @@ def main() -> None:
                     geometry=raw.get("geometry", "CARTESIAN"),
                     datatype=raw.get("datatype", "dbl"),
                     velocity_overlay=raw.get("velocity_overlay", False),
+                    polar_projection=raw.get("polar_projection", False),
                     output_dir=out_dir,
                     fmt=raw.get("format", "pdf"),
                     dpi=raw.get("dpi", 300),

@@ -5,6 +5,20 @@ Reference: [`ARCHITECTURE.md`](../../ARCHITECTURE.md).
 
 ---
 
+## Conventions
+
+- All string fields use angle-bracket placeholders: `"<description>"`.
+- `"<bool>"` means the literal JSON booleans `true` or `false` (not a string).
+- `"<int>"` and `"<float>"` mean JSON numbers of the appropriate type.
+- **`[DATA MISSING]`** is the required sentinel string for any field that cannot
+  be populated from actual data in the current session. Never invent values.
+  A handoff containing `[DATA MISSING]` is valid to emit but the receiving agent
+  must not proceed past a blocking `[DATA MISSING]` without human intervention.
+- All handoffs carry a `timestamp` field (ISO-8601 UTC). Populate at write time:
+  `datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ")`.
+
+---
+
 ## HypothesisHandoff/v1
 
 Emitted by `@hypothesis-agent` after a completed three-round debate.
@@ -30,7 +44,8 @@ Consumed by `@analytical-agent`.
   ],
   "priority_rank": ["<int — hypothesis id ordered by priority>"],
   "top_hypothesis_id": "<int>",
-  "debate_rounds": 3,
+  "debate_rounds": "<int>",
+  "timestamp": "<ISO-8601 UTC string — when this handoff was written>",
   "warnings": ["<string>"]
 }
 ```
@@ -87,6 +102,7 @@ Consumed by `@setup-agent`.
     "<param>": "<string — recommended value or range with justification>"
   },
   "benchmark_script": "<string | null — path to .py evaluation script>",
+  "timestamp": "<ISO-8601 UTC string — when this handoff was written>",
   "warnings": ["<string>"]
 }
 ```
@@ -111,7 +127,7 @@ Consumed by `@simulation-agent`, `@retrieval-agent`, or `@spectral-agent`.
   "task_id": "<string — snake_case label>",
   "hypothesis_ref": "<int>",
   "analytical_ref": "<string | null — path to AnalyticalHandoff JSON>",
-  "code": "<PLUTO | FARGO3D | DustPy | petitRADTRANS | Sherpa | GADGET>",
+  "code": "<PLUTO | FARGO3D | DustPy | Magneticum | GADGET>",
   "code_version": "<string — git hash or release tag; read from environment>",
   "config_path": "<string — absolute path to main config file>",
   "physics_params": {},
@@ -123,6 +139,7 @@ Consumed by `@simulation-agent`, `@retrieval-agent`, or `@spectral-agent`.
   "walltime_h": "<float>",
   "run_cmd": "<string | null — local run command; null if hpc_mode>",
   "validated": "<bool>",
+  "timestamp": "<ISO-8601 UTC string — when this handoff was written>",
   "warnings": ["<string>"]
 }
 ```
@@ -132,6 +149,8 @@ Consumed by `@simulation-agent`, `@retrieval-agent`, or `@spectral-agent`.
 - If `hpc_mode: true`, `slurm_script_path` must be non-null and the script must exist.
 - `run_cmd` must be null when `hpc_mode: true` (never run locally and on HPC simultaneously).
 - `code_version` must not be the string `"unknown"` — read from the environment.
+- `petitRADTRANS` and `Sherpa` are **not** valid `code` values here; retrieval agents
+  use no config handoff, and spectral fitting emits `SpectralFitHandoff/v1` directly.
 
 ---
 
@@ -147,6 +166,7 @@ Consumed by `@interpretation-agent` or `@mcmc-agent`.
   "task_id": "<string>",
   "output_dir": "<string>",
   "sim_config_ref": "<string — path to SimConfigHandoff JSON>",
+  "simulation_ref": "<string | null — path to SimulationHandoff JSON; null only if simulation was external or pre-existing>",
   "diagnostics": {
     "<key>": {"value": "<float>", "unit": "<string>", "snapshot": "<int | null>"}
   },
@@ -161,6 +181,7 @@ Consumed by `@interpretation-agent` or `@mcmc-agent`.
     }
   },
   "sanity_passed": "<bool>",
+  "timestamp": "<ISO-8601 UTC string — when this handoff was written>",
   "warnings": ["<string>"]
 }
 ```
@@ -170,7 +191,12 @@ Consumed by `@interpretation-agent` or `@mcmc-agent`.
   If `false`, the agent must report the failure and stop.
 - `plot_paths` must be non-empty; each path must exist on disk.
 - `data_hash` must be computed from actual output files (not predicted).
-- `analytical_comparison` must be populated if an `AnalyticalHandoff` was available.
+- `simulation_ref` should be non-null whenever the analysis agent ran against a
+  `SimulationHandoff`-producing code; the receiving agent uses it to resolve
+  `output_dir` and `output_files`.
+- `analytical_comparison` must be populated (non-empty) when `simulation_ref`
+  is non-null and an `AnalyticalHandoff` was available upstream; may be `{}`
+  otherwise (not silently omitted).
 
 ---
 
@@ -202,6 +228,7 @@ Consumed by `@hypothesis-agent` (if `next_action: iterate`) or directly returned
   "next_action": "<iterate | write | mcmc | stop | abort>",
   "abort_reason": "<string | null — required when next_action is abort>",
   "human_gate_2_confirmed": "<bool>",
+  "timestamp": "<ISO-8601 UTC string — when this handoff was written>",
   "warnings": ["<string>"]
 }
 ```
@@ -231,7 +258,7 @@ Consumed by `@spectral-agent` or `@mcmc-agent`.
   "code": "<FARGO3D | PLUTO | DustPy | Magneticum>",
   "code_version": "<string — git hash or release tag; read from skill envelope>",
   "skill_script": "<string — absolute path to skill script used>",
-  "skill_script_version": "<string — tag or hash>",
+  "skill_script_version": "<string — read from physics_config.md, sysconf.out, or git describe; never 'unknown'>",
   "param_file": "<string — absolute path to main config / par / setup file>",
   "param_file_md5": "<string — MD5 hex of param_file at launch time>",
   "output_dir": "<string — directory containing output files>",
@@ -253,6 +280,7 @@ Consumed by `@spectral-agent` or `@mcmc-agent`.
     "density":"<string — e.g. 'M_sun/AU^2' for FARGO3D surface density>"
   },
   "sanity_passed": "<bool>",
+  "timestamp": "<ISO-8601 UTC string — when this handoff was written>",
   "warnings": ["<string — collected [SANITY WARN] messages from analysis step 4>"]
 }
 ```
@@ -263,8 +291,9 @@ Consumed by `@spectral-agent` or `@mcmc-agent`.
 - `warnings` should be empty or contain only non-blocking advisories.
 - `output_files` must contain only absolute paths that have been verified readable
   (using `os.access(p, os.R_OK)`) in the **emitting** agent's session.
-- `code_version` must not be the string `"unknown"` — read from the skill script
-  JSON envelope or `run_manifest.json`.
+- `code_version` must not be the string `"unknown"` — read from `physics_config.md`,
+  `sysconf.out`, or `git describe` in the code source tree.
+- `skill_script_version` must not be `"unknown"` — same sources as `code_version`.
 - `rho_units` must be explicitly populated — never leave it as `"unknown"`.
   Use the per-code convention table in `simulation-agent.agent.md § step 5`.
 - `run_manifest` path must exist on disk; if absent, emit `[DATA MISSING: run_manifest.json]`.
@@ -281,7 +310,7 @@ Consumed by `@mcmc-agent` for posterior refinement.
   "schema": "SpectralFitHandoff/v1",
   "spectrum_file": "<string — path to .pha or .fits>",
   "background_file": "<string | null>",
-  "energy_range_keV": [0.5, 7.0],
+  "energy_range_keV": ["<float — low keV>", "<float — high keV>"],
   "model": "<string — e.g. 'TBabs*apec'>",
   "best_fit": {
     "<param_name>": {
@@ -297,6 +326,7 @@ Consumed by `@mcmc-agent` for posterior refinement.
   },
   "fit_passed_sanity": "<bool>",
   "parameter_grid": "<string | null — path to JSON grid file for MCMC>",
+  "timestamp": "<ISO-8601 UTC string — when this handoff was written>",
   "warnings": ["<string>"]
 }
 ```
@@ -330,6 +360,8 @@ Returned to the user or `@hypothesis-agent` for iteration.
     "<param_name>": ["<float — -1sigma>", "<float — +1sigma>"]
   },
   "corner_plot": "<string — path to PDF or PNG>",
+  "seed": "<int — random seed passed to sampler; must match the 'seed' attribute stored in chain_file>",
+  "timestamp": "<ISO-8601 UTC string — when this handoff was written>",
   "warnings": ["<string>"]
 }
 ```
@@ -340,6 +372,8 @@ Returned to the user or `@hypothesis-agent` for iteration.
 - Uncertainties are **68 % credible intervals** (1σ equivalent).
   Never report 90 % intervals unless the user explicitly requests them.
 - `corner_plot` must exist on disk before emitting this handoff.
+- `seed` must be explicitly set and logged. Default: `42` (see `AGENTS.md` rule 6).
+  The same value must be stored as an HDF5 attribute in `chain_file`.
 
 ---
 
@@ -356,7 +390,7 @@ Returned to the user (or `@pipeline-agent` for logging).
   "paper_dir": "<string — e.g. 'paper/gap_depth_1mjup_20260528/'>",
   "manuscript_tex": "<string — path to manuscript.tex>",
   "manuscript_pdf": "<string | null — null if compilation failed>",
-  "bibliography_bib": "paper/bibliography.bib",
+  "bibliography_bib": "<string — path to .bib file, e.g. 'paper/bibliography.bib'>",
   "new_bibtex_keys": ["<string — ADS bibcode of entries added this session>"],
   "sections_written": [
     "abstract", "introduction", "methods", "results", "discussion", "conclusions"
@@ -368,6 +402,7 @@ Returned to the user (or `@pipeline-agent` for logging).
   "todo_count": "<int — number of \\todo{} markers remaining>",
   "referee_report": "<string — path to referee_notes.md>",
   "referee_score": "<float 0–9>",
+  "timestamp": "<ISO-8601 UTC string — when this handoff was written>",
   "warnings": ["<string>"]
 }
 ```

@@ -140,31 +140,34 @@ Called by `run_pluto.py`.
 ## Plot parameters (`PLUTOPlotParams`)
 
 Called by `plot_pluto.py`.
+Requires: `pyPLUTO` v4.4 (bundled in `$PLUTO_DIR/Tools/pyPLUTO/`).
+Load data: `import pyPLUTO.pload as ppl; D = ppl.pload(N, w_dir=..., datatype=...)`
 
 ### Input
 
 | Name | Type | Default | Notes |
 |------|------|---------|-------|
 | `run_dir` | str | **required** | Must contain `dbl.out` and snapshot files |
-| `snap` | int or list[int] or `"last"` or `"all"` | `"last"` | Snapshot(s) to plot |
-| `datatype` | str | `"dbl"` | `"dbl"`, `"flt"`, `"dbl.h5"`, `"flt.h5"`, `"vtk"` |
-| `physics_config` | str | `physics_config.md` | Written by compile script; provides GEOMETRY and units |
+| `snap` | int or list[int] or `"last"` or `"all"` | `"last"` | Snapshot(s) to plot; `"last"` uses `pyPLUTO.nlast_info()` |
+| `datatype` | str | `"dbl"` | `"dbl"`, `"flt"`, `"dbl.h5"`, `"flt.h5"`, `"vtk"`, `"hdf5"` (AMR) |
+| `physics_config` | str | `physics_config.md` | Written by compile script; auto-loads GEOMETRY and units |
 
 ### Variables
 
 | Name | Type | Default | Notes |
 |------|------|---------|-------|
-| `variables` | list[str] | `["rho"]` | Any variable in the snapshot: `rho`, `vx1`, `vx2`, `vx3`, `prs`, `Bx1`, `Bx2`, `Bx3`, `tr1`, … |
+| `variables` | list[str] | `["rho"]` | Any pyPLUTO attribute: `rho`, `vx1`, `vx2`, `vx3`, `prs`, `Bx1`, `Bx2`, `Bx3`, `tr1`, … |
 | `log_scale` | bool or list[bool] | `auto` | Apply log10; auto-detected for density/pressure |
-| `velocity_overlay` | bool | false | Quiver overlay of (vx1, vx2) on density panel |
-| `quiver_subsample` | int | 8 | [1,128] Velocity quiver downsampling |
+| `velocity_overlay` | bool | false | Quiver of (vx1, vx2) projected to Cartesian in polar mode |
+| `quiver_subsample` | int | 8 | [1,128] Velocity quiver downsampling factor |
 
-### Geometry & units
+### Geometry & projection
 
 | Name | Type | Default | Notes |
 |------|------|---------|-------|
 | `geometry` | str | from `physics_config.md` | `CARTESIAN`, `POLAR`, `SPHERICAL`, `CYLINDRICAL` |
-| `unit_length_cm` | float | from `physics_config.md` | `UNIT_LENGTH` in cm; sets axis labels |
+| `polar_projection` | bool | auto | Project r-phi data to Cartesian x-y for disc view. Auto-enabled for POLAR. |
+| `unit_length_cm` | float | from `physics_config.md` | `UNIT_LENGTH` in cm; sets axis labels (AU, pc, R☉ auto-detected) |
 | `unit_density_cgs` | float | from `physics_config.md` | `UNIT_DENSITY` in g/cm³ |
 | `unit_velocity_cgs` | float | from `physics_config.md` | `UNIT_VELOCITY` in cm/s |
 | `physical_axes` | bool | true | Label axes in physical units; false = code-unit indices |
@@ -175,11 +178,49 @@ Called by `plot_pluto.py`.
 |------|------|---------|-------|
 | `output_dir` | str | `run_dir/plots` | Plot destination |
 | `format` | str | `"pdf"` | `"pdf"`, `"png"`, `"svg"` |
-| `dpi` | int | 300 | Resolution for raster formats |
-| `colormap` | str | `"viridis"` | Colorblind-safe default; `"cividis"` for velocity |
-| `colormap_velocity` | str | `"cividis"` | Colormap for speed / velocity magnitude |
+| `dpi` | int | 300 | [72, 1200] Resolution for raster formats |
+| `colormap` | str | per-variable | `"viridis"` for density; `"RdBu_r"` for velocity; `"PuOr_r"` for B-field |
 | `figsize` | list[float] | `[6, 5]` per panel | Figure size in inches |
-| `show` | bool | false | Call `plt.show()` interactively |
+| `show` | bool | false | Call `plt.show()` interactively (requires display) |
+
+> **pyPLUTO v4.4 array layout**: `D.rho` has shape `(nx2, nx1)` — x2 is the first index.
+> `plot_pluto.py` transposes internally; raw analysis code must account for this.
+
+---
+
+## pyPLUTO v4.4 API reference
+
+```python
+import pyPLUTO as pp            # top-level: nlast_info
+import pyPLUTO.pload as ppl    # data loader class
+import pyPLUTO.Image as img    # Image class for advanced plotting
+import pyPLUTO.Tools as tl     # Tools class: congrid, gradient, etc.
+
+# Last snapshot info
+info = pp.nlast_info(w_dir="/path/")  # → {'nlast': N, 'time': t, 'dt': dt, 'Nstep': s}
+
+# Load snapshot
+D = ppl.pload(N, w_dir="/path/", datatype="dbl")
+# D.rho, D.vx1, D.vx2, D.vx3, D.prs, D.Bx1 … — shape (nx2, nx1)
+# D.x1, D.x2, D.x3  — 1-D cell-centre coords
+# D.dx1, D.dx2, D.dx3 — cell widths
+# D.SimTime           — simulation time
+# D.NStep             — step number
+
+# AMR at level 3 with zoom
+D = ppl.pload(N, w_dir="/path/", datatype="hdf5", level=3,
+              x1range=[0.5, 2.0], x2range=[0.4, 0.6])
+
+# Image class (polar → Cartesian reproject)
+I = img.Image()
+I.pltSphData(D, w_dir="/path/", datatype="vtk", plvar="rho",
+             logvar=True, rphi=True, x2cut=24)  # r-phi midplane slice
+
+# Regrid arrays
+T = tl.Tools()
+newdims = (64, 64)
+rho_c = T.congrid(D.rho, newdims, method="linear")
+```
 
 ---
 
