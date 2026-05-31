@@ -271,9 +271,7 @@ def run_fargo3d_simulation(params: FARGO3DParams) -> dict:
     patcher = FARGOParPatcher(params.par_file)
     patched_par = os.path.join(params.output_dir, Path(params.par_file).name)
     sigma0_ref = params.Sigma0 or (
-        float(patcher.read_value("Sigma0") or "nan")
-        if patcher.read_value("Sigma0")
-        else None
+        float(patcher.read_value("Sigma0") or "nan") if patcher.read_value("Sigma0") else None
     )
     patcher.apply(overrides)
     patcher.write(patched_par)
@@ -350,9 +348,7 @@ def run_fargo3d_simulation(params: FARGO3DParams) -> dict:
 
 def _build_parser() -> argparse.ArgumentParser:
     p = argparse.ArgumentParser(description="Patch a FARGO3D .par file and run.")
-    p.add_argument(
-        "--json", metavar="JSON", help="JSON string or file with all parameters"
-    )
+    p.add_argument("--json", metavar="JSON", help="JSON string or file with all parameters")
     p.add_argument("--par-file", dest="par_file")
     p.add_argument("--output-dir", dest="output_dir")
     p.add_argument("--AspectRatio", type=float)
@@ -369,8 +365,7 @@ def _build_parser() -> argparse.ArgumentParser:
     p.add_argument(
         "--Ntot",
         type=int,
-        help="Total number of DT steps (preferred over --Tmax for "
-        "fargo/fargo_nu setups).",
+        help="Total number of DT steps (preferred over --Tmax for " "fargo/fargo_nu setups).",
     )
     p.add_argument("--Ninterm", type=int)
     p.add_argument("--DT", type=float)
