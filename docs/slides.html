@@ -1030,7 +1030,9 @@ sim.ini.disk.alpha = 1.e-3
         </div>
         <div class="sbox" style="font-size:0.74em;margin-top:0.35em;">
           Both files are version-controlled and shared with the team — every collaborator gets
-          the same AI context automatically. Local-only tweaks go in <code>AGENTS.override.md</code> (gitignored).
+          the same AI context automatically. Local-only tweaks go in <code>AGENTS.override.md</code> (gitignored).<br>
+          <strong>Rule:</strong> the more domain context you give the agent upfront (obs IDs, model assumptions,
+          known issues, current hypothesis), the fewer hallucinations you get. <em>Specificity is safety.</em>
         </div>
       </section>
 
@@ -1151,47 +1153,7 @@ Run CASA tclean on a calibrated ALMA MS.
         </div>
       </section>
 
-      <!-- ═══════════════════════════════════════════════════════
-     SLIDE 9 — TWO LEVELS
-     ═══════════════════════════════════════════════════════ -->
-      <section>
-        <span class="stag">Part 2 — Agent Instructions: General &amp; Project-Specific</span>
-        <h2>Instructing Your Agent: Two Levels That Matter</h2>
-        <div class="g2">
-          <div class="card c1">
-            <div class="ct">Level 1: General Agent Instructions</div>
-            <div class="sm" style="margin-bottom:0.35em;">Set once, apply to every session.<br>File:
-              <code>.github/copilot-instructions.md</code>
-            </div>
-            <ul>
-              <li>Preferred language &amp; style (Python 3.11+, docstrings)</li>
-              <li>Scientific conventions (astropy units, SI unless noted)</li>
-              <li>Output standards (300 dpi figures, tab10 palette)</li>
-              <li>Safety rules (verify references in ADS, never invent DOIs)</li>
-              <li>Tool preferences (sherpa over xspec-python, emcee for MCMC)</li>
-              <li>Error handling (always print traceback, test on subset first)</li>
-            </ul>
-          </div>
-          <div class="card c2">
-            <div class="ct">Level 2: Project-Specific Instructions</div>
-            <div class="sm" style="margin-bottom:0.35em;">Per-project, per-paper context.<br>File:
-              <code>AGENTS.md</code> (repo root)
-            </div>
-            <ul>
-              <li>Dataset description (XMM-Newton EPIC-pn, obs ID, filter)</li>
-              <li>Specific model assumptions (TBabs*powerlaw, fixed nH)</li>
-              <li>Known issues (bad time intervals, excluded channels)</li>
-              <li>Calibration files location (local paths or archive URIs)</li>
-              <li>Current hypothesis being tested</li>
-              <li>Links to relevant papers (bibcodes, not URLs — ADS verifiable)</li>
-            </ul>
-          </div>
-        </div>
-        <div class="ibox" style="margin-top:0.5em;">
-          <strong>Rule:</strong> the more domain context you give the agent upfront, the less it has to guess — and the
-          fewer hallucinations you get. <em>Specificity is safety.</em>
-        </div>
-      </section>
+
 
       <!-- ═══════════════════════════════════════════════════════
      SLIDE C — MCP IN PLAIN ENGLISH
@@ -1803,9 +1765,9 @@ Return Gamma and norm with 90% confidence. Save chi2 residual as PDF.
             <tr>
               <td><strong>Science</strong> (AAAS)</td>
               <td>❌ No</td>
-              <td>Ack. + Methods + prompt</td>
+              <td>Cover letter + Methods or Ack.</td>
               <td>Not specified</td>
-              <td>Not specified</td>
+              <td>❌ Banned*</td>
               <td><span class="r">Very Strict</span></td>
             </tr>
             <tr>
@@ -1874,15 +1836,18 @@ Return Gamma and norm with 90% confidence. Save chi2 residual as PDF.
             </ul>
           </div>
           <div class="card" style="border-left:3px solid #b71c1c;">
-            <div class="ct" style="color:#ef9a9a;">🔴🔴 Science (AAAS) — Harshest</div>
+            <div class="ct" style="color:#ef9a9a;">🔴🔴 Science (AAAS) — Strictest</div>
             <ul>
-              <li>AI-generated text is <strong>BANNED</strong></li>
-              <li>Violations treated as scientific misconduct</li>
-              <li>Full prompt disclosure in Ack. AND Methods (both required)</li>
-              <li>AI tools cannot be cited as sources</li>
-              <li>Cover letter declaration required</li>
-              <li>Most restrictive policy among all top-tier journals</li>
+              <li>AI may not be used inappropriately — editors may decline manuscript</li>
+              <li>Disclose in <strong>cover letter</strong> + <strong>Methods or Ack.</strong> (location depends on use
+                case)</li>
+              <li>AI-generated <strong>images/multimedia BANNED</strong> without explicit editor permission*</li>
+              <li>AI tools cannot be cited as sources (AI cannot be a paper author)</li>
+              <li>Authors fully accountable for accuracy, citations, and bias</li>
+              <li>Reviewers may NOT upload any part of a manuscript to an AI tool</li>
             </ul>
+            <div class="sm" style="margin-top:0.3em;">* Exceptions possible for AI/ML manuscripts, case-by-case, must be
+              disclosed at submission</div>
           </div>
         </div>
         <div class="wbox" style="font-size:0.78em;">
@@ -2030,40 +1995,8 @@ Return Gamma and norm with 90% confidence. Save chi2 residual as PDF.
         <div class="ibox" style="font-size:0.78em;">
           💡 <strong>Rule of thumb:</strong> 1 hour of agent-mode coding ≈ 50–200 K tokens ≈
           <strong>€0.15–€0.60</strong> (Sonnet API).
-          That's cheaper than a coffee at the Sternwarte Kantine — and covered free via GitHub Education.
+          That's cheaper than a coffee — and covered free via GitHub Education.
         </div>
-      </section>
-
-      <!-- ═══════════════════════════════════════════════════════
-     SLIDE 26 — DISCUSSION
-     ═══════════════════════════════════════════════════════ -->
-      <section>
-        <span class="stag">Part 7 — Discussion</span>
-        <h2>Open Questions for Our Department</h2>
-        <div class="ibox" style="margin-bottom:0.7em;">
-          We built one: <strong><a
-              href="https://github.com/GiovanniPicogna/lmu-usm-agent-template">github.com/GiovanniPicogna/lmu-usm-agent-template</a></strong>
-          — who wants to try it on their next paper? What would you add or change?
-        </div>
-        <ol class="steps">
-          <li><span class="sn g">1</span>
-            <div>Who in the group has already used Copilot Agent Mode or the ADS MCP? What has worked, what hasn't?
-            </div>
-          </li>
-          <li><span class="sn g">2</span>
-            <div>Should we standardise on one ADS MCP server (cbyrohl vs prtc) for consistency in citations across
-              papers?</div>
-          </li>
-          <li><span class="sn g">3</span>
-            <div>How do we handle AI usage by PhD students in authorship discussions — what's our internal policy?</div>
-          </li>
-          <li><span class="sn g">4</span>
-            <div>Are our institutional IT/GDPR rules clear on which Copilot tier we can use for sensitive data?</div>
-          </li>
-          <li><span class="sn g">5</span>
-            <div>Who wants to set up an ADS MCP demo together after this session?</div>
-          </li>
-        </ol>
       </section>
 
       <!-- ═══════════════════════════════════════════════════════
@@ -2664,19 +2597,26 @@ protoplanetary disc? Vary M_p,
           </div>
           <div>
             <div class="card c2" style="margin-bottom:0.5em;">
-              <div class="ct">H1 (novelty 0.8) — v_frag controls dust/gas contrast</div>
-              <p class="sm">δ_dust/δ_gas spans 2 orders of magnitude over v_frag = 1–10 m s⁻¹
-                at fixed M_p = 0.5 M_Jup; factor ≥10 contrast across snowline</p>
+              <div class="ct">H1 (score 0.73) — α dual role</div>
+              <p class="sm">α simultaneously sets the gas gap depth through the Kanagawa K-parameter
+                and the fragmentation-limited grain size via afrag ∝ vfrag^2/α. Both effects
+                reduce grain Stokes number and dust trapping efficiency as α increases, so the
+                dust gap scales steeper than the gas gap alone.</p>
             </div>
             <div class="card c3" style="margin-bottom:0.5em;">
-              <div class="ct">H2 (novelty 0.6) — α controls RWI threshold</div>
-              <p class="sm">mm azimuthal contrast transitions C &lt; 1.5 → C &gt; 3
-                as α decreases through α* ~ 3×10⁻⁴ for M_p = 1 M_Jup</p>
+              <div class="ct">H2 (novelty 0.70) — Unified K_dust scaling</div>
+              <p class="sm">By analogy with the Kanagawa gas formula, a modified
+                dimensionless parameter Kdust=(Mp/M∗)^2 (h/r)^(−5)α^(−1)(vfrag/cs)^(−2)
+                should collapse gas and millimetre-dust gap depths onto a single power-law across
+                the full (M_p, α, v_frag) parameter space.</p>
             </div>
-            <div class="card c5">
-              <div class="ct">H3 (novelty 0.4) — M_p² power law and eccentric break</div>
-              <p class="sm">Kanagawa scaling holds for M_p &lt; 2 M_Jup; super-Jupiter
-                deviation biases DSHARP mass inferences</p>
+            <div class="card c5" style="margin-bottom:0.5em;">
+              <div class="ct">H3 (novelty 0.66) — v_frag sets the dust/gas gap depth ratio</div>
+              <p class="sm">v_frag controls the fragmentation-limited Stokes number at the
+                outer gap edge. High v_frag → large grains → St ∼ 0.1 → efficient
+                pressure-bump filtration → dust gap much deeper than gas gap.
+                Low v_frag → small grains → St ≪ 0.01 → poorly trapped → dust/gas gap depth
+                ratio near unity.</p>
             </div>
           </div>
         </div>

@@ -45,6 +45,7 @@ Consumed by `@analytical-agent`.
   "priority_rank": ["<int — hypothesis id ordered by priority>"],
   "top_hypothesis_id": "<int>",
   "debate_rounds": "<int>",
+  "human_gate_1_confirmed": "<bool>",
   "timestamp": "<ISO-8601 UTC string — when this handoff was written>",
   "warnings": ["<string>"]
 }
@@ -52,10 +53,14 @@ Consumed by `@analytical-agent`.
 
 **Validation rules:**
 - `hypotheses` must contain at least 1 and at most 5 entries.
-- Every hypothesis must have at least 1 `predicted_observables` entry with units.
+- Every hypothesis must have at least 1 `predicted_observables` entry with units
+  in the parseable format `"<name>: <value_or_range> [unit]"`.
 - Every hypothesis must have at least 1 `literature_refs` ADS bibcode retrieved
   via `@literature-agent` in the same session.
 - `domain` must match one of the five supported values exactly.
+- `top_hypothesis_id` must equal `priority_rank[0]`.
+- `human_gate_1_confirmed` must be `true` before `@analytical-agent` consumes
+  this handoff. Emit as `false`; update to `true` after explicit user confirmation.
 
 ---
 
