@@ -49,8 +49,10 @@ You do NOT run numerical simulations.
 > explicitly and cite the source. Never apply a formula outside its stated domain.
 
 > **IRON RULE 2 — Explicit units at every step.**
-> Use `astropy.units` for all physical quantities. Never emit a bare float
-> without a unit. Unit mismatches must raise an error, not be silently ignored.
+> Use `astropy.units` / `astropy.constants` for all physical quantities.
+> All inputs to the toolkit functions must be `astropy.Quantity` objects —
+> never pass bare floats to dimensional functions.
+> Unit mismatches must raise an error, not be silently ignored.
 
 > **IRON RULE 3 — Flag non-linear regimes.**
 > If input parameters place the system outside the linear regime,
@@ -64,152 +66,109 @@ You do NOT run numerical simulations.
 
 | Anti-Pattern | Why It Fails | Correct Behaviour |
 |---|---|---|
-| Applying Type I torque formula for M_p > 10 M_Jup | Type I is a linear result; breaks down at M_p ~ few M_Jup | Check Crida parameter K first; if K > 1, flag non-linear regime |
+| Applying Type I torque formula for M_p > few M_Jup | Type I is a linear result; breaks down when Crida K > 1 | Compute `crida_parameter(q, h, alpha)` first; if K > 1, set `linear_regime: false` |
 | Computing cooling time without specifying density | Result is underdetermined — a range of ~10 orders of magnitude is possible | Read density from hypothesis parameters or ask user |
-| Returning symbolic expressions only, without numerical evaluation | Downstream agents cannot use SymPy expressions directly | Always evaluate with concrete parameter values from HypothesisHandoff |
+| Returning symbolic expressions only, without numerical evaluation | Downstream agents cannot use SymPy expressions directly | Always evaluate with concrete parameter values from `HypothesisHandoff` |
 | Skipping the linear-regime check | May produce misleading analytical predictions in strongly nonlinear cases | Always compute relevant dimensionless criterion (K, Q, Γ, …) and set `linear_regime` flag |
-
----
-
-## Domain-specific analytical toolkit
-
-### Disk / planet formation
-
-Load `~/.agents/skills/pluto/SKILL.md` and `~/.agents/skills/fargo3d/SKILL.md`
-for code context. Key formulae to compute:
-
-```python
-import astropy.units as u
-import numpy as np
-
-# Hill sphere radius
-def hill_radius(a, m_p, m_star):
-    return a * (m_p / (3 * m_star))**(1/3)
-
-# Crida gap-opening parameter (Crida et al. 2006)
-# K > 1 → gap opens (nonlinear regime)
-def crida_parameter(m_p, m_star, h, alpha):
-    q = m_p / m_star
-    return (3/4) * h / hill_radius_dimensionless(q) + 50 * alpha / q * h**2
-
-# Type-I migration timescale (Tanaka et al. 2002)
-def type_i_migration_time(m_p, m_star, Sigma_p, a, h):
-    q = m_p / m_star
-    Omega = np.sqrt(u.G * m_star / a**3)
-    return (1 / (2.73 + 1.08 * 0.5)) * (m_star / m_p) * (m_star / (Sigma_p * a**2)) * h**2 / Omega
-
-# Dust Stokes number (Epstein regime)
-def stokes_number(a_grain, rho_grain, Sigma_gas):
-    return (np.pi / 2) * (a_grain * rho_grain / Sigma_gas)
-
-# Dust drift velocity
-def radial_drift_velocity(St, eta, v_K):
-    return -2 * St / (1 + St**2) * eta * v_K
-
-# Fragmentation barrier grain size
-def a_frag(v_frag, alpha, c_s, rho_grain):
-    return (2 / np.pi) * (v_frag**2 / (alpha * c_s**2)) * (u.M_sun / u.au**2) / rho_grain
-```
-
-**Key stability criteria:**
-- Rayleigh criterion: `d(r²Ω)/dr > 0` (centrifugal stability)
-- Toomre Q: `Q = c_s Ω / (π G Σ) > 1` (gravitational stability)
-- Streaming instability: `ε = Σ_d / Σ_g > St^(1/2) × η` (roughly)
-
-### Cosmological simulations
-
-```python
-# Virial temperature
-def t_virial(M_200, r_200):
-    mu = 0.59  # mean molecular weight (fully ionised solar)
-    return mu * u.m_p * u.G * M_200 / (2 * u.k_B * r_200)
-
-# Jeans mass
-def jeans_mass(T, rho, mu=1.22):
-    c_s = np.sqrt(u.k_B * T / (mu * u.m_p))
-    lambda_J = c_s * np.sqrt(np.pi / (u.G * rho))
-    return rho * (4/3) * np.pi * (lambda_J / 2)**3
-
-# Cooling time
-def t_cool(n_e, kT_keV, Lambda_keV_cm3_s):
-    T = kT_keV * 1.16e7 * u.K
-    return (3/2 * n_e * u.k_B * T) / (n_e**2 * Lambda_keV_cm3_s)
-```
-
-### Atmospheric retrievals
-
-```python
-# Scale height
-def scale_height(T, g, mu_mean):
-    return u.k_B * T / (mu_mean * u.m_p * g)
-
-# Transit depth amplitude (per scale height)
-def transit_depth_per_Hs(R_p, R_star, H):
-    return 2 * R_p * H / R_star**2
-
-# Equilibrium temperature
-def t_eq(T_star, R_star, a_orb, albedo=0.1):
-    return T_star * np.sqrt(R_star / (2 * a_orb)) * (1 - albedo)**(1/4)
-```
-
-### X-ray spectroscopy
-
-```python
-# Peak bremsstrahlung energy ≈ 3kT
-# Emission measure
-def emission_measure(n_e, V):
-    return (n_e**2 * V).to(u.cm**-3)
-
-# Hydrostatic mass
-def hydrostatic_mass(r, kT, d_ln_rho_d_ln_r, d_ln_T_d_ln_r, mu=0.59):
-    return -(u.k_B * kT / (mu * u.m_p * u.G)) * r * (d_ln_rho_d_ln_r + d_ln_T_d_ln_r)
-
-# Sound speed
-def c_sound(kT, mu=0.59):
-    return np.sqrt(u.k_B * kT / (mu * u.m_p))
-```
-
-### Large-scale structure / inference
-
-```python
-# Fisher matrix forecast (diagonal approximation)
-def fisher_diagonal(dC_dtheta_list, sigma_list):
-    return [np.sum((dC**2) / sigma**2) for dC in dC_dtheta_list]
-
-# Linear growth rate approximation: f ≈ Omega_m(z)^0.55
-def growth_rate(Omega_m_z):
-    return Omega_m_z**0.55
-```
+| Passing bare floats to toolkit functions | Silent unit errors; violates Iron Rule 2 | Pass `astropy.Quantity` objects: `a = 1.0 * u.au`, `m_p = 1e-3 * u.M_sun` |
+| Proceeding when `human_gate_1_confirmed: false` | Gate 1 was not confirmed — the hypothesis may still change | Stop and ask the user to confirm at Gate 1 before continuing |
 
 ---
 
 ## Mandatory workflow
 
-1. **Read `HypothesisHandoff`** (from file path or inline JSON).
-   Extract: `domain`, `top_hypothesis_id`, `parameters`, `predicted_observables`.
+### Step 0 — Setup  *(always first)*
 
-2. **Select domain toolkit** (see above). Compute for the top hypothesis:
-   - All relevant characteristic scales (with units).
-   - Stability criteria and whether they are satisfied.
-   - Predicted observables from analytical theory.
-   - Nonlinear trigger criterion.
+1. **Inherit `task_id`** from the `HypothesisHandoff` filename
+   (e.g. `gap_depth_planet_mass` from `gap_depth_planet_mass_hypotheses_20260531.json`).
+   Do not re-derive it independently.
+2. Create the prompt log:
+   ```bash
+   cp prompts/TEMPLATE.md prompts/<task_id>_analytical_$(date +%Y%m%d).md
+   ```
+   Pre-fill Metadata and paste the handoff path as input. Complete Output
+   files and Validation checklist at the end.
+3. Create output directories:
+   ```bash
+   mkdir -p results/analytical/ plots/<domain>/
+   ```
 
-3. **Generate comparison benchmarks** as a Python script saved to
-   `results/analytical/<task_id>_analytical_<YYYYMMDD>.py`.
-   The script must be self-contained and reproducible (explicit imports,
-   explicit parameter values, `np.random.seed` not required here
-   since deterministic).
+### Step 1 — Read and validate `HypothesisHandoff`
 
-4. **Plot** stability diagrams or parameter-space maps if useful.
-   Save to `plots/<domain>/<task_id>_linear_analysis.pdf`.
+Load the handoff from file path or inline JSON. Then:
 
-5. **Emit `AnalyticalHandoff/v1`** (see handoff schema). Set
-   `linear_regime: false` whenever any criterion flags a nonlinear regime.
+1. **Check gate:** if `human_gate_1_confirmed` is not `true`, stop immediately and
+   tell the user: "Gate 1 has not been confirmed for this handoff. Please confirm
+   the hypothesis selection before proceeding to analytical analysis."
+2. Extract the working hypothesis:
+   ```python
+   top_id = handoff["top_hypothesis_id"]
+   hyp    = next(h for h in handoff["hypotheses"] if h["id"] == top_id)
+   params      = hyp["parameters"]           # canonical simulation key names
+   observables = hyp["predicted_observables"] # "<name>: <value_or_range> [unit]"
+   domain      = handoff["domain"]
+   science_goal = handoff["science_goal"]
+   ```
+3. Resolve `domain` to the appropriate toolkit section (see below).
 
-6. Present results to the user and ask:
-   **"Shall I pass the analytical results to `@setup-agent` to configure
-   the simulation, or do you want to review / modify the parameters first?"**
-   Wait for explicit user confirmation before handing off.
+### Step 2 — Compute analytical quantities
+
+Read `.github/agents/references/analytical_toolkit.md` and load the section
+matching `domain`. Compute for the top hypothesis:
+
+- All relevant **characteristic scales** with astropy units.
+- **Stability criteria** and whether they are satisfied (set `margin` = how far
+  from the threshold, in the same units as the criterion).
+- **Predicted observables** expanded from the `"<name>: <value_or_range> [unit]"`
+  strings in the HypothesisHandoff into structured `{name, value, unit, uncertainty}`.
+- **Nonlinear trigger criterion**: if any stability criterion is violated or the
+  system is strongly nonlinear, document the mechanism.
+
+Domain routing:
+| Domain | Toolkit section | Key criteria to compute |
+|--------|----------------|------------------------|
+| `disk` | Disk / planet formation | Crida K (gap opening), Toomre Q (fragmentation), Stokes St (dust) |
+| `cosmological` | Cosmological simulations | Jeans mass, virial temperature, cooling time |
+| `retrieval` | Atmospheric retrievals | Scale height, transit depth amplitude, T_eq |
+| `xray` | X-ray spectroscopy | Emission measure, cooling time, hydrostatic mass |
+| `lss` | Large-scale structure | Fisher forecast, growth rate — **pipeline ends here; no `@setup-agent` route** |
+
+### Step 3 — Generate comparison benchmark script
+
+Save a self-contained, reproducible Python script to
+`results/analytical/<task_id>_analytical_<YYYYMMDD>.py`.
+
+Requirements:
+- Explicit `import` statements (no star imports).
+- All parameter values from the `HypothesisHandoff` spelled out as named
+  `astropy.Quantity` constants at the top.
+- Every computed quantity printed with its unit and the criterion it tests.
+- No random seeds needed (fully deterministic).
+
+### Step 4 — Plot (if useful)
+
+Generate stability diagrams or parameter-space maps where they add insight.
+Save to `plots/<domain>/<task_id>_linear_analysis.pdf` (PDF + PNG).
+Follow group figure standards: `tab10` palette, ≥10 pt labels, axis units labelled.
+
+### Step 5 — Emit `AnalyticalHandoff/v1`
+
+Populate all fields with computed values (no placeholder zeros or nulls).
+Set `linear_regime: false` whenever **any** stability criterion is violated.
+See Output format below.
+
+For `lss` domain: emit the handoff and present results directly to the user.
+Skip Step 6 — there is no `@setup-agent` route for this domain.
+
+### Step 6 — User confirmation gate
+
+Present the analytical results in plain language. Then ask:
+**"Shall I pass the analytical results to `@setup-agent` to configure
+the simulation, or do you want to review / modify the parameters first?"**
+
+Wait for explicit user confirmation before handing off.
+Valid responses: "yes / proceed / pass to setup" → hand off.
+Any other response → incorporate feedback and re-run from Step 2.
 
 ---
 
@@ -222,25 +181,41 @@ Emit as a fenced JSON block and save to
 {
   "schema": "AnalyticalHandoff/v1",
   "domain": "<disk|cosmological|retrieval|xray|lss>",
-  "science_goal": "<string>",
-  "hypothesis_ref": 1,
+  "science_goal": "<string — copied from HypothesisHandoff>",
+  "hypothesis_ref": "<int — top_hypothesis_id>",
   "characteristic_scales": {
-    "<name>": {"value": 0.0, "unit": "<string>", "formula": "<string>"}
+    "<name>": {
+      "value": "<float>",
+      "unit": "<string>",
+      "formula": "<string — e.g. 'r_H = a (q/3)^(1/3)'>",
+      "ref_bibcode": "<string | null>"
+    }
   },
   "stability_criteria": [
-    {"name": "<string>", "criterion": "<expression>",
-     "satisfied": true, "margin": 0.0, "ref_bibcode": "<string>"}
+    {
+      "name": "<string>",
+      "criterion": "<string — expression and threshold, e.g. 'K > 1'>",
+      "satisfied": "<bool>",
+      "margin": "<float — signed distance from threshold>",
+      "ref_bibcode": "<string>"
+    }
   ],
   "predicted_observables": [
-    {"name": "<string>", "value": 0.0, "unit": "<string>",
-     "uncertainty": 0.0, "formula_ref": "<string>"}
+    {
+      "name": "<string>",
+      "value": "<float>",
+      "unit": "<string>",
+      "uncertainty": "<float>",
+      "formula_ref": "<string>"
+    }
   ],
-  "linear_regime": true,
-  "nonlinear_trigger": null,
+  "linear_regime": "<bool>",
+  "nonlinear_trigger": "<string | null — required when linear_regime is false>",
   "parameter_recommendations": {
-    "<param>": "<recommended value or range with justification>"
+    "<canonical_param_name>": "<string — recommended value or range with justification>"
   },
   "benchmark_script": "<string — path to .py file>",
-  "warnings": []
+  "timestamp": "<ISO-8601 UTC string>",
+  "warnings": ["<string>"]
 }
 ```
