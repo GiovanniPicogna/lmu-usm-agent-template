@@ -935,7 +935,8 @@ nav_order: 5
       <section>
         <span class="stag">Part 2 — Demo: @simulation-agent in Action</span>
         <h2>Demo: Dust Growth &amp; Fragmentation with DustPy</h2>
-        <div class="sm" style="margin-bottom:0.5em;">Task: run a DustPy ice-line fragmentation simulation, plot grain-size
+        <div class="sm" style="margin-bottom:0.5em;">Task: run a DustPy ice-line fragmentation simulation, plot
+          grain-size
           distribution and radial drift profile — agent reads the DustPy skill, writes setup, runs, self-heals errors,
           saves figures</div>
         <div class="g3">
@@ -954,7 +955,8 @@ sim.ini.disk.alpha = 1.e-3
           <div class="card c2">
             <div class="ct">2. Chat (Ctrl+Alt+I)</div>
             <div style="font-size:0.8em;">
-              <p><strong>You:</strong> <em>Why does a_max drop sharply at 150 au in my dust surface density plot?</em></p>
+              <p><strong>You:</strong> <em>Why does a_max drop sharply at 150 au in my dust surface density plot?</em>
+              </p>
               <p><strong>Copilot:</strong> That's the fragmentation barrier
                 <code>a_frag = 2Σ v_frag² / (3π α ρ_s c_s²)</code>.
                 At large r, α·c_s² drops, so fragmentation limits growth earlier than drift.
@@ -965,7 +967,7 @@ sim.ini.disk.alpha = 1.e-3
             <div class="ct">3. Agent Mode — @simulation-agent</div>
             <div style="font-size:0.8em;">
               <p><em>"Use the DustPy skill. Run ice-line v_frag simulation (v_frag=1 m/s inside 150 au, 10 m/s outside).
-                Plot Σ_dust(r,t) and a_max(r). Save PDF to plots/."</em></p>
+                  Plot Σ_dust(r,t) and a_max(r). Save PDF to plots/."</em></p>
               <ul>
                 <li>✅ Loaded <code>dustpy/SKILL.md</code></li>
                 <li>✅ Wrote <code>run_ice_line_vfrag.py</code></li>

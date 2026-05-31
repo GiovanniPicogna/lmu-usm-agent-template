@@ -347,9 +347,54 @@ Skill files follow the **lean SKILL.md pattern**: `SKILL.md` contains the essent
 Detailed parameter tables and worked examples live in each skill’s `references/`
 subdirectory and are loaded by the agent on demand.
 
-Recommended skills by domain are listed in
-[`docs/skills.md`](https://giovannipicogna.github.io/lmu-usm-agent-template/skills)
-and in §11 of `.github/copilot-instructions.md`.
+Recommended skills by domain are listed in [`docs/skills.md`](https://giovannipicogna.github.io/lmu-usm-agent-template/skills).
+
+### Community skills by domain
+
+Install from → https://github.com/K-Dense-AI/scientific-agent-skills
+
+*Universal (all groups)*
+
+| Skill | Invoke when… |
+|-------|-------------|
+| `astropy` | coordinate transforms, FITS I/O, cosmological distances, WCS |
+| `matplotlib` | any publication plot needing fine-grained control |
+| `scientific-visualization` | multi-panel journal figures (Nature/A&A style, colourblind palettes) |
+| `statistical-analysis` | choosing and running statistical tests, power analysis |
+| `paper-lookup` | searching PubMed / arXiv / OpenAlex / Semantic Scholar |
+| `citation-management` | verifying BibTeX, converting DOIs, formatting references |
+
+*Disk & planet formation*
+
+| Skill | Invoke when… |
+|-------|-------------|
+| `database-lookup` | querying SIMBAD, VizieR, ALMA archive, ExoFOP |
+| `exploratory-data-analysis` | first look at a new simulation output or data file |
+| `scientific-schematics` | disk structure diagrams, gap morphology schematics |
+| `sympy` | analytical dispersion relations, stability criteria, linear perturbation theory |
+
+*Cosmological simulations*
+
+| Skill | Invoke when… |
+|-------|-------------|
+| `networkx` | building merger trees or substructure graphs |
+| `umap-learn` | dimensionality reduction for halo/galaxy populations |
+| `scikit-learn` | classification / regression on simulation catalogues |
+
+*Atmospheric retrievals & high-res spectroscopy*
+
+| Skill | Invoke when… |
+|-------|-------------|
+| `statsmodels` | frequentist inference, ARIMA detrending of time series |
+| `shap` | interpreting ML-based retrieval or classification models |
+| `database-lookup` | querying ExoAtmospheres, HITRAN, ExoMol line lists |
+
+*X-ray & galaxy clusters*
+
+| Skill | Invoke when… |
+|-------|-------------|
+| `imaging-data-commons` | accessing NCI / public X-ray / CT imaging datasets |
+| `pydicom` | reading DICOM files from medical / detector calibration data |
 
 ---
 
@@ -448,6 +493,37 @@ cp AI_Agents_Astrophysics_v4.pdf docs/slides.pdf
 git add docs/slides.pdf && git commit -m "docs: add presentation slides"
 ```
 Then link it from `docs/index.md`.
+
+---
+
+## Customising the template
+
+### Scoped per-filetype instructions (Copilot-only)
+
+Since July 2025, Copilot supports glob-scoped instruction files that activate
+only for matching file types or directories — keeping `.github/copilot-instructions.md`
+focused on universal group conventions. Create them in `.github/instructions/`:
+
+```
+.github/instructions/
+├── python.instructions.md       # applyTo: "**/*.py"
+├── simulation.instructions.md   # applyTo: "src/simulation/**"
+└── notebooks.instructions.md    # applyTo: "**/*.ipynb"
+```
+
+Frontmatter example:
+
+```markdown
+---
+applyTo: "**/*.py"
+---
+Always use type hints. Prefer `astropy.units.Quantity` over bare floats.
+Never hardcode physical constants — import from `astropy.constants`.
+```
+
+This is a Copilot-specific feature; it has no equivalent in `AGENTS.md`.
+For rules that must apply to all tools (Copilot, Claude Code, Cursor), put them
+in `AGENTS.md` or `.github/copilot-instructions.md` instead.
 
 ---
 

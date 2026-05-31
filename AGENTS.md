@@ -219,11 +219,15 @@ python .github/skills/radmc3d/scripts/run_radmc3d.py \
 #
 # The pipeline pauses at two mandatory human gates:
 #   Gate 1 — after hypothesis generation (confirm which to pursue)
-#   Gate 2 — after interpretation (choose: iterate / write / mcmc / stop / abort)
+#   Gate 2 — after interpretation (choose: iterate / write→@paper-agent / mcmc / stop / abort)
 
 # ── MCMC sampling (via @mcmc-agent) ───────────────────────────────────────
 # @mcmc-agent  results/spectral/core_fit.json
 #              sampler: emcee  nwalkers: 64  nsteps: 5000
+
+# ── Paper writing (via @paper-agent) ──────────────────────────────────────
+# Triggered by Gate 2 next_action: write
+# @paper-agent  results/interpretation/<task_id>_<date>.json
 
 # ── Pre-commit validation ─────────────────────────────────────────────────
 pre-commit run --all-files
@@ -281,6 +285,8 @@ See `.vscode/settings.json` for the full MCP configuration.
 | Server | Purpose | Requires |
 |--------|---------|---------|
 | `cbyrohl/mcp-server-ads` | Literature search, BibTeX retrieval | `ADS_API_TOKEN` env var |
-| `adamzacharia/alma_mcp` | ALMA archive queries (uncomment in `.vscode/settings.json` to enable) | `ALMA_TOKEN` env var |
+| `adamzacharia/alma_mcp` | ALMA archive queries (uncomment to enable) | `ALMA_TOKEN` env var |
+| `ProgramComputer/NASA-MCP-server` | General NASA data products (uncomment to enable) | — |
+| `NASA-PDS/pds-mcp-server` | Planetary Data System archive (uncomment to enable) | — |
 
 To get an ADS API token: https://ui.adsabs.harvard.edu/user/settings/token

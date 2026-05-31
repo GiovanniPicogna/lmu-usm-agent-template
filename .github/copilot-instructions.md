@@ -43,34 +43,10 @@ Our work spans multiple computational domains:
 Code you write will be used in published scientific papers.
 Correctness and reproducibility are more important than speed.
 
-## Repository structure
-
-```
-.github/
-├── copilot-instructions.md   # group-wide conventions — loaded every session
-├── instructions/             # scoped .instructions.md files (Python, notebooks, etc.)
-└── skills/                   # bundled agent skills: dustpy, fargo3d, pluto, radmc3d, yt, sherpa
-envs/                         # conda environment YAML files
-data/                         # git-ignored — simulation outputs, FITS, HDF5 snapshots
-docs/                         # GitHub Pages site (index.md, slides, skills catalogue)
-paper/                        # bibliography.bib and manuscript drafts
-plots/                        # publication figures (PDF/PNG); commit only final versions
-prompts/                      # agent prompt logs — always committed (see §7)
-results/                      # processed outputs < 10 MB (JSON/HDF5 fit results, maps)
-src/
-└── utils/                    # shared helpers: units, coordinates, plot style, constants
-AGENTS.md                     # project-specific context — fill in before first session
-ARCHITECTURE.md               # agent roster, research pipeline diagram, handoff schemas
-```
-
-For `src/`, add the domain subdirectories described in `AGENTS.md` §"Code structure"
-when starting a project (`simulation/`, `analysis/`, `retrieval/`, `reduction/`, etc.).
-
 ## 2. Programming language & environment
 
-- **Language**: Python 3.12+ by default (active conda env: `py312`). Julia
-  (GadgetIO.jl) and shell scripts are acceptable for simulation I/O and
-  pipeline tasks. Fortran interfaces exist in PLUTO/FARGO3D; do not rewrite them.
+- **Language**: Python 3.12+ by default. Julia and shell scripts are
+  acceptable for simulation I/O and pipeline tasks.
 - **Package manager**: conda or mamba (environment files in `envs/`).
 - **Key libraries by domain** (prefer these over ad-hoc alternatives):
 
@@ -87,17 +63,16 @@ when starting a project (`simulation/`, `analysis/`, `retrieval/`, `reduction/`,
     and retrievals)
   - `corner` — MCMC posterior corner plots
 
-  *Disk & planet formation post-processing*
-  - `dustpy` — 1-D dust evolution (Birnstiel group standard)
+  *Disk & planet formation simulations*
+  - `dustpy` — radial evolution of gas and dust in protoplanetary disks
   - `radmc3dPy` — Python interface to RADMC-3D radiative transfer
   - `pyPLUTO` — Python interface to PLUTO (if available); otherwise parse binary
     `.dat` files directly with `numpy.fromfile`
   - FARGO3D output: parse binary `.dat` files directly with `numpy.fromfile`
     (HDF5 outputs with `h5py`); use the bundled skill readers in
-    `.github/skills/fargo3d/references/output_conventions.md` — do not
-    rely on `fargopy` which is not a standard distributed package
+    `.github/skills/fargo3d/references/output_conventions.md`
 
-  *Cosmological simulation analysis*
+  *Cosmological simulations*
   - `yt` — volumetric analysis and rendering of SPH/AMR snapshots
   - `h5py` — direct GADGET/Magneticum HDF5 snapshot access
   - Prefer `GadgetIO.jl` (Julia) for snapshot I/O in Julia workflows;
@@ -133,27 +108,12 @@ when starting a project (`simulation/`, `analysis/`, `retrieval/`, `reduction/`,
 
 ## 4. Coding standards
 
-Full Python coding standards and examples are in
-`.github/instructions/python.instructions.md` (auto-applied to all `*.py`
-files via `applyTo` glob). Key principles — see that file for details:
+Full Python rules are in `.github/instructions/python.instructions.md` (auto-applied to `*.py`).
+Cross-language rules that apply to all scripts (Python, Julia, shell):
 
-- **Names**: descriptive, intention-revealing; nouns for variables/classes,
-  verbs for functions; no magic numbers; consistent vocabulary; no `df`/`tmp`.
-- **Functions**: single responsibility; ≤ 30 lines preferred; ≤ 2 arguments;
-  no boolean flag parameters; no hidden side effects; order caller above callee.
-- **Comments**: self-documenting code is the goal — explain *why*, not *what*;
-  NumPy-format docstrings on every public function and class;
-  never commit commented-out dead code.
-- **Principles**: DRY (extract repeated logic), KISS (simplest solution),
-  SoC (separate loading / processing / output stages into distinct functions).
-- **Testing**: write tests alongside code; target ≥ 80 % coverage for analysis
-  scripts; cyclomatic complexity < 10 per function (check with `radon cc`).
-- **Tools**: `ruff` for linting, `black` for deterministic formatting,
-  `pre-commit` hooks on every commit; `pytest` for unit and regression tests.
-- **Error handling**: specific exceptions only — never bare `except:`; log the
-  full traceback; validate user inputs at script entry points only.
-- **Paths & CLI**: `pathlib.Path` everywhere; expose all paths via
-  `argparse`/`click`; include a `--dry-run` flag; never hardcode paths.
+- **Paths**: `pathlib.Path` everywhere; expose all paths via `argparse`/`click`; never hardcode.
+- **Toolchain**: `ruff` + `black` + `pre-commit` on every commit; `pytest` for regression tests.
+- **Error handling**: never bare `except:`; log the full traceback; validate inputs at entry points only.
 
 ## 5. Figures & visualisation
 
@@ -291,73 +251,8 @@ can activate on demand to extend your capabilities. There are two tiers:
 See `ARCHITECTURE.md` for the canonical list and trigger phrases.
 
 **Community skills** (installed to `~/.agents/skills/`, loaded with `read_file`):
-
-**Full catalog and installation instructions:**
 → https://github.com/K-Dense-AI/scientific-agent-skills
-
-### Recommended community skills for USM groups
-
-*Universal (all groups)*
-
-| Skill | Invoke when… |
-|-------|-------------|
-| `astropy` | coordinate transforms, FITS I/O, cosmological distances, WCS |
-| `matplotlib` | any publication plot needing fine-grained control |
-| `scientific-visualization` | multi-panel journal figures (Nature/A&A style, colourblind palettes) |
-| `statistical-analysis` | choosing and running statistical tests, power analysis |
-| `paper-lookup` | searching PubMed / arXiv / OpenAlex / Semantic Scholar |
-| `citation-management` | verifying BibTeX, converting DOIs, formatting references |
-
-*Disk & planet formation*
-
-| Skill | Invoke when… |
-|-------|-------------|
-| `database-lookup` | querying SIMBAD, VizieR, ALMA archive, ExoFOP |
-| `exploratory-data-analysis` | first look at a new simulation output or data file |
-| `scientific-schematics` | disk structure diagrams, gap morphology schematics |
-| `dustpy` | **bundled** — 1-D dust evolution, grain growth, fragmentation barrier |
-| `fargo3d` | **bundled** — planet–disk interaction, gap opening, type-I migration |
-| `pluto` | **bundled** — HD/MHD disk & jet simulations, compile/run/plot |
-| `radmc3d` | **bundled** — radiative transfer post-processing, synthetic ALMA images, SED, scattered-light maps |
-
-*Cosmological simulations*
-
-| Skill | Invoke when… |
-|-------|-------------|
-| `networkx` | building merger trees or substructure graphs |
-| `umap-learn` | dimensionality reduction for halo/galaxy populations |
-| `scikit-learn` | classification / regression on simulation catalogues |
-| `yt` | **bundled** — volumetric analysis, projection maps, thermodynamic profiles of SPH/AMR snapshots |
-
-*Atmospheric retrievals & high-res spectroscopy*
-
-| Skill | Invoke when… |
-|-------|-------------|
-| `statsmodels` | frequentist inference, ARIMA detrending of time series |
-| `shap` | interpreting ML-based retrieval or classification models |
-| `database-lookup` | querying ExoAtmospheres, HITRAN, ExoMol line lists |
-
-*X-ray & galaxy clusters*
-
-| Skill | Invoke when… |
-|-------|-------------|
-| `imaging-data-commons` | accessing NCI / public X-ray / CT imaging datasets |
-| `pydicom` | reading DICOM files from medical / detector calibration data |
-| `sherpa` | **bundled** — X-ray spectral fitting, TBabs\*apec models, C-stat, confidence contours |
-
-*Simulation pre-analysis (all domains)*
-
-| Skill | Invoke when… |
-|-------|-------------|
-| `sympy` | analytical dispersion relations, stability criteria, linear perturbation theory, scaling laws |
-
-### Using a skill
-
-```python
-# At the start of a task, tell the agent which skill to load:
-# "Use the scientific-visualization skill for this figure."
-# The agent will read the SKILL.md and follow its instructions.
-```
+Recommended skills by domain: `README.md §Agent skills` and `docs/skills.md`.
 
 ## 12. EU AI Act & Legal Compliance
 
@@ -436,30 +331,4 @@ research). Article 50 transparency obligations apply to all agent interactions.
 
 ---
 
-## 13. Scoped Copilot instructions (Copilot-only)
-
-Since July 2025, Copilot also supports glob-scoped instruction files that
-activate only for matching file types or directories. Create them in
-`.github/instructions/`:
-
-```
-.github/instructions/
-├── python.instructions.md       # applyTo: "**/*.py"
-├── simulation.instructions.md   # applyTo: "src/simulation/**"
-└── notebooks.instructions.md    # applyTo: "**/*.ipynb"
-```
-
-Frontmatter example:
-
-```markdown
----
-applyTo: "**/*.py"
----
-Always use type hints. Prefer `astropy.units.Quantity` over bare floats.
-Never hardcode physical constants — import from `astropy.constants`.
-```
-
-Use scoped files for rules that apply only to a specific file type or
-subdirectory (e.g., Python-only style rules, notebook-specific output
-conventions), keeping this file focused on universal group conventions.
-This is a Copilot-specific feature; it has no equivalent in `AGENTS.md`.
+> Scoped per-filetype instructions (Copilot-only) live in `.github/instructions/` — see `README.md §Customising the template`.
