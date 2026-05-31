@@ -26,37 +26,51 @@ import traceback
 
 import numpy as np
 
-
 # ---------------------------------------------------------------------------
 # Argument parsing
 # ---------------------------------------------------------------------------
 
 
 def parse_args():
-    p = argparse.ArgumentParser(description="Launch a DustPy dust-evolution simulation.")
+    p = argparse.ArgumentParser(
+        description="Launch a DustPy dust-evolution simulation."
+    )
 
     # --- run control ---
     p.add_argument(
-        "--run_dir", required=True, help="Output directory for this run (created if absent)."
+        "--run_dir",
+        required=True,
+        help="Output directory for this run (created if absent).",
     )
-    p.add_argument("--json", default=None, help="JSON string of parameter overrides (see below).")
-    p.add_argument("--overwrite", action="store_true", help="Overwrite existing data directory.")
     p.add_argument(
-        "--resume", action="store_true", help="Resume from existing frame.dmp dump file."
+        "--json", default=None, help="JSON string of parameter overrides (see below)."
+    )
+    p.add_argument(
+        "--overwrite", action="store_true", help="Overwrite existing data directory."
+    )
+    p.add_argument(
+        "--resume",
+        action="store_true",
+        help="Resume from existing frame.dmp dump file.",
     )
     p.add_argument(
         "--dry_run",
         action="store_true",
-        help="Validate parameters and write setup script only; " "do not run the simulation.",
+        help="Validate parameters and write setup script only; "
+        "do not run the simulation.",
     )
 
     # --- HPC / SLURM ---
     p.add_argument(
-        "--hpc", action="store_true", help="Write a SLURM jobscript instead of running locally."
+        "--hpc",
+        action="store_true",
+        help="Write a SLURM jobscript instead of running locally.",
     )
     p.add_argument("--partition", default="serial", help="SLURM partition name.")
     p.add_argument("--walltime", default="04:00:00", help="SLURM wall time (HH:MM:SS).")
-    p.add_argument("--memory_gb", type=float, default=8.0, help="Memory per node in GB for SLURM.")
+    p.add_argument(
+        "--memory_gb", type=float, default=8.0, help="Memory per node in GB for SLURM."
+    )
 
     # --- stellar ---
     p.add_argument("--star_mass_msun", type=float, default=1.0)
@@ -67,7 +81,9 @@ def parse_args():
     p.add_argument("--nr", type=int, default=100)
     p.add_argument("--rmin_au", type=float, default=1.0)
     p.add_argument("--rmax_au", type=float, default=1000.0)
-    p.add_argument("--nmbpd", type=int, default=7, help="Mass bins per decade; minimum 7.")
+    p.add_argument(
+        "--nmbpd", type=int, default=7, help="Mass bins per decade; minimum 7."
+    )
     p.add_argument("--mmin_g", type=float, default=1e-12)
     p.add_argument("--mmax_g", type=float, default=1e5)
 
@@ -85,7 +101,9 @@ def parse_args():
         default=100.0,
         help="Fragmentation velocity in cm/s (default 100 = 1 m/s).",
     )
-    p.add_argument("--rho_monomer", type=float, default=1.67, help="Monomer bulk density [g/cm³].")
+    p.add_argument(
+        "--rho_monomer", type=float, default=1.67, help="Monomer bulk density [g/cm³]."
+    )
     p.add_argument(
         "--a_ini_max_cm",
         type=float,
@@ -205,11 +223,17 @@ def validate_params(args):
             f"coagulation (Drążkowska et al. 2014)"
         )
     if args.rmin_au <= 0 or args.rmax_au <= args.rmin_au:
-        errors.append(f"Invalid grid: rmin={args.rmin_au} AU, " f"rmax={args.rmax_au} AU")
+        errors.append(
+            f"Invalid grid: rmin={args.rmin_au} AU, " f"rmax={args.rmax_au} AU"
+        )
     if args.t_end_yr <= args.t_start_yr:
-        errors.append(f"t_end_yr={args.t_end_yr} must be > " f"t_start_yr={args.t_start_yr}")
+        errors.append(
+            f"t_end_yr={args.t_end_yr} must be > " f"t_start_yr={args.t_start_yr}"
+        )
     if args.mmin_g <= 0 or args.mmax_g <= args.mmin_g:
-        errors.append(f"Invalid mass grid: mmin={args.mmin_g} g, " f"mmax={args.mmax_g} g")
+        errors.append(
+            f"Invalid mass grid: mmin={args.mmin_g} g, " f"mmax={args.mmax_g} g"
+        )
     if args.alpha <= 0 or args.alpha > 0.1:
         errors.append(f"alpha={args.alpha} out of physical range (0, 0.1]")
     if args.vfrag_cms <= 0:
@@ -285,7 +309,9 @@ def build_and_run(args):
         _json.dump(manifest, mf, indent=2)
 
     if args.dry_run:
-        n_snaps_dry = int(args.snaps_per_decade * np.log10(args.t_end_yr / args.t_start_yr)) + 1
+        n_snaps_dry = (
+            int(args.snaps_per_decade * np.log10(args.t_end_yr / args.t_start_yr)) + 1
+        )
         print(
             f"SUCCESS run_dir={run_dir} dry_run=True "
             f"n_snapshots={n_snaps_dry} t_end_yr={args.t_end_yr}",
@@ -297,7 +323,8 @@ def build_and_run(args):
         dump_path = os.path.join(datadir, "frame.dmp")
         if not os.path.exists(dump_path):
             print(
-                f"ERROR message=Resume requested but dump file not found: " f"{dump_path}",
+                f"ERROR message=Resume requested but dump file not found: "
+                f"{dump_path}",
                 flush=True,
             )
             sys.exit(1)
@@ -317,7 +344,10 @@ def build_and_run(args):
             np.geomspace(
                 args.t_start_yr,
                 args.t_end_yr,
-                num=int(args.snaps_per_decade * np.log10(args.t_end_yr / args.t_start_yr)) + 1,
+                num=int(
+                    args.snaps_per_decade * np.log10(args.t_end_yr / args.t_start_yr)
+                )
+                + 1,
             )
             * c.year,
         ]
@@ -334,7 +364,10 @@ def build_and_run(args):
     n_snaps = len(hdf5_files)
 
     if n_snaps == 0:
-        print(f"ERROR message=Run completed but no HDF5 files found in " f"{datadir}", flush=True)
+        print(
+            f"ERROR message=Run completed but no HDF5 files found in " f"{datadir}",
+            flush=True,
+        )
         sys.exit(1)
 
     # Verify last snapshot is readable
@@ -407,9 +440,13 @@ def main():
         else:
             import subprocess
 
-            result = subprocess.run(["sbatch", slurm_path], capture_output=True, text=True)
+            result = subprocess.run(
+                ["sbatch", slurm_path], capture_output=True, text=True
+            )
             if result.returncode != 0:
-                print(f"ERROR message=sbatch failed: {result.stderr.strip()}", flush=True)
+                print(
+                    f"ERROR message=sbatch failed: {result.stderr.strip()}", flush=True
+                )
                 sys.exit(1)
             job_id = result.stdout.strip().split()[-1]
             print(

@@ -845,75 +845,6 @@ nav_order: 5
       </section>
 
       <!-- ═══════════════════════════════════════════════════════
-     SLIDE A — COPILOT AGENT MODE vs CLAUDE CODE CLI
-     ═══════════════════════════════════════════════════════ -->
-      <section>
-        <span class="stag">Part 2 — Copilot Agent Mode vs Claude Code CLI</span>
-        <h2>Two Agentic Interfaces: Which Should You Use?</h2>
-        <table style="font-size:0.72em;margin-bottom:0.5em;">
-          <thead>
-            <tr>
-              <th>Feature</th>
-              <th>GitHub Copilot Agent Mode<br><span style="font-weight:400;color:#b0bec5;">(VS Code)</span></th>
-              <th>Claude Code CLI<br><span style="font-weight:400;color:#b0bec5;">(terminal)</span></th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td>Interface</td>
-              <td>GUI inside VS Code</td>
-              <td>Terminal / shell — works on HPC, SSH</td>
-            </tr>
-            <tr>
-              <td>Cost (2026)</td>
-              <td><span class="g">Free</span> via GitHub Education</td>
-              <td>~$5–20 / month (Anthropic API) or ~$20/mo Claude Max</td>
-            </tr>
-            <tr>
-              <td>Models</td>
-              <td>GPT-4o · Claude Sonnet 4.5 · Gemini 2.5 (switchable)</td>
-              <td>Claude Sonnet 4.5 / Opus 4 (fixed to Anthropic)</td>
-            </tr>
-            <tr>
-              <td>Context window</td>
-              <td>~128k tokens</td>
-              <td>200k tokens (Sonnet 4.5) — larger repo ingestion</td>
-            </tr>
-            <tr>
-              <td>File access</td>
-              <td>Open workspace only</td>
-              <td>Any path the shell can reach — ideal for <code>data/</code></td>
-            </tr>
-            <tr>
-              <td>MCP support</td>
-              <td>✅ via <code>.vscode/settings.json</code></td>
-              <td>✅ via <code>claude_desktop_config.json</code></td>
-            </tr>
-            <tr>
-              <td>HPC / remote server</td>
-              <td>Requires VS Code SSH extension</td>
-              <td><span class="g">Native</span> — runs anywhere Python is available</td>
-            </tr>
-            <tr>
-              <td>Custom instructions</td>
-              <td><code>copilot-instructions.md</code> + <code>AGENTS.md</code></td>
-              <td><code>CLAUDE.md</code> + <code>AGENTS.md</code></td>
-            </tr>
-            <tr>
-              <td>Best for</td>
-              <td>Daily coding, debugging, in-editor refactoring</td>
-              <td>Long autonomous runs, HPC pipeline setup, whole-repo tasks</td>
-            </tr>
-          </tbody>
-        </table>
-        <div class="ibox" style="font-size:0.8em;">
-          💡 <strong>Practical rule:</strong> use Copilot for interactive development; use Claude Code on the server
-          when you need overnight autonomous tasks or direct access to large <code>data/</code> trees.
-          Both read the same <code>AGENTS.md</code> — one config, two interfaces.
-        </div>
-      </section>
-
-      <!-- ═══════════════════════════════════════════════════════
      SLIDE G — CURSOR / WINDSURF / ANTIGRAVITY vs VS CODE
      ═══════════════════════════════════════════════════════ -->
       <section>
@@ -924,18 +855,18 @@ nav_order: 5
             <tr>
               <th>Feature</th>
               <th>VS Code + Copilot<br><span style="font-weight:400;color:#b0bec5;">our baseline</span></th>
-              <th>Cursor<br><span style="font-weight:400;color:#b0bec5;">VS Code fork</span></th>
+              <th>Cursor<br><span style="font-weight:400;color:#b0bec5;">VS Code fork · Anysphere</span></th>
               <th>Windsurf<br><span style="font-weight:400;color:#b0bec5;">Codeium IDE</span></th>
-              <th>Google Antigravity<br><span style="font-weight:400;color:#b0bec5;">VS Code-based · Google</span></th>
+              <th>Google Antigravity<br><span style="font-weight:400;color:#b0bec5;">Standalone · Google</span></th>
             </tr>
           </thead>
           <tbody>
             <tr>
               <td>Base IDE</td>
               <td>VS Code (Microsoft)</td>
-              <td>VS Code fork (AnySphere)</td>
-              <td>Proprietary (Codeium/OpenAI)</td>
-              <td>VS Code-based (Google) · local install · March 2026</td>
+              <td>VS Code fork (Anysphere)</td>
+              <td>Proprietary (Codeium)</td>
+              <td>Standalone (Google) · local install</td>
             </tr>
             <tr>
               <td>Cost (May 2026)</td>
@@ -990,7 +921,7 @@ nav_order: 5
           </tbody>
         </table>
         <div class="ibox" style="font-size:0.74em;">
-          🏆 <strong>Verdict (Feldmann 2026):</strong> VS Code + Copilot wins on flexibility and HPC Remote SSH.
+          🏆 <strong>Verdict (Feldmann, dev.to 2026):</strong> VS Code + Copilot wins on flexibility and HPC Remote SSH.
           <strong>Cursor</strong> has the best autocomplete ("predict next edit"). <strong>Windsurf</strong> excels for
           greenfield projects.
           <strong>Antigravity</strong>: a compelling "control room" for parallel agents — best used <em>alongside</em>
@@ -1002,45 +933,54 @@ nav_order: 5
      SLIDE 6 — DEMO
      ═══════════════════════════════════════════════════════ -->
       <section>
-        <span class="stag">Part 2 — Demo: Copilot in Action</span>
-        <h2>Demo: Fitting a Broken Power-Law SED with Copilot</h2>
-        <div class="sm" style="margin-bottom:0.5em;">Task: fit radio-to-X-ray SED of a cluster with emcee + corner plot,
-          auto-fixed by the agent</div>
+        <span class="stag">Part 2 — Demo: @simulation-agent in Action</span>
+        <h2>Demo: Dust Growth &amp; Fragmentation with DustPy</h2>
+        <div class="sm" style="margin-bottom:0.5em;">Task: run a DustPy ice-line fragmentation simulation, plot grain-size
+          distribution and radial drift profile — agent reads the DustPy skill, writes setup, runs, self-heals errors,
+          saves figures</div>
         <div class="g3">
           <div class="card c1">
             <div class="ct">1. Autocomplete</div>
-            <pre><code class="language-python">emcee.EnsembleSampler(
-  # → Copilot suggests:
-  nwalkers, ndim,
-  log_prob_fn=log_prob)
+            <pre><code class="language-python">from dustpy import Simulation
+from dustpy import constants as c
 
-# Tab to accept.
-# No syntax lookup.</code></pre>
+sim = Simulation()
+sim.ini.star.M = 1.0 * c.M_sun
+sim.ini.disk.alpha = 1.e-3
+# ↑ Copilot completes
+#   the ini block from
+#   context.</code></pre>
           </div>
           <div class="card c2">
             <div class="ct">2. Chat (Ctrl+Alt+I)</div>
             <div style="font-size:0.8em;">
-              <p><strong>You:</strong> <em>Why do chi2 residuals diverge at low freq?</em></p>
-              <p><strong>Copilot:</strong> Your spectrum may have a spectral break. Try a BPL model with
-                <code>nu_break</code> as free param.
+              <p><strong>You:</strong> <em>Why does a_max drop sharply at 150 au in my dust surface density plot?</em></p>
+              <p><strong>Copilot:</strong> That's the fragmentation barrier
+                <code>a_frag = 2Σ v_frag² / (3π α ρ_s c_s²)</code>.
+                At large r, α·c_s² drops, so fragmentation limits growth earlier than drift.
               </p>
             </div>
           </div>
           <div class="card c3">
-            <div class="ct">3. Agent Mode</div>
+            <div class="ct">3. Agent Mode — @simulation-agent</div>
             <div style="font-size:0.8em;">
-              <p><em>Refactor fit.py: log-uniform priors, corner plot, save PDF</em></p>
+              <p><em>"Use the DustPy skill. Run ice-line v_frag simulation (v_frag=1 m/s inside 150 au, 10 m/s outside).
+                Plot Σ_dust(r,t) and a_max(r). Save PDF to plots/."</em></p>
               <ul>
-                <li>✅ Edited fit.py, plot.py</li>
-                <li>✅ Caught ImportError</li>
-                <li>✅ Fixed &amp; re-ran</li>
+                <li>✅ Loaded <code>dustpy/SKILL.md</code></li>
+                <li>✅ Wrote <code>run_ice_line_vfrag.py</code></li>
+                <li>✅ Ran simulation · 10 snapshots</li>
+                <li>✅ Caught <code>ModuleNotFoundError</code>, fixed</li>
+                <li>✅ Saved <code>plots/dust_amax.pdf</code></li>
               </ul>
             </div>
           </div>
         </div>
         <div class="ibox" style="font-size:0.73em;">
-          💡 <strong>Pro tip:</strong> Use Copilot Chat to ask "what does this sherpa/astropy function do?" on any line
-          — faster than reading docs
+          💡 <strong>Key agent behaviour:</strong> the agent reads
+          <code>.github/skills/dustpy/SKILL.md</code> first — getting DustPy's CGS unit
+          conventions, sanity checks (St &lt; 1, a_max &lt; a_frag), and the mandatory
+          <code>SimulationHandoff/v1</code> schema — before writing a single line of code.
         </div>
       </section>
 
