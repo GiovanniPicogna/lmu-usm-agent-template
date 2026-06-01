@@ -54,7 +54,7 @@ flowchart TD
     I -->|InterpretationHandoff/v1| GATE2{{⚠ Human Gate 2\niterate / write / mcmc / stop / abort}}
     GATE2 -->|iterate| H
     GATE2 -->|mcmc| MC["@mcmc-agent"]
-    MC -->|MCMCHandoff/v1| WR["@paper-agent"]
+    MC -->|"MCMCHandoff/v1\n→ recorded as mcmc_ref\nin InterpretationHandoff"| WR["@paper-agent"]
     GATE2 -->|write| WR
     WR -->|PaperHandoff/v1| DONE([Done])
     GATE2 -->|stop| DONE
@@ -70,20 +70,21 @@ flowchart TD
 
 | Stage | Agent | Output |
 |---|---|---|
-| 1 QUESTION | `@pipeline-agent` | Creates `prompts/<task_id>_<date>.md` |
-| 2 LITERATURE | `@literature-agent` | Appends to `paper/bibliography.bib` (background search) |
-| 3 HYPOTHESIS | `@hypothesis-agent` | `results/hypotheses/<task_id>_<date>.json` |
+| 0 QUESTION | `@pipeline-agent` | Creates `prompts/<task_id>_<date>.md`; initialises `paper/bibliography.bib` |
+| 1 LITERATURE | `@literature-agent` | Appends to `paper/bibliography.bib` (background search) |
+| 2 HYPOTHESIS | `@hypothesis-agent` | `results/hypotheses/<task_id>_<date>.json` |
 | **Gate 1** | User | Confirm top hypothesis + parameter range |
-| 4 ANALYTICAL | `@analytical-agent` | `results/analytical/<task_id>_<date>.py` + JSON |
-| 5 SETUP | `@setup-agent` | Config files in `data/runs/<task_id>/` + optional SLURM/PBS script |
-| 6 SIMULATE | `@simulation-agent` / `@retrieval-agent` / `@spectral-agent` | Binary/HDF5 outputs in `data/` |
-| 7 ANALYSE | `@analysis-agent` | Figures in `plots/` + `AnalysisHandoff` JSON |
+| 3 ANALYTICAL | `@analytical-agent` | `results/analytical/<task_id>_<date>.py` + JSON |
+| 4 SETUP | `@setup-agent` | Config files in `data/runs/<task_id>/` + optional SLURM/PBS script |
+| 5 SIMULATE | `@simulation-agent` / `@retrieval-agent` / `@spectral-agent` | Binary/HDF5 outputs in `data/` |
+| 6 ANALYSE | `@analysis-agent` | Figures in `plots/` + `AnalysisHandoff` JSON |
 | 7b NOVELTY CHECK | `@literature-agent` | Updates `bibliography.bib`; flags prior work on same result |
-| 8 INTERPRET | `@interpretation-agent` | `results/interpretation/<task_id>_<date>.json` |
+| 7 INTERPRET | `@interpretation-agent` | `results/interpretation/<task_id>_<date>.json` |
 | **Gate 2** | User | Confirm: iterate / write / mcmc / stop / abort |
-| 8b MCMC | `@mcmc-agent` (optional) | `MCMCHandoff/v1` → feeds into Stage 9 |
+| 8a ITERATE | `@hypothesis-agent` (optional) | Refined `HypothesisHandoff` → back to Stage 3 or 4 |
+| 8b ABORT | — | `results/<task_id>/abort_report.json` (schema: `AbortReport/v1`) |
+| 8c MCMC | `@mcmc-agent` (optional) | `MCMCHandoff/v1` → path recorded as `mcmc_ref` in InterpretationHandoff |
 | 9 WRITE | `@paper-agent` | `paper/<task_id>_<date>/manuscript.pdf` + `referee_notes.md` |
-| — ABORT | — | `results/<task_id>/abort_report.json` |
 
 ---
 
