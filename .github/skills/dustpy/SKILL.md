@@ -337,6 +337,16 @@ surface density: `"warnings": ["DustPy rho is midplane volumetric [g/cm³] per m
 
 ---
 
+## Iron rules
+
+- All internal quantities **must** be in CGS units — never mix units silently.
+- Never overwrite existing output without explicit user confirmation (`sim.writer.overwrite = False`).
+- Always read and sanity-check a single snapshot before batch-processing.
+- Emit `SimulationHandoff/v1` after every successful run or analysis.
+- Never invent parameter values — read from `sim.ini` or the first HDF5.
+
+---
+
 ## References
 
 - **All parameters with types, defaults, constraints, and interactions** → `references/parameters.md`

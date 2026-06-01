@@ -137,6 +137,28 @@ Always verify with `ds.length_unit`, `ds.mass_unit`, `ds.time_unit`.
 - Gas density peak: ~10⁻²⁸ – 10⁻²⁵ g cm⁻³ in ICM.
 - Warn if projection pixel count < 256² (low-resolution map).
 
+## Mandatory workflow
+
+For every yt analysis task, follow this sequence:
+
+1. **Confirm** the snapshot path and check `ds.current_redshift` matches the expected value from `AGENTS.md`.
+2. **Read `references/parameters.md`** to verify field names and analysis options.
+3. **Run sanity checks** after loading: temperature range, density peak, projection pixel count.
+4. **Save** all outputs to `results/maps/` (FITS) and `plots/` (PDF/PNG).
+5. **Document** the snapshot redshift and field used in the output filename.
+
+---
+
+## Iron rules
+
+- Always verify `ds.current_redshift` before analysis — never assume the snapshot index maps to a redshift.
+- ICM temperatures outside 0.3–15 keV must be flagged as a warning before reporting results.
+- Never use `yt` for pure spectral fitting — use the `sherpa` skill instead.
+- Do not trigger this skill for pure particle catalogues (use `h5py` directly) or custom binary formats (use `numpy.fromfile`).
+- Save FITS images to `results/maps/`; never write to `data/` raw directories.
+
+---
+
 ## References
 
 - Turk et al. 2011, ApJS 192 9 — 2011ApJS..192....9T

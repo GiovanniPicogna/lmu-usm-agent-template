@@ -173,6 +173,28 @@ group standard (see `copilot-instructions.md` §3). This differs from the
 68 % (1σ) convention used for MCMC posteriors. Always label which
 convention is used in result JSON and figure captions.
 
+## Mandatory workflow
+
+For every Sherpa spectral fitting task, follow this sequence:
+
+1. **Confirm** spectrum, background, ARF/RMF paths, model string, `nH`, redshift, and fitting band.
+2. **Read `references/parameters.md`** to verify all parameter names and valid ranges.
+3. **Run on a single test spectrum** (`data/spectra/bkg_region/`) before running on the full grid.
+4. **Check fit statistic** (C-stat preferred; never χ² when counts < 25 per bin).
+5. **Emit `SpectralFitHandoff/v1`** after a converged fit; set `fit_passed_sanity: true` only after physical plausibility check.
+
+---
+
+## Iron rules
+
+- Always use **C-stat** when counts per bin < 25; never use χ² silently.
+- `nH` must be fixed from HI4PI (2016A&A...594A.116H) unless a free column is physically motivated.
+- Report **90 % confidence intervals** (X-ray astronomy standard) — always label this in output.
+- Reject runs with fewer than 10 counts per bin; flag and warn the user.
+- Never invent observation metadata (ObsID, exposure time, calibration version) — read from FITS headers.
+
+---
+
 ## References
 
 - Freeman et al. 2001, SPIE 4477 — verify bibcode via ADS

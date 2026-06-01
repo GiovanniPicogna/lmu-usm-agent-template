@@ -79,3 +79,25 @@ SUCCESS: output_dir=<path>  wall_clock=<N>s
 | `Sigma0 must be > 0` | Provide a positive surface density value |
 | `scientific_pydantic not found` | `pip install scientific-pydantic` |
 | `MPI launch failed` | Check `mpirun` on PATH; try `n_procs=1` |
+
+---
+
+## Mandatory workflow
+
+For every FARGO3D task, follow this sequence:
+
+1. **Confirm** the `.par` file path and output directory before launching.
+2. **Read `references/parameters.md`** to verify parameter names and valid ranges.
+3. **Patch** parameters via the run script — never edit `.par` files by hand.
+4. **Sanity-check** `Sigma_min`, `Sigma_max`, and `gap_depth` from the `SUCCESS:` output.
+5. **Emit `SimulationHandoff/v1`** after a successful run.
+
+---
+
+## Iron rules
+
+- Never hardcode physical values — read them from `references/parameters.md`.
+- Do **not** use this skill to change compile-time flags (`NFLUIDS`, `MHD`, etc.) — those require recompilation.
+- Always supply an explicit `output_dir`; never let outputs overwrite an existing run directory without user confirmation.
+- `Sigma0 > 0` and `AspectRatio > 0` are non-negotiable; reject runs with zero or negative values.
+- Never submit HPC jobs without explicit user confirmation.

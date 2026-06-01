@@ -483,3 +483,25 @@ PHYSICS:  STEP 5 above                             → PHYSICS, GEOMETRY, TIME_S
 UNITS:    STEP 6 above                             → UNIT_DENSITY, UNIT_LENGTH, UNIT_VELOCITY
 ERRORS:   examples.md §Common errors               → NaN, make failures, decomp, [Parameters]
 ```
+
+---
+
+## Mandatory workflow
+
+For every PLUTO task, follow this sequence:
+
+1. **Answer the STEP 0 pre-flight checklist** before any action (goal, binary, recompile?, snapshots, reversibility).
+2. **Route the request** via the STEP 1 decision tree — compile or run-only?
+3. **Back up** `pluto.ini` and `definitions.h` before patching.
+4. **Sanity-check** density and field ranges after reading the first snapshot.
+5. **Emit `SimulationHandoff/v1`** after a successful run, or `SimConfigHandoff/v1` after compile.
+
+---
+
+## Iron rules
+
+- Never recompile when only `pluto.ini` values change — patch and rerun instead.
+- Always back up `pluto.ini` and `definitions.h` before any modification.
+- `code_version` in any handoff must not be `"unknown"` — read from `git describe` or `sysconf.out`.
+- Never submit HPC jobs without explicit user confirmation.
+- Do not trigger this skill for Athena++, RAMSES, standalone FARGO3D, GADGET, or AREPO.

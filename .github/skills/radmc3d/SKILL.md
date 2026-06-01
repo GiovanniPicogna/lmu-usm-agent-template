@@ -136,6 +136,28 @@ python ~/.agents/skills/radmc3d/scripts/run_radmc3d.py \
     --wavelength_um 0.5 1.0 10.0 100.0 870.0
 ```
 
+## Mandatory workflow
+
+For every RADMC-3D task, follow this sequence:
+
+1. **Confirm** the input density grid path, geometry (spherical/Cartesian), and output mode (image / SED / spectrum).
+2. **Read `references/parameters.md`** to verify opacity table and wavelength parameter names.
+3. **Run a single-wavelength test image** before batch processing or full SED computation.
+4. **Sanity-check** the output: flux > 0, image size matches `npix`, no NaN pixels.
+5. **Save** all outputs to `results/maps/` or `results/spectra/model/`.
+
+---
+
+## Iron rules
+
+- Never run RADMC-3D on hydrodynamics directly — only on post-processed density grids.
+- Always use a validated dust opacity table (e.g. DSHARP); never invent opacity values.
+- Set `n_photons >= 100000` for thermal Monte Carlo; warn the user if lower values are requested.
+- Do not trigger this skill for hydrodynamics — use `pluto`, `fargo3d`, or `dustpy` skills instead.
+- Never overwrite existing `image.out` or `sed.out` without user confirmation.
+
+---
+
 ## References
 
 - Dullemond et al. 2012, RADMC-3D v2.0 — ascl:1202.015
