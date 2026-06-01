@@ -146,9 +146,7 @@ def analysis_valid_data():
         "output_dir": "/tmp/runs/disk_gap_depth_1mjup/out",
         "sim_config_ref": "results/analytical/disk_gap_depth_1mjup_20260601.json",
         "simulation_ref": None,
-        "diagnostics": {
-            "gap_depth": {"value": 0.08, "unit": "normalized", "snapshot": 99}
-        },
+        "diagnostics": {"gap_depth": {"value": 0.08, "unit": "normalized", "snapshot": 99}},
         "plot_paths": ["/tmp/plots/gap_depth.pdf"],
         "data_hash": "a" * 64,
         "analytical_comparison": {},
@@ -174,7 +172,7 @@ def interpretation_valid_data():
             }
         ],
         "hypothesis_match": "confirmed",
-        "analytical_agreement_summary": "Numerical gap depth agrees with analytical prediction within 20%.",
+        "analytical_agreement_summary": "Numerical gap depth agrees with prediction within 20%.",
         "plausibility_flags": [],
         "caveats": [],
         "followup_suggestions": [],
@@ -237,7 +235,14 @@ def paper_valid_data():
         "manuscript_pdf": "paper/disk_gap_depth_1mjup_20260601/manuscript.pdf",
         "bibliography_bib": "paper/bibliography.bib",
         "new_bibtex_keys": ["2016A&A...594A.116H"],
-        "sections_written": ["abstract", "introduction", "methods", "results", "discussion", "conclusions"],
+        "sections_written": [
+            "abstract",
+            "introduction",
+            "methods",
+            "results",
+            "discussion",
+            "conclusions",
+        ],
         "n_figures": 3,
         "n_citations": 12,
         "compilation_status": "ok",

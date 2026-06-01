@@ -42,9 +42,7 @@ def check_no_data_missing(data: Any) -> None:
     """Raise DataMissingError if any [DATA MISSING] sentinel is found in data."""
     missing = find_data_missing(data)
     if missing:
-        raise DataMissingError(
-            f"[DATA MISSING] found at: {missing}. Resolve before proceeding."
-        )
+        raise DataMissingError(f"[DATA MISSING] found at: {missing}. Resolve before proceeding.")
 
 
 def check_abort_path(handoff: InterpretationHandoff, results_dir: Path) -> Path:
@@ -62,4 +60,5 @@ def check_analysis_files_exist(handoff: AnalysisHandoff) -> list[str]:
 def check_simulation_files_readable(handoff: SimulationHandoff) -> list[str]:
     """Return list of output_files that are not readable on disk."""
     import os
+
     return [p for p in handoff.output_files if not os.access(p, os.R_OK)]

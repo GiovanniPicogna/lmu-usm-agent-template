@@ -470,13 +470,11 @@ class InterpretationHandoff(BaseModel):
     @model_validator(mode="after")
     def refuted_requires_iterate_or_abort(self) -> "InterpretationHandoff":
         """hypothesis_match='refuted' requires next_action='iterate' or 'abort'."""
-        if (
-            self.hypothesis_match == HypothesisMatch.refuted
-            and self.next_action not in (NextAction.iterate, NextAction.abort)
+        if self.hypothesis_match == HypothesisMatch.refuted and self.next_action not in (
+            NextAction.iterate,
+            NextAction.abort,
         ):
-            raise ValueError(
-                "hypothesis_match='refuted' requires next_action='iterate' or 'abort'"
-            )
+            raise ValueError("hypothesis_match='refuted' requires next_action='iterate' or 'abort'")
         return self
 
     @model_validator(mode="after")
@@ -628,7 +626,5 @@ class PaperHandoff(BaseModel):
     def ok_status_requires_pdf(self) -> "PaperHandoff":
         """manuscript_pdf must be non-null when compilation_status is 'ok'."""
         if self.compilation_status == CompilationStatus.ok and self.manuscript_pdf is None:
-            raise ValueError(
-                "manuscript_pdf must be non-null when compilation_status is 'ok'"
-            )
+            raise ValueError("manuscript_pdf must be non-null when compilation_status is 'ok'")
         return self

@@ -20,9 +20,7 @@ def test_all_expected_skill_directories_exist():
 
 @pytest.mark.parametrize("skill_dir", get_skill_dirs(), ids=lambda d: d.name)
 def test_skill_has_skill_md(skill_dir):
-    assert (skill_dir / "SKILL.md").exists(), (
-        f"{skill_dir.name}/ missing SKILL.md"
-    )
+    assert (skill_dir / "SKILL.md").exists(), f"{skill_dir.name}/ missing SKILL.md"
 
 
 @pytest.mark.parametrize("skill_dir", get_skill_dirs(), ids=lambda d: d.name)
@@ -31,16 +29,18 @@ def test_skill_md_has_yaml_front_matter_with_name(skill_dir):
     assert content.startswith("---"), f"{skill_dir.name}/SKILL.md must start with YAML front matter"
     front_matter = content.split("---")[1]
     assert "name:" in front_matter, f"{skill_dir.name}/SKILL.md front matter missing 'name:'"
-    assert "description:" in front_matter, f"{skill_dir.name}/SKILL.md front matter missing 'description:'"
+    assert (
+        "description:" in front_matter
+    ), f"{skill_dir.name}/SKILL.md front matter missing 'description:'"
 
 
 @pytest.mark.parametrize("skill_dir", get_skill_dirs(), ids=lambda d: d.name)
 def test_skill_md_has_required_sections(skill_dir):
     content = (skill_dir / "SKILL.md").read_text()
     for section in REQUIRED_SKILL_SECTIONS:
-        assert section in content, (
-            f"{skill_dir.name}/SKILL.md missing required section: '{section}'"
-        )
+        assert (
+            section in content
+        ), f"{skill_dir.name}/SKILL.md missing required section: '{section}'"
 
 
 @pytest.mark.parametrize("skill_dir", get_skill_dirs(), ids=lambda d: d.name)
@@ -51,9 +51,9 @@ def test_skill_scripts_are_non_empty(skill_dir):
     scripts = list(scripts_dir.glob("*.py"))
     assert scripts, f"{skill_dir.name}/scripts/ exists but contains no .py files"
     for script in scripts:
-        assert script.stat().st_size > 500, (
-            f"{script} looks suspiciously small ({script.stat().st_size} bytes) — may be empty"
-        )
+        assert (
+            script.stat().st_size > 500
+        ), f"{script} looks suspiciously small ({script.stat().st_size} bytes) — may be empty"
 
 
 @pytest.mark.parametrize("skill_dir", get_skill_dirs(), ids=lambda d: d.name)
@@ -62,9 +62,7 @@ def test_skill_script_paths_referenced_in_skill_md_exist(skill_dir):
     script_refs = re.findall(r"\.github/skills/[^\s`'\"]+\.py", content)
     for ref in script_refs:
         path = Path(ref)
-        assert path.exists(), (
-            f"{skill_dir.name}/SKILL.md references {ref} but file does not exist"
-        )
+        assert path.exists(), f"{skill_dir.name}/SKILL.md references {ref} but file does not exist"
 
 
 @pytest.mark.parametrize("skill_dir", get_skill_dirs(), ids=lambda d: d.name)

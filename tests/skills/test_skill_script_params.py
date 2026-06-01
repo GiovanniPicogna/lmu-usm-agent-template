@@ -34,9 +34,7 @@ def _import_module(script_path: Path):
     return mod
 
 
-def _run_script(
-    script_path: Path, args: list[str], timeout: int = 15
-) -> tuple[int, str]:
+def _run_script(script_path: Path, args: list[str], timeout: int = 15) -> tuple[int, str]:
     """Run a script via subprocess; return (returncode, last stdout line)."""
     result = subprocess.run(
         [sys.executable, str(script_path)] + args,
@@ -50,17 +48,11 @@ def _run_script(
 
 
 _dustpy_available = (
-    subprocess.run(
-        [sys.executable, "-c", "import dustpy"], capture_output=True
-    ).returncode
-    == 0
+    subprocess.run([sys.executable, "-c", "import dustpy"], capture_output=True).returncode == 0
 )
 
 _pypluto_available = (
-    subprocess.run(
-        [sys.executable, "-c", "import pyPLUTO"], capture_output=True
-    ).returncode
-    == 0
+    subprocess.run([sys.executable, "-c", "import pyPLUTO"], capture_output=True).returncode == 0
 )
 
 
@@ -131,9 +123,9 @@ class TestFARGO3DParams:
     """Tests for the FARGO3DParams Pydantic model in run_fargo3d.py."""
 
     def test_model_class_exists(self, fargo_mod):
-        assert hasattr(fargo_mod, "FARGO3DParams"), (
-            "FARGO3DParams class not found in run_fargo3d.py"
-        )
+        assert hasattr(
+            fargo_mod, "FARGO3DParams"
+        ), "FARGO3DParams class not found in run_fargo3d.py"
 
     def test_requires_par_file_and_output_dir(self, fargo_mod, tmp_path):
         """par_file and output_dir are required fields."""
@@ -145,18 +137,14 @@ class TestFARGO3DParams:
         par = tmp_path / "test.par"
         par.write_text("Sigma0   6e-4\n")
         with pytest.raises(ValidationError):
-            fargo_mod.FARGO3DParams(
-                par_file=str(par), output_dir=str(tmp_path), AspectRatio=0.0
-            )
+            fargo_mod.FARGO3DParams(par_file=str(par), output_dir=str(tmp_path), AspectRatio=0.0)
 
     def test_aspect_ratio_le_one(self, fargo_mod, tmp_path):
         """AspectRatio must be <= 1.0."""
         par = tmp_path / "test.par"
         par.write_text("Sigma0   6e-4\n")
         with pytest.raises(ValidationError):
-            fargo_mod.FARGO3DParams(
-                par_file=str(par), output_dir=str(tmp_path), AspectRatio=1.1
-            )
+            fargo_mod.FARGO3DParams(par_file=str(par), output_dir=str(tmp_path), AspectRatio=1.1)
 
     def test_aspect_ratio_valid(self, fargo_mod, tmp_path):
         """AspectRatio=0.05 is within (0.0, 1.0] — should pass field validation."""
@@ -173,44 +161,34 @@ class TestFARGO3DParams:
         par = tmp_path / "test.par"
         par.write_text("AspectRatio   0.05\n")
         with pytest.raises(ValidationError):
-            fargo_mod.FARGO3DParams(
-                par_file=str(par), output_dir=str(tmp_path), Sigma0=0.0
-            )
+            fargo_mod.FARGO3DParams(par_file=str(par), output_dir=str(tmp_path), Sigma0=0.0)
 
     def test_sigma0_negative_rejected(self, fargo_mod, tmp_path):
         """Sigma0 must be positive."""
         par = tmp_path / "test.par"
         par.write_text("AspectRatio   0.05\n")
         with pytest.raises(ValidationError):
-            fargo_mod.FARGO3DParams(
-                par_file=str(par), output_dir=str(tmp_path), Sigma0=-1e-4
-            )
+            fargo_mod.FARGO3DParams(par_file=str(par), output_dir=str(tmp_path), Sigma0=-1e-4)
 
     def test_alpha_ge_zero(self, fargo_mod, tmp_path):
         """Alpha must be >= 0.0."""
         par = tmp_path / "test.par"
         par.write_text("Sigma0   6e-4\n")
         with pytest.raises(ValidationError):
-            fargo_mod.FARGO3DParams(
-                par_file=str(par), output_dir=str(tmp_path), Alpha=-0.001
-            )
+            fargo_mod.FARGO3DParams(par_file=str(par), output_dir=str(tmp_path), Alpha=-0.001)
 
     def test_alpha_le_point_one(self, fargo_mod, tmp_path):
         """Alpha must be <= 0.1."""
         par = tmp_path / "test.par"
         par.write_text("Sigma0   6e-4\n")
         with pytest.raises(ValidationError):
-            fargo_mod.FARGO3DParams(
-                par_file=str(par), output_dir=str(tmp_path), Alpha=0.2
-            )
+            fargo_mod.FARGO3DParams(par_file=str(par), output_dir=str(tmp_path), Alpha=0.2)
 
     def test_alpha_zero_allowed(self, fargo_mod, tmp_path):
         """Alpha=0.0 (ge=0.0) should be accepted at the field level."""
         par = tmp_path / "test.par"
         par.write_text("Sigma0   6e-4\n")
-        params = fargo_mod.FARGO3DParams(
-            par_file=str(par), output_dir=str(tmp_path), Alpha=0.0
-        )
+        params = fargo_mod.FARGO3DParams(par_file=str(par), output_dir=str(tmp_path), Alpha=0.0)
         assert params.Alpha == 0.0
 
     def test_flaring_index_ge_zero(self, fargo_mod, tmp_path):
@@ -218,125 +196,97 @@ class TestFARGO3DParams:
         par = tmp_path / "test.par"
         par.write_text("Sigma0   6e-4\n")
         with pytest.raises(ValidationError):
-            fargo_mod.FARGO3DParams(
-                par_file=str(par), output_dir=str(tmp_path), FlaringIndex=-0.1
-            )
+            fargo_mod.FARGO3DParams(par_file=str(par), output_dir=str(tmp_path), FlaringIndex=-0.1)
 
     def test_flaring_index_le_one(self, fargo_mod, tmp_path):
         """FlaringIndex must be <= 1.0."""
         par = tmp_path / "test.par"
         par.write_text("Sigma0   6e-4\n")
         with pytest.raises(ValidationError):
-            fargo_mod.FARGO3DParams(
-                par_file=str(par), output_dir=str(tmp_path), FlaringIndex=1.5
-            )
+            fargo_mod.FARGO3DParams(par_file=str(par), output_dir=str(tmp_path), FlaringIndex=1.5)
 
     def test_planet_mass_ge_zero(self, fargo_mod, tmp_path):
         """PlanetMass must be >= 0.0."""
         par = tmp_path / "test.par"
         par.write_text("Sigma0   6e-4\n")
         with pytest.raises(ValidationError):
-            fargo_mod.FARGO3DParams(
-                par_file=str(par), output_dir=str(tmp_path), PlanetMass=-1e-3
-            )
+            fargo_mod.FARGO3DParams(par_file=str(par), output_dir=str(tmp_path), PlanetMass=-1e-3)
 
     def test_tmax_gt_zero(self, fargo_mod, tmp_path):
         """Tmax must be > 0.0."""
         par = tmp_path / "test.par"
         par.write_text("Sigma0   6e-4\n")
         with pytest.raises(ValidationError):
-            fargo_mod.FARGO3DParams(
-                par_file=str(par), output_dir=str(tmp_path), Tmax=0.0
-            )
+            fargo_mod.FARGO3DParams(par_file=str(par), output_dir=str(tmp_path), Tmax=0.0)
 
     def test_ntot_ge_one(self, fargo_mod, tmp_path):
         """Ntot must be >= 1."""
         par = tmp_path / "test.par"
         par.write_text("Sigma0   6e-4\n")
         with pytest.raises(ValidationError):
-            fargo_mod.FARGO3DParams(
-                par_file=str(par), output_dir=str(tmp_path), Ntot=0
-            )
+            fargo_mod.FARGO3DParams(par_file=str(par), output_dir=str(tmp_path), Ntot=0)
 
     def test_ninterm_ge_one(self, fargo_mod, tmp_path):
         """Ninterm must be >= 1."""
         par = tmp_path / "test.par"
         par.write_text("Sigma0   6e-4\n")
         with pytest.raises(ValidationError):
-            fargo_mod.FARGO3DParams(
-                par_file=str(par), output_dir=str(tmp_path), Ninterm=0
-            )
+            fargo_mod.FARGO3DParams(par_file=str(par), output_dir=str(tmp_path), Ninterm=0)
 
     def test_dt_gt_zero(self, fargo_mod, tmp_path):
         """DT must be > 0.0."""
         par = tmp_path / "test.par"
         par.write_text("Sigma0   6e-4\n")
         with pytest.raises(ValidationError):
-            fargo_mod.FARGO3DParams(
-                par_file=str(par), output_dir=str(tmp_path), DT=0.0
-            )
+            fargo_mod.FARGO3DParams(par_file=str(par), output_dir=str(tmp_path), DT=0.0)
 
     def test_nx_ge_eight(self, fargo_mod, tmp_path):
         """Nx must be >= 8."""
         par = tmp_path / "test.par"
         par.write_text("Sigma0   6e-4\n")
         with pytest.raises(ValidationError):
-            fargo_mod.FARGO3DParams(
-                par_file=str(par), output_dir=str(tmp_path), Nx=4
-            )
+            fargo_mod.FARGO3DParams(par_file=str(par), output_dir=str(tmp_path), Nx=4)
 
     def test_nx_le_4096(self, fargo_mod, tmp_path):
         """Nx must be <= 4096."""
         par = tmp_path / "test.par"
         par.write_text("Sigma0   6e-4\n")
         with pytest.raises(ValidationError):
-            fargo_mod.FARGO3DParams(
-                par_file=str(par), output_dir=str(tmp_path), Nx=8192
-            )
+            fargo_mod.FARGO3DParams(par_file=str(par), output_dir=str(tmp_path), Nx=8192)
 
     def test_ny_ge_eight(self, fargo_mod, tmp_path):
         """Ny must be >= 8."""
         par = tmp_path / "test.par"
         par.write_text("Sigma0   6e-4\n")
         with pytest.raises(ValidationError):
-            fargo_mod.FARGO3DParams(
-                par_file=str(par), output_dir=str(tmp_path), Ny=4
-            )
+            fargo_mod.FARGO3DParams(par_file=str(par), output_dir=str(tmp_path), Ny=4)
 
     def test_ny_le_1024(self, fargo_mod, tmp_path):
         """Ny must be <= 1024."""
         par = tmp_path / "test.par"
         par.write_text("Sigma0   6e-4\n")
         with pytest.raises(ValidationError):
-            fargo_mod.FARGO3DParams(
-                par_file=str(par), output_dir=str(tmp_path), Ny=2048
-            )
+            fargo_mod.FARGO3DParams(par_file=str(par), output_dir=str(tmp_path), Ny=2048)
 
     def test_n_procs_ge_one(self, fargo_mod, tmp_path):
         """n_procs must be >= 1."""
         par = tmp_path / "test.par"
         par.write_text("Sigma0   6e-4\n")
         with pytest.raises(ValidationError):
-            fargo_mod.FARGO3DParams(
-                par_file=str(par), output_dir=str(tmp_path), n_procs=0
-            )
+            fargo_mod.FARGO3DParams(par_file=str(par), output_dir=str(tmp_path), n_procs=0)
 
     def test_n_procs_le_512(self, fargo_mod, tmp_path):
         """n_procs must be <= 512."""
         par = tmp_path / "test.par"
         par.write_text("Sigma0   6e-4\n")
         with pytest.raises(ValidationError):
-            fargo_mod.FARGO3DParams(
-                par_file=str(par), output_dir=str(tmp_path), n_procs=1024
-            )
+            fargo_mod.FARGO3DParams(par_file=str(par), output_dir=str(tmp_path), n_procs=1024)
 
     def test_scientific_notation_coerced(self, fargo_mod, tmp_path):
         """String scientific notation values are coerced to float by field_validator."""
         par = tmp_path / "test.par"
         par.write_text("Sigma0   6e-4\n")
-        params = fargo_mod.FARGO3DParams(
-            par_file=str(par), output_dir=str(tmp_path), Alpha="1e-3"
-        )
+        params = fargo_mod.FARGO3DParams(par_file=str(par), output_dir=str(tmp_path), Alpha="1e-3")
         assert params.Alpha == pytest.approx(1e-3)
 
     def test_par_file_not_found_raises(self, fargo_mod, tmp_path):
@@ -351,11 +301,20 @@ class TestFARGO3DParams:
         """All optional disk params default to None."""
         par = tmp_path / "test.par"
         par.write_text("Sigma0   6e-4\n")
-        params = fargo_mod.FARGO3DParams(
-            par_file=str(par), output_dir=str(tmp_path)
-        )
-        for field in ("AspectRatio", "Sigma0", "Alpha", "FlaringIndex", "PlanetMass",
-                      "Tmax", "Ntot", "Ninterm", "DT", "Nx", "Ny"):
+        params = fargo_mod.FARGO3DParams(par_file=str(par), output_dir=str(tmp_path))
+        for field in (
+            "AspectRatio",
+            "Sigma0",
+            "Alpha",
+            "FlaringIndex",
+            "PlanetMass",
+            "Tmax",
+            "Ntot",
+            "Ninterm",
+            "DT",
+            "Nx",
+            "Ny",
+        ):
             assert getattr(params, field) is None, f"{field} should default to None"
 
 
@@ -383,65 +342,49 @@ class TestPLUTOCompileParams:
     """Tests for the PLUTOCompileParams Pydantic model in compile_pluto.py."""
 
     def test_model_class_exists(self, compile_pluto_mod):
-        assert hasattr(compile_pluto_mod, "PLUTOCompileParams"), (
-            "PLUTOCompileParams class not found in compile_pluto.py"
-        )
+        assert hasattr(
+            compile_pluto_mod, "PLUTOCompileParams"
+        ), "PLUTOCompileParams class not found in compile_pluto.py"
 
     def test_config_num_ge_one(self, compile_pluto_mod, tmp_path):
         """config_num must be >= 1."""
         with pytest.raises(ValidationError):
-            compile_pluto_mod.PLUTOCompileParams(
-                run_dir=str(tmp_path), config_num=0
-            )
+            compile_pluto_mod.PLUTOCompileParams(run_dir=str(tmp_path), config_num=0)
 
     def test_config_num_le_99(self, compile_pluto_mod, tmp_path):
         """config_num must be <= 99."""
         with pytest.raises(ValidationError):
-            compile_pluto_mod.PLUTOCompileParams(
-                run_dir=str(tmp_path), config_num=100
-            )
+            compile_pluto_mod.PLUTOCompileParams(run_dir=str(tmp_path), config_num=100)
 
     def test_make_jobs_ge_one(self, compile_pluto_mod, tmp_path):
         """make_jobs must be >= 1."""
         with pytest.raises(ValidationError):
-            compile_pluto_mod.PLUTOCompileParams(
-                run_dir=str(tmp_path), make_jobs=0
-            )
+            compile_pluto_mod.PLUTOCompileParams(run_dir=str(tmp_path), make_jobs=0)
 
     def test_make_jobs_le_64(self, compile_pluto_mod, tmp_path):
         """make_jobs must be <= 64."""
         with pytest.raises(ValidationError):
-            compile_pluto_mod.PLUTOCompileParams(
-                run_dir=str(tmp_path), make_jobs=128
-            )
+            compile_pluto_mod.PLUTOCompileParams(run_dir=str(tmp_path), make_jobs=128)
 
     def test_setup_timeout_ge_10(self, compile_pluto_mod, tmp_path):
         """setup_timeout must be >= 10."""
         with pytest.raises(ValidationError):
-            compile_pluto_mod.PLUTOCompileParams(
-                run_dir=str(tmp_path), setup_timeout=5
-            )
+            compile_pluto_mod.PLUTOCompileParams(run_dir=str(tmp_path), setup_timeout=5)
 
     def test_setup_timeout_le_600(self, compile_pluto_mod, tmp_path):
         """setup_timeout must be <= 600."""
         with pytest.raises(ValidationError):
-            compile_pluto_mod.PLUTOCompileParams(
-                run_dir=str(tmp_path), setup_timeout=601
-            )
+            compile_pluto_mod.PLUTOCompileParams(run_dir=str(tmp_path), setup_timeout=601)
 
     def test_make_timeout_ge_30(self, compile_pluto_mod, tmp_path):
         """make_timeout must be >= 30."""
         with pytest.raises(ValidationError):
-            compile_pluto_mod.PLUTOCompileParams(
-                run_dir=str(tmp_path), make_timeout=10
-            )
+            compile_pluto_mod.PLUTOCompileParams(run_dir=str(tmp_path), make_timeout=10)
 
     def test_make_timeout_le_3600(self, compile_pluto_mod, tmp_path):
         """make_timeout must be <= 3600."""
         with pytest.raises(ValidationError):
-            compile_pluto_mod.PLUTOCompileParams(
-                run_dir=str(tmp_path), make_timeout=7200
-            )
+            compile_pluto_mod.PLUTOCompileParams(run_dir=str(tmp_path), make_timeout=7200)
 
     def test_chombo_incompatible_with_fargo(self, compile_pluto_mod, tmp_path):
         """with_chombo=True and with_fargo=True must raise ValueError (mutual exclusion)."""
@@ -449,6 +392,7 @@ class TestPLUTOCompileParams:
         # we need PLUTO_DIR or pluto_dir. Use a real dir but no definitions.h —
         # the exclusion validator fires before the file-existence check.
         import os
+
         env_backup = os.environ.get("PLUTO_DIR")
         # Set PLUTO_DIR to tmp_path so the env check passes in the validator
         os.environ["PLUTO_DIR"] = str(tmp_path)
@@ -469,6 +413,7 @@ class TestPLUTOCompileParams:
     def test_chombo_incompatible_with_sb(self, compile_pluto_mod, tmp_path):
         """with_chombo=True and with_sb=True must raise ValueError."""
         import os
+
         env_backup = os.environ.get("PLUTO_DIR")
         os.environ["PLUTO_DIR"] = str(tmp_path)
         try:
@@ -488,6 +433,7 @@ class TestPLUTOCompileParams:
     def test_chombo_incompatible_with_fd(self, compile_pluto_mod, tmp_path):
         """with_chombo=True and with_fd=True must raise ValueError."""
         import os
+
         env_backup = os.environ.get("PLUTO_DIR")
         os.environ["PLUTO_DIR"] = str(tmp_path)
         try:
@@ -507,6 +453,7 @@ class TestPLUTOCompileParams:
     def test_sb_incompatible_with_fd(self, compile_pluto_mod, tmp_path):
         """with_sb=True and with_fd=True must raise ValueError."""
         import os
+
         env_backup = os.environ.get("PLUTO_DIR")
         os.environ["PLUTO_DIR"] = str(tmp_path)
         try:
@@ -526,6 +473,7 @@ class TestPLUTOCompileParams:
     def test_chombo_mpi_requires_with_chombo(self, compile_pluto_mod, tmp_path):
         """chombo_mpi=True without with_chombo=True must raise ValueError."""
         import os
+
         env_backup = os.environ.get("PLUTO_DIR")
         os.environ["PLUTO_DIR"] = str(tmp_path)
         try:
@@ -573,9 +521,7 @@ class TestPLUTOParams:
     """Tests for the PLUTOParams Pydantic model in run_pluto.py."""
 
     def test_model_class_exists(self, run_pluto_mod):
-        assert hasattr(run_pluto_mod, "PLUTOParams"), (
-            "PLUTOParams class not found in run_pluto.py"
-        )
+        assert hasattr(run_pluto_mod, "PLUTOParams"), "PLUTOParams class not found in run_pluto.py"
 
     def test_tstop_gt_zero(self, run_pluto_mod, tmp_path):
         """tstop must be > 0.0."""
@@ -787,9 +733,9 @@ class TestEvaluateConstant:
     """Tests for the _evaluate_constant function in physics_config_writer.py."""
 
     def test_function_exists(self, physics_mod):
-        assert hasattr(physics_mod, "_evaluate_constant"), (
-            "_evaluate_constant not found in physics_config_writer.py"
-        )
+        assert hasattr(
+            physics_mod, "_evaluate_constant"
+        ), "_evaluate_constant not found in physics_config_writer.py"
 
     def test_const_au_value(self, physics_mod):
         """CONST_au (1 AU in cm) evaluates to the correct value."""
@@ -836,9 +782,9 @@ class TestParseDefinitionsH:
     """Tests for the _parse_definitions_h function in physics_config_writer.py."""
 
     def test_function_exists(self, physics_mod):
-        assert hasattr(physics_mod, "_parse_definitions_h"), (
-            "_parse_definitions_h not found in physics_config_writer.py"
-        )
+        assert hasattr(
+            physics_mod, "_parse_definitions_h"
+        ), "_parse_definitions_h not found in physics_config_writer.py"
 
     def test_missing_definitions_h_returns_empty_dict(self, physics_mod, tmp_path):
         """Returns empty dict when definitions.h is absent."""
@@ -933,6 +879,6 @@ def test_plot_dustpy_protocol_missing_run_dir_emits_error():
         PLOT_DUSTPY_SCRIPT,
         ["--run_dir", "/nonexistent/path/run", "--plot", "all"],
     )
-    assert rc != 0 or last.startswith("ERROR"), (
-        "Expected non-zero exit or ERROR line when run_dir is missing"
-    )
+    assert rc != 0 or last.startswith(
+        "ERROR"
+    ), "Expected non-zero exit or ERROR line when run_dir is missing"
