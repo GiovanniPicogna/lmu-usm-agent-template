@@ -922,36 +922,40 @@ nav_order: 5
       <section>
         <span class="stag">Part 1 — Multi-Agent Orchestration for Scientific Research</span>
         <h2>Beyond the Single Agent: Why Orchestration?</h2>
-        <div class="ibox" style="font-size:0.76em;margin-bottom:0.5em;">
-          Single LLMs: no persistent memory · cannot self-verify results · no closed-loop tool use.
-          Coordinated specialist agents solve this — but <strong>design</strong> matters.
+        <p>Single LLMs lack persistent memory, cannot self-verify numerical results, and cannot run external tools in a
+          closed loop. Scientific agents must integrate domain-specific knowledge, process diverse data types, and
+          ensure
+          rigorous reproducibility — tasks that demand coordinated specialist agents.
           <span class="sm">(Ren et al. 2025, arXiv:2503.24047)</span>
-        </div>
+        </p>
         <div class="g4">
           <div class="card c1">
             <div class="ct">🏭 Role-based SOPs</div>
-            <div class="sm b" style="margin-bottom:0.2em;">MetaGPT · Hong et al. 2023</div>
-            Fixed roles (manager → architect → engineer) + Standard Operating Procedures reduce cascading
-            hallucinations.
-            <div class="sm" style="margin-top:0.3em;">arXiv:2308.00352</div>
+            <div class="sm b" style="margin-bottom:0.2em;">MetaGPT — ICLR 2024</div>
+            <p>Fixed roles + Standardised Operating Procedures. Assembly-line workflow (manager → architect → engineer)
+              produces structured artefacts, reducing cascading hallucinations from naive LLM chaining.</p>
+            <div class="sm">Hong et al. 2023, arXiv:2308.00352</div>
           </div>
           <div class="card c2">
             <div class="ct">💬 Conversable agents</div>
-            <div class="sm" style="color:var(--a2);margin-bottom:0.2em;">AutoGen · Wu et al. 2023</div>
-            Agents interact via structured dialogues, each combining LLMs, human input, or tools.
-            <div class="sm" style="margin-top:0.3em;">arXiv:2308.08155</div>
+            <div class="sm" style="color:var(--a2);margin-bottom:0.2em;">AutoGen — Wu et al. 2023</div>
+            <p>"Conversation programming": customisable agents interact through structured dialogues, each combining
+              LLMs, human input, or tools. Spans maths, coding, operations research.</p>
+            <div class="sm">Wu et al. 2023, arXiv:2308.08155</div>
           </div>
           <div class="card c3">
             <div class="ct">🎯 Planner–executor–verifier</div>
-            <div class="sm" style="color:var(--a3);margin-bottom:0.2em;">CMBagent · Laverick et al. 2024</div>
-            Planner ↔ reviewer loop; control agent executes. Removes routine human-in-the-loop steps.
-            <div class="sm" style="margin-top:0.3em;">arXiv:2412.00431</div>
+            <div class="sm" style="color:var(--a3);margin-bottom:0.2em;">CMBagent — astrophysics</div>
+            <p>Planner↔reviewer loop → control agent executes. Four building blocks: planner, memory module, action
+              space, verifier. Removes human-in-the-loop from routine steps while preserving structured oversight.</p>
           </div>
           <div class="card c5">
             <div class="ct">🧬 Evolutionary search</div>
             <div class="sm" style="color:var(--a5);margin-bottom:0.2em;">AlphaEvolve · AI Scientist-v2</div>
-            LLM generates code diffs → evaluators score → iterate. First fully AI-generated peer-reviewed paper.
-            <div class="sm" style="margin-top:0.3em;">arXiv:2506.13131 · arXiv:2504.08066</div>
+            <p>Prompt sampler → LLM generates code diffs → evaluators score → database updated iteratively. No
+              human-authored templates. AI Scientist-v2: first fully AI-generated peer-review-accepted workshop paper.
+            </p>
+            <div class="sm">Novikov et al. 2025, arXiv:2506.13131 · Yamada et al. 2025, arXiv:2504.08066</div>
           </div>
         </div>
       </section>
@@ -964,39 +968,44 @@ nav_order: 5
         <h2>What Has Been Demonstrated — and Where It Fails</h2>
         <div class="g2">
           <div>
-            <div class="sm" style="margin-bottom:0.3em;font-weight:700;color:var(--a2);">✅ Demonstrated</div>
+            <div class="sm" style="margin-bottom:0.3em;font-weight:700;color:var(--a2);">✅ Demonstrated Results</div>
             <div class="pcard">
               <div class="pref">Laverick et al. 2024 · arXiv:2412.00431 (CMBagent)</div>
-              Reproduced ACT DR6 CMB lensing with <strong>no human-written code</strong>; converged MCMC in 40 min at
-              $1.55.
+              Reproduced ACT DR6 CMB lensing constraints with <strong>no human-written code</strong>. Full pipeline →
+              converged MCMC in 40 min at $1.55. Expert equivalent: several hours.
             </div>
             <div class="pcard" style="border-left-color:var(--a2);">
-              <div class="pref" style="color:var(--a2);">Borrett et al. 2026 · arXiv:2604.09621 — Weak lensing challenge
-              </div>
-              Fully autonomous: did not reach expert level. <strong>Semi-autonomous (human + AI): 1st place.</strong>
+              <div class="pref" style="color:var(--a2);">Borrett et al. 2026 · arXiv:2604.09621 — Weak lensing
+                challenge</div>
+              Fully autonomous exploration did not reach expert level.
+              <strong>Semi-autonomous (human intervention) achieved 1st place.</strong>
+              Best results ensembled CMBagent, GPT-5, Gemini 2.5, Claude 4.5, Qwen3-max.
             </div>
             <div class="pcard" style="border-left-color:var(--a5);">
               <div class="pref" style="color:var(--a5);">Novikov et al. 2025 · arXiv:2506.13131 (AlphaEvolve)</div>
-              Beat state-of-the-art on maths &amp; CS; optimised Google's own data-centre scheduler.
+              Discovered provably correct algorithms beating state-of-the-art across maths &amp; CS; found a more
+              efficient data-centre scheduling algorithm for Google's own infrastructure.
             </div>
           </div>
           <div>
             <div class="sm" style="margin-bottom:0.3em;font-weight:700;color:var(--a4);">⚠️ Failure Modes — MAST
-              Taxonomy</div>
+              Taxonomy (NeurIPS 2025)</div>
             <div class="card c4" style="margin-bottom:0.4em;font-size:0.79em;">
-              <div class="ct">Cemri et al. 2025 · arXiv:2503.13657 · 14 modes · 200+ tasks</div>
+              <div class="ct">Cemri et al. 2025 · arXiv:2503.13657</div>
+              14 failure modes · 7 frameworks · 200+ tasks · Cohen's κ = 0.88.<br>
               <span class="r">System design 44%</span> ·
               <span class="am">Inter-agent misalignment 32%</span> ·
-              <span class="b">Verification 24%</span><br>
-              Benchmark gains remain <strong>minimal vs single-agent</strong> — <em>organisational design</em> is the
-              bottleneck.
+              <span class="b">Verification failures 24%</span>.<br>
+              Performance gains on benchmarks remain <strong>minimal vs single-agent</strong>. Better base models alone
+              will not fix these — good <em>organisational design</em> is required.
             </div>
             <div class="card c3" style="font-size:0.79em;">
-              <div class="ct">🔑 Key Lessons</div>
+              <div class="ct">🔑 Open Problems</div>
               <ul>
-                <li>Semi-autonomy beats full autonomy for hard science</li>
-                <li>Validation must be built in — not bolted on</li>
-                <li>No standard yet for citing multi-agent workflows</li>
+                <li>No formula for how many agents, which roles, how they interact</li>
+                <li>Semi-autonomy outperforms full autonomy for hard science</li>
+                <li>Scientific agents need built-in validation (self-review, statistical checks)</li>
+                <li>No community standard for citing or archiving multi-agent workflows</li>
               </ul>
             </div>
           </div>
@@ -1576,6 +1585,42 @@ Run CASA tclean on a calibrated ALMA MS.
           you receive correct BibTeX automatically.<br>
           <em>Without MCP, GPT-4o/Copilot invents plausible-but-wrong bibcodes, authors, and journal names — every
             time.</em>
+        </div>
+      </section>
+
+      <!-- ═══════════════════════════════════════════════════════
+     SLIDE 14 — PITFALLS: RESEARCH
+     ═══════════════════════════════════════════════════════ -->
+      <section>
+        <span class="stag">Part 4 — Pitfalls: What the Research Says</span>
+        <h2>Known Pitfalls of AI Agents in Scientific Research</h2>
+        <div style="font-size:0.82em;margin-bottom:0.35em;">Four recent papers — including one specifically on
+          astrophysics — map where agents actually fail:</div>
+        <div class="pcard">
+          <div class="pref">Huang 2026 — arXiv:2603.29039 — AI Cosplaying as Astrophysicists</div>
+          144 synthetic astrophysicist agents, 2,592 tasks. No AI-assisted policy universally beat unassisted work.
+          Gains are task-specific: AI helps on creative/extractive tasks but <strong>fails catastrophically on
+            derivation-heavy physics</strong>. Performance also depends on which LLM you use.
+        </div>
+        <div class="pcard" style="border-left-color:var(--a2);">
+          <div class="pref" style="color:var(--a2);">Borrett et al. 2026 — arXiv:2604.09621 — Competing with AI
+            Scientists (CMBagent)</div>
+          Multi-agent system (CMBagent) applied to cosmological parameter inference challenge. Fully autonomous
+          exploration did not reach expert-level performance. <strong>Human intervention needed to achieve 1st
+            place.</strong> Semi-autonomous beats fully autonomous for hard science.
+        </div>
+        <div class="pcard" style="border-left-color:var(--a3);">
+          <div class="pref" style="color:var(--a3);">Luo et al. 2025 — arXiv:2509.08713 — The More You Automate, the
+            Less You See</div>
+          Four failure modes: (1) inappropriate benchmark selection, (2) data leakage, (3) metric misuse, (4) post-hoc
+          selection bias. Systems generate synthetic datasets or subsample without documenting it, <strong>inflating
+            reported performance.</strong>
+        </div>
+        <div class="pcard" style="border-left-color:var(--a4);">
+          <div class="pref" style="color:var(--a4);">ReplicationBench 2025 — arXiv:2510.24591 — Can AI Agents Replicate
+            Astrophysics Papers?</div>
+          Best frontier models score <strong>&lt;20%</strong> on replicating real astrophysics results. Failure modes:
+          wrong physical assumptions, incorrect unit handling, misidentified datasets, broken pipeline logic.
         </div>
       </section>
 
@@ -2266,6 +2311,71 @@ Return Gamma and norm with 90% confidence. Save chi2 residual as PDF.
       </section>
 
       <!-- ═══════════════════════════════════════════════════════
+     SLIDE 29 — 5 DOMAINS (Appendix)
+     ═══════════════════════════════════════════════════════ -->
+      <section>
+        <span class="stag">Appendix — 5 Science Domains, 1 Template</span>
+        <h2>5 Science Domains, 1 Template</h2>
+        <div class="sm" style="color:var(--a1);margin-bottom:0.45em;"><a
+            href="https://giovannipicogna.github.io/lmu-usm-agent-template">giovannipicogna.github.io/lmu-usm-agent-template</a>
+        </div>
+        <table style="margin-bottom:0.6em;">
+          <thead>
+            <tr>
+              <th>Domain</th>
+              <th>→ Agent</th>
+              <th>Key Libraries</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Disk formation</td>
+              <td><code>simulation-agent</code></td>
+              <td>dustpy, FARGO3D, radmc3dPy</td>
+            </tr>
+            <tr>
+              <td>Cosmological sims</td>
+              <td><code>simulation-agent</code></td>
+              <td>yt, Magneticum, fargopy</td>
+            </tr>
+            <tr>
+              <td>Atmospheric retrieval</td>
+              <td><code>retrieval-agent</code></td>
+              <td>petitRADTRANS, dynesty</td>
+            </tr>
+            <tr>
+              <td>LSS &amp; Milky Way</td>
+              <td><code>mcmc-agent</code></td>
+              <td>astropy, emcee, nbodykit</td>
+            </tr>
+            <tr>
+              <td>X-ray spectroscopy</td>
+              <td><code>spectral-agent</code></td>
+              <td>sherpa, XSPEC, emcee</td>
+            </tr>
+          </tbody>
+        </table>
+        <div class="g2" style="font-size:0.82em;">
+          <div class="card c1">
+            <div class="ct">GitHub Pages Docs</div>
+            <ul>
+              <li><a href="https://giovannipicogna.github.io/lmu-usm-agent-template/agents">agents page</a> — all 12
+                agents with example invocations</li>
+              <li><a href="https://giovannipicogna.github.io/lmu-usm-agent-template/skills">skills page</a> — bundled
+                skills by domain</li>
+              <li>Auto-deployed on every push to <code>main</code> via GitHub Actions</li>
+            </ul>
+          </div>
+          <div class="card c2">
+            <div class="ct">Enable GitHub Pages</div>
+            <p>Settings → Pages → Source: GitHub Actions</p>
+            <p class="sm"><code>copilot-instructions.md §11</code>: domain-specific skill lists for every research area
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <!-- ═══════════════════════════════════════════════════════
      SLIDE F — LOCAL MODELS FOR SENSITIVE DATA
      ═══════════════════════════════════════════════════════ -->
       <section>
@@ -2574,34 +2684,47 @@ and Kanagawa gap depth.</pre>
         <div class="g2" style="gap:0.8em;">
           <div class="card c1">
             <div class="ct">Prompt given</div>
-            <pre style="font-size:0.65em;background:#111;padding:0.6em;border-radius:4px;white-space:pre-wrap;">Find the key papers on the
-fragmentation barrier in dust
-coagulation (Birnstiel et al.)
-and export BibTeX to
-paper/bibliography.bib</pre>
+            <pre style="font-size:0.65em;background:#111;padding:0.6em;border-radius:4px;white-space:pre-wrap;">Find the key papers on the fragmentation barrier in dust coagulation and export BibTeX to paper/bibliography.bib</pre>
+            <div class="ct" style="margin-top:0.5em;">ADS MCP workflow (live)</div>
+            <ul class="sm">
+              <li>6× <code>ads_search</code> queries</li>
+              <li><code>ads_resolve_reference</code> for 2 ambiguous refs</li>
+              <li><code>ads_citation_helper</code> on 7-paper core set</li>
+              <li><code>ads_export</code> batch → BibTeX, 1 call for all 12</li>
+            </ul>
           </div>
           <div>
             <div class="card c2" style="margin-bottom:0.5em;">
-              <div class="ct">ADS MCP results (verified bibcodes)</div>
+              <div class="ct">12 entries added — all ADS-verified</div>
               <ul class="sm">
-                <li><strong>2012A&amp;A...539A.148B</strong> — Birnstiel, Klahr &amp; Ercolano
-                  (739 citations) — fragmentation/drift barrier unified model</li>
-                <li><strong>2010A&amp;A...513A..79B</strong> — Birnstiel, Dullemond &amp; Brauer
-                  (579 citations) — coagulation/fragmentation two-population</li>
+                <li><strong>2012A&amp;A...539A.148B</strong> — Birnstiel+ 2012
+                  (739 cit.) — <em>the</em> fragmentation barrier formula</li>
+                <li><strong>2008A&amp;A...480..859B</strong> — Brauer+ 2008
+                  (591 cit.) — coagulation + radial drift</li>
+                <li><strong>2010A&amp;A...513A..79B</strong> — Birnstiel+ 2010
+                  (579 cit.) — two-population model</li>
+                <li><strong>2010A&amp;A...513A..57Z</strong> — Zsom+ 2010
+                  (504 cit.) — bouncing barrier</li>
+                <li><strong>2010A&amp;A...513A..56G</strong> — Güttler+ 2010
+                  (439 cit.) — collision outcome mapping</li>
+                <li style="color:#adb5bd;">+ 7 more: Weidenschilling 1977, Blum &amp; Wurm 2008,
+                  Birnstiel 2011/2016, Windmark 2012, Testi 2014, Stammler 2023</li>
               </ul>
             </div>
             <div class="card c5">
-              <div class="ct">Workflow enforced</div>
+              <div class="ct">Guardrails enforced</div>
               <ul class="sm">
-                <li>ADS MCP → <code>ads_search</code> → <code>ads_export</code> → BibTeX appended</li>
-                <li>No hand-written entries — DOI field verified by pre-commit hook</li>
-                <li class="sm" style="color:#ef5350;">Never invented or guessed a reference</li>
+                <li>No hand-written BibTeX — every entry from live ADS query</li>
+                <li>All 12 entries carry <code>doi</code> + <code>adsurl</code> fields</li>
+                <li>Keys auto-renamed to <code>AuthorYYYY</code> format</li>
+                <li style="color:#ef5350;">Zero hallucinated references</li>
               </ul>
             </div>
           </div>
         </div>
         <div class="ibox" style="font-size:0.72em;margin-top:0.5em;">
-          BibTeX appended to <code>paper/bibliography.bib</code> · bibcodes are permanent ADS identifiers
+          12 entries appended to <code>paper/bibliography.bib</code> · validated with
+          <code>grep -c "^@"</code> → 12 · wall-clock ~45 s
         </div>
       </section>
 
