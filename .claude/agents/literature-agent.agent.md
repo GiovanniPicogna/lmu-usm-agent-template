@@ -1,0 +1,1 @@
+../../.github/agents/literature-agent.agent.md

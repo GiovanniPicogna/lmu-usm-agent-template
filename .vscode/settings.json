@@ -4,23 +4,19 @@
   // Commit this file so all collaborators share the same Copilot + MCP config.
   // Each user must set their own API tokens as environment variables —
   // never put tokens in this file.
-
   "github.copilot.enable": {
     "*": true,
     "plaintext": false,
     "markdown": true,
     "python": true
   },
-
   // ── MCP server configuration ─────────────────────────────────────────────
   // Requires VS Code 1.99+ and GitHub Copilot with Agent Mode enabled.
   // Set the following environment variables before starting VS Code:
   //   export ADS_API_TOKEN="your_token_here"
   //   (get yours at: https://ui.adsabs.harvard.edu/user/settings/token)
-
   "mcp": {
     "servers": {
-
       // ── NASA ADS MCP (primary — most complete, 11 tools) ─────────────────
       // Source: https://github.com/cbyrohl/mcp-server-ads
       // Tools: search_papers, get_record, get_bibtex, get_citations,
@@ -36,20 +32,15 @@
           "ADS_API_TOKEN": "${env:ADS_API_TOKEN}"
         }
       },
-
       // ── ALMA Archive MCP (uncomment if your project uses ALMA data) ───────
       // Source: https://github.com/adamzacharia/alma_mcp
       // Tools: ALMA archive search by target, frequency, resolution, PI
-      // "alma": {
-      //   "command": "uvx",
-      //   "args": [
-      //     "--from",
-      //     "git+https://github.com/adamzacharia/alma_mcp",
-      //     "alma-mcp"
-      //   ],
-      //   "env": { "ALMA_TOKEN": "${env:ALMA_TOKEN}" }
-      // },
-
+      "alma": {
+        "command": "python",
+        "args": [
+          "/Users/giovanni/Codes/ALMA_MCP/server.py"
+        ]
+      },
       // ── NASA APIs MCP (general NASA data products) ────────────────────────
       // Source: https://github.com/ProgramComputer/NASA-MCP-server
       // Tools: APOD, NEO, NExScI exoplanet archive, DONKI space weather
@@ -64,7 +55,6 @@
       //     "NASA_API_KEY": "${env:NASA_API_KEY}"
       //   }
       // },
-
       // ── NASA PDS MCP (planetary science — uncomment if needed) ───────────
       // Source: https://github.com/NASA-PDS/pds-mcp-server
       // Official NASA Planetary Data System server
@@ -77,33 +67,32 @@
       //   ],
       //   "env": {}
       // }
-
     }
   },
-
   // ── Python environment ──────────────────────────────────────────────────────
   // python.defaultInterpreterPath is user-specific — each collaborator sets
   // their own via Ctrl+Shift+P → "Python: Select Interpreter".
   // If your team uses a shared conda env name, set it here, e.g.:
   //   "python.defaultInterpreterPath": "/opt/conda/envs/astro/bin/python"
-
   // Formatter: requires the "Black Formatter" extension (ms-python.black-formatter)
   "[python]": {
     "editor.defaultFormatter": "ms-python.black-formatter"
   },
   // Linter: requires the "Flake8" extension (ms-python.flake8)
-  "flake8.args": ["--max-line-length=100"],
-
+  "flake8.args": [
+    "--max-line-length=100"
+  ],
   // ── Editor defaults ─────────────────────────────────────────────────────────
-  "editor.rulers": [100],
+  "editor.rulers": [
+    100
+  ],
   "editor.formatOnSave": true,
   "files.trimTrailingWhitespace": true,
   "files.insertFinalNewline": true,
-
   // ── File associations ───────────────────────────────────────────────────────
   "files.associations": {
-    "*.reg": "plaintext",   // DS9 region files
-    "*.xcm": "plaintext",   // XSPEC script files
-    "*.par": "plaintext"    // CIAO/sherpa parameter files
+    "*.reg": "plaintext", // DS9 region files
+    "*.xcm": "plaintext", // XSPEC script files
+    "*.par": "plaintext" // CIAO/sherpa parameter files
   }
 }

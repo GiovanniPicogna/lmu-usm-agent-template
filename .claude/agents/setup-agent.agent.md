@@ -1,0 +1,1 @@
+../../.github/agents/setup-agent.agent.md

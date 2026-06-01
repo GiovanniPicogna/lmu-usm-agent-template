@@ -1,0 +1,1 @@
+../../.github/agents/pipeline-agent.agent.md
