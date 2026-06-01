@@ -3189,6 +3189,68 @@ paper/sections/abstract_methods.tex</pre>
         </div>
       </section>
 
+      <!-- ═══════════════════════════════════════════════════════
+         SLIDE X — AGENT HOOKS
+         ═══════════════════════════════════════════════════════ -->
+      <section data-background-gradient="radial-gradient(ellipse at center, #0d1b2e 0%, #080c14 100%)">
+        <span class="stag">Agent Safety · .claude/settings.json</span>
+        <h2>Hooks: Policy-as-Code for Agent Behaviour</h2>
+
+        <div class="ibox" style="margin-bottom:0.65em;">
+          <p class="sm" style="margin:0;">
+            A <strong>hook</strong> is a shell script that the agent harness executes automatically
+            at a fixed lifecycle event — <strong>PreToolUse</strong> (before every tool call) or
+            <strong>Stop</strong> (when the agent finishes a turn). A non-zero exit or a
+            <code>deny</code> JSON response <em>blocks</em> the tool call before it runs.
+            Hooks enforce rules from <code>copilot-instructions.md</code> at the process level —
+            the agent cannot reason its way around them.
+          </p>
+        </div>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:0.65em;">
+
+          <!-- Hook 1 -->
+          <div class="card" style="border-top:3px solid var(--a2);padding:0.7em 0.8em;">
+            <div style="font-size:0.58em;color:var(--a2);font-weight:700;letter-spacing:.06em;text-transform:uppercase;margin-bottom:0.25em;">PreToolUse · Bash</div>
+            <div class="ct" style="font-size:0.78em;margin-bottom:0.3em;">pre-bash-safety.sh</div>
+            <p class="sm" style="margin:0 0 0.4em;">Blocks destructive shell operations:</p>
+            <ul class="sm" style="margin:0;padding-left:1.1em;line-height:1.7;">
+              <li><code>git push --force</code> / <code>reset --hard</code></li>
+              <li><code>rm -rf data/</code> or <code>results/</code></li>
+              <li><code>sbatch</code> / <code>qsub</code> (HPC auto-submit)</li>
+            </ul>
+            <div style="font-size:0.55em;color:#666;margin-top:0.5em;">§10 copilot-instructions.md</div>
+          </div>
+
+          <!-- Hook 2 -->
+          <div class="card" style="border-top:3px solid var(--a3);padding:0.7em 0.8em;">
+            <div style="font-size:0.58em;color:var(--a3);font-weight:700;letter-spacing:.06em;text-transform:uppercase;margin-bottom:0.25em;">PreToolUse · Write | Edit</div>
+            <div class="ct" style="font-size:0.78em;margin-bottom:0.3em;">pre-create-results.sh</div>
+            <p class="sm" style="margin:0 0 0.4em;">Blocks overwriting existing result files:</p>
+            <ul class="sm" style="margin:0;padding-left:1.1em;line-height:1.7;">
+              <li>Checks if target path exists under <code>results/</code></li>
+              <li>Returns <code>deny</code> with a timestamped alternative path</li>
+              <li><em>Allows</em> writes outside <code>results/</code> freely</li>
+            </ul>
+            <div style="font-size:0.55em;color:#666;margin-top:0.5em;">§10 copilot-instructions.md</div>
+          </div>
+
+          <!-- Hook 3 -->
+          <div class="card" style="border-top:3px solid var(--a4);padding:0.7em 0.8em;">
+            <div style="font-size:0.58em;color:var(--a4);font-weight:700;letter-spacing:.06em;text-transform:uppercase;margin-bottom:0.25em;">Stop</div>
+            <div class="ct" style="font-size:0.78em;margin-bottom:0.3em;">agent-stop-check.sh</div>
+            <p class="sm" style="margin:0 0 0.4em;">Enforces prompt log discipline:</p>
+            <ul class="sm" style="margin:0;padding-left:1.1em;line-height:1.7;">
+              <li>Detects new/modified files under <code>src/</code> via <code>git diff</code></li>
+              <li>Blocks the turn from completing if no <code>prompts/</code> log exists</li>
+              <li>Forces agent to create the log before stopping</li>
+            </ul>
+            <div style="font-size:0.55em;color:#666;margin-top:0.5em;">§7 copilot-instructions.md</div>
+          </div>
+
+        </div>
+      </section>
+
     </div><!-- .slides -->
   </div><!-- .reveal -->
 
