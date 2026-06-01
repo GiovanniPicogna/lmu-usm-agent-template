@@ -404,6 +404,28 @@ nav_order: 5
       margin-bottom: 0.6em;
     }
 
+    .t1-author {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.45em;
+      margin-top: 1.1em;
+      font-size: 0.62em;
+      color: #adb5bd;
+      letter-spacing: 0.06em;
+    }
+
+    .gh-link {
+      display: inline-flex;
+      align-items: center;
+      color: #adb5bd;
+      transition: color 0.2s;
+    }
+
+    .gh-link:hover {
+      color: var(--a1);
+    }
+
     .tags {
       display: flex;
       gap: 0.55em;
@@ -475,13 +497,32 @@ nav_order: 5
      ═══════════════════════════════════════════════════════ -->
       <section data-background-gradient="radial-gradient(ellipse at center, #0d1b2e 0%, #080c14 100%)"
         class="title-slide t1">
-        <div class="venue">Code &amp; Coffee · Astrophysics Department · May 2026</div>
-        <h1>AI Agents:<br><em style="color:var(--a1);">How We Use Them,<br>How We Cite Them</em></h1>
+        <div class="venue">Code &amp; Coffee · Astrophysics Department · June 1st 2026</div>
+        <h1>AI Agents:<br><em style="color:var(--a1);">Done Right.</em></h1>
         <div class="tags">
-          <span class="tag">GitHub Copilot</span>
-          <span class="tag">MCP &amp; ADS</span>
+          <span class="tag">GitHub Copilot, Claude Code</span>
+          <span class="tag">MCP servers</span>
+          <span class="tag">Agent skills</span>
+          <span class="tag">Multi-agents</span>
           <span class="tag">Reproducibility</span>
           <span class="tag">Journal Policies</span>
+        </div>
+        <div class="t1-author">
+          Giovanni Picogna
+          <a href="https://github.com/GiovanniPicogna" target="_blank" rel="noopener" aria-label="GitHub profile" class="gh-link">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+              <path d="M12 0C5.37 0 0 5.373 0 12c0 5.303 3.438 9.8 8.205 11.387.6.113.82-.258.82-.577
+                0-.285-.01-1.04-.015-2.04-3.338.726-4.042-1.61-4.042-1.61-.546-1.387-1.333-1.757-1.333-1.757
+                -1.089-.745.083-.729.083-.729 1.205.085 1.84 1.237 1.84 1.237 1.07 1.834 2.807 1.304
+                3.492.997.108-.775.418-1.305.762-1.605-2.665-.3-5.466-1.332-5.466-5.93
+                0-1.31.465-2.38 1.235-3.22-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322
+                3.3 1.23a11.5 11.5 0 0 1 3.003-.404c1.02.005 2.047.138 3.006.404
+                2.29-1.552 3.297-1.23 3.297-1.23.653 1.652.242 2.873.118 3.176.77.84
+                1.233 1.91 1.233 3.22 0 4.61-2.805 5.625-5.475 5.92.43.372.823 1.102.823
+                2.222 0 1.606-.015 2.898-.015 3.293 0 .322.216.694.825.576C20.565 21.796
+                24 17.3 24 12c0-6.627-5.373-12-12-12z"/>
+            </svg>
+          </a>
         </div>
       </section>
 
