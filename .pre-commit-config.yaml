@@ -79,8 +79,9 @@ repos:
     hooks:
       - id: pytest-unit
         name: pytest (unit tests — schemas, guards, routing)
-        language: system
-        entry: /Users/giovanni/anaconda3/envs/py312/bin/python -m pytest tests/schemas tests/guards tests/agents -q
+        language: python
+        entry: python -m pytest tests/schemas tests/guards tests/agents -q
+        additional_dependencies: [pytest, pydantic, pyyaml]
         pass_filenames: false
         always_run: true
         stages: [pre-commit]
