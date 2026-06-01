@@ -72,3 +72,15 @@ repos:
 
             for f in sys.argv[1:]:
                 check(f)
+
+  # ── pytest unit tests ──────────────────────────────────────────────────────
+  # Run unit tests on schemas, guards, and agent routing logic
+  - repo: local
+    hooks:
+      - id: pytest-unit
+        name: pytest (unit tests — schemas, guards, routing)
+        language: system
+        entry: /Users/giovanni/anaconda3/envs/py312/bin/python -m pytest tests/schemas tests/guards tests/agents -q
+        pass_filenames: false
+        always_run: true
+        stages: [pre-commit]
