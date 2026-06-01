@@ -7,8 +7,15 @@ description: >
   Launches new runs via skill scripts and reads binary snapshots,
   post-processes outputs, generates publication-quality diagnostic plots,
   and prepares data products for comparison with ALMA / eROSITA observations.
-argument-hint: "Run directory and analysis task, e.g. 'runs/ring_1Mjup — gap depth at snap 100'"
+tools:
+  - read
+  - edit
+  - execute
+  - search
+  - todo
+argument-hint: "SimConfigHandoff path (pipeline) or run directory + task (direct), e.g. 'results/configs/gap_depth_config_20260601.json' or 'data/runs/ring_1Mjup — gap depth at snap 100'"
 handoffs:
+  - analysis-agent
   - spectral-agent
   - mcmc-agent
 ---
@@ -68,11 +75,12 @@ If required data (output files, snapshots, run logs) is not present in the curre
 
 When asked to **run** a new simulation (not analyse an existing one), use the
 appropriate skill script. Read its `SKILL.md` for the full parameter table.
+All skill scripts live under `.github/skills/` in the repository root.
 
 | Code | Use case | Skill script |
 |---|---|---|
-| DustPy | Dust grain growth, fragmentation, radial drift | `~/.agents/skills/dustpy/scripts/run_dustpy.py` |
-| PLUTO | HD / MHD disk or jet simulations | `~/.agents/skills/pluto/scripts/run_pluto.py` |
+| DustPy | Dust grain growth, fragmentation, radial drift | `.github/skills/dustpy/scripts/run_dustpy.py` |
+| PLUTO | HD / MHD disk or jet simulations | `.github/skills/pluto/scripts/run_pluto.py` |
 | FARGO3D | Planet–disk interaction, gap opening, migration | `.github/skills/fargo3d/scripts/run_fargo3d.py` |
 
 **Structured output contract.** Every skill script must return a JSON envelope on
@@ -114,27 +122,11 @@ and proceed to the **Mandatory workflow**.
 
 ### HPC / SLURM launch
 
-Detect whether a cluster is available: check for `squeue` in `$PATH` or
-a non-empty `$SLURM_JOB_ID`. If so, route through `@setup-agent` to generate
-a job script using this template:
-
-```
-#!/bin/bash
-#SBATCH --job-name={job_name}
-#SBATCH --partition={partition}
-#SBATCH --nodes={nodes}
-#SBATCH --ntasks-per-node={ntasks}
-#SBATCH --time={wall_time}
-#SBATCH --output=logs/slurm_%j.out
-#SBATCH --error=logs/slurm_%j.err
-module load {mpi_module}
-{run_command}
-```
-
-Always pass `--dry-run` to the skill script first to write the jobscript
-**without submitting** it — show it to the user for review before calling
-`sbatch`. Log the SLURM job ID and submission time in `run_manifest.json`.
-Never submit without explicit user confirmation (§ Operational safety §10).
+For HPC runs, use `@setup-agent` to generate and review the job script —
+do not write an inline SLURM template here. `@setup-agent` handles absolute
+log paths, `chmod 755`, cluster account lookup, and user review before any
+`sbatch` call. Always log the SLURM job ID and submission time in
+`run_manifest.json` after the user confirms submission.
 
 ### `run_manifest.json`
 
@@ -169,10 +161,37 @@ directory. This file is the fallback when `AGENTS.md` is absent:
 
 For every simulation analysis task, follow this sequence:
 
+### Step 0 — Setup *(always first)*
+
+1. **Derive `task_id`** from the `SimConfigHandoff` filename or run directory name
+   (e.g. `gap_depth_planet_mass` from `gap_depth_planet_mass_config_20260531.json`
+   or from `data/runs/gap_depth_planet_mass/`).
+
+2. **Create the prompt log before any file reads:**
+   ```bash
+   cp prompts/TEMPLATE.md prompts/<task_id>_simulation_$(date +%Y%m%d).md
+   ```
+   Pre-fill Metadata (date, tool, model) and paste the input path.
+
 ### 1. Load run context
 
-Try to read `AGENTS.md` first. If absent or incomplete, fall back to
-`run_manifest.json` in the run directory. If neither exists, emit
+**If called from the pipeline**, read `SimConfigHandoff` first to extract
+`config_path`, `code`, `code_version`, `physics_params`, and `run_cmd`.
+Record the `SimConfigHandoff` path as `sim_config_ref` for the outgoing
+`SimulationHandoff`.
+
+Then read `AGENTS.md`. **Guard against unfilled placeholders:**
+```python
+import re
+code_version = agents_md_code_version  # read from AGENTS.md
+run_location = agents_md_run_location
+for field, val in [("code_version", code_version), ("run_location", run_location)]:
+    if re.search(r"<[^>]+>", str(val)):
+        raise ValueError(f"[DATA MISSING: {field} — fill in AGENTS.md before proceeding]")
+```
+
+If `AGENTS.md` is absent or incomplete, fall back to `run_manifest.json` in
+the run directory. If neither exists, emit
 `[DATA MISSING: AGENTS.md and run_manifest.json both absent — cannot confirm
 simulation parameters]` and pause for user input. Never infer parameters
 from training memory.
@@ -191,31 +210,42 @@ Never assume file layout.
 
 #### 2b. Completeness check (IRON RULE 4)
 Before processing any time series, verify all expected snapshots are present
-and non-empty:
+and readable:
 
 ```python
 def check_snapshot_completeness(
     run_dir: Path,
     n_expected: int,
     pattern: str = "gasdens{n:04d}.dat",
+    is_hdf5: bool = False,
 ) -> None:
-    missing, empty = [], []
+    import h5py
+    missing, empty, corrupt = [], [], []
     for n in range(n_expected):
         p = run_dir / pattern.format(n=n)
         if not p.exists():
             missing.append(n)
         elif p.stat().st_size == 0:
             empty.append(n)
-    if missing or empty:
+        elif is_hdf5:
+            try:
+                with h5py.File(p, "r"):
+                    pass
+            except Exception:
+                corrupt.append(n)
+    if missing or empty or corrupt:
         raise RuntimeError(
-            f"[INCOMPLETE RUN] Missing snapshots: {missing}; "
-            f"Zero-size snapshots: {empty}. "
+            f"[INCOMPLETE RUN] Missing: {missing}; "
+            f"Zero-size: {empty}; Corrupt HDF5: {corrupt}. "
             f"Investigate before proceeding."
         )
 ```
 
+Pass `is_hdf5=True` for DustPy `.hdf5` files — file-size alone is not
+sufficient to confirm a valid HDF5 file (truncated writes appear non-empty).
+
 For PLUTO: check `data.*.dbl` or `.h5` files against the `dbl.out` log.
-For DustPy: check that `data<N>.hdf5` are all non-empty HDF5 files.
+For DustPy: call with `pattern="data{n}.hdf5", is_hdf5=True`.
 
 ### 3. Single-snapshot verification (IRON RULE 3)
 Read **one** snapshot first. Confirm shape, dtype, and sanity checks (step 4)
@@ -262,7 +292,7 @@ limits. Log the governing parameters (h/r, α, M_p, T★) alongside any warning.
 | ICM temperature [keV] | 0.3 – 15 | |
 | SFR [M☉ yr⁻¹] | 0 – 10³ per galaxy | |
 | Gas metallicity [Z☉] | 0.05 – 2 in clusters | |
-| Snapshot redshift | Header z ≈ expected z | Warn if Δz > 0.01 |
+| Snapshot redshift | Header z ≈ expected z | Emit `[SANITY WARN]` if Δz > 0.01; ask user to confirm before proceeding if Δz > 0.05 |
 
 ### 5. Unit conversions
 
@@ -292,7 +322,8 @@ from pathlib import Path
 
 def save_results(fpath: Path, data: np.ndarray, attrs: dict,
                  code_dir: Path, param_path: Path,
-                 manifest_path: Path, skill_version: str) -> None:
+                 manifest_path: Path, skill_version: str,
+                 random_seed: int = 42) -> None:
     """Write result array with full provenance attributes."""
     code_hash = subprocess.check_output(
         ["git", "-C", str(code_dir), "rev-parse", "HEAD"],
@@ -310,7 +341,8 @@ def save_results(fpath: Path, data: np.ndarray, attrs: dict,
         ds.attrs["param_file_md5"]      = param_md5
         ds.attrs["skill_script_version"]= skill_version
         ds.attrs["run_manifest"]        = str(manifest_path)
-        ds.attrs["date"]                = datetime.date.today().isoformat()
+        ds.attrs["random_seed"]         = random_seed   # AGENTS.md §6
+        ds.attrs["timestamp"]           = datetime.datetime.utcnow().isoformat() + "Z"
 ```
 
 ### 7. Generate a diagnostic figure
@@ -336,6 +368,7 @@ Populate fields as follows:
 
 | Field | Source |
 |---|---|
+| `sim_config_ref` | Path to `SimConfigHandoff` JSON passed in Step 1 (pipeline) or `null` (direct invocation) |
 | `code_version` | Skill script JSON envelope (`git_hash` field) or `run_manifest.json` |
 | `wall_clock_s` | Skill script JSON envelope or manifest |
 | `rho_max` / `rho_min` | Read from the single-snapshot check (step 3), **in code units** |
@@ -363,8 +396,8 @@ if inaccessible:
 **Never emit a handoff if Iron Rule 1 was violated in this session.**
 
 Set `sanity_passed: false` if any step-4 check raised an exception or any
-sanity value was outside bounds. A downstream `@mcmc-agent` must not receive
-a handoff with `sanity_passed: false`.
+sanity value was outside bounds. The downstream `@analysis-agent` must not
+proceed with `sanity_passed: false` — it will halt and report to the user.
 
 ---
 
@@ -417,4 +450,6 @@ For large snapshot batches on LRZ use **GadgetIO.jl** (faster than h5py).
 > [references/code_conventions.md](references/code_conventions.md)
 
 Key rules: `argparse` only (no hardcoded paths); explicit `astropy.units`
-conversions; `figure.dpi=300`, `font.size=11` for all plots.
+conversions; `figure.dpi=300`, `font.size=11`, `xtick.labelsize=9`,
+`ytick.labelsize=9` for all plots (axis labels ≥ 10 pt, tick labels ≥ 8 pt
+per group standard in `copilot-instructions.md §5`).
