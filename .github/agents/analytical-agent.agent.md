@@ -115,24 +115,98 @@ Load the handoff from file path or inline JSON. Then:
 ### Step 2 — Compute analytical quantities
 
 Read `.github/agents/references/analytical_toolkit.md` and load the section
-matching `domain`. Compute for the top hypothesis:
+matching `domain`. Then follow the sub-steps below in order.
 
-- All relevant **characteristic scales** with astropy units.
-- **Stability criteria** and whether they are satisfied (set `margin` = how far
-  from the threshold, in the same units as the criterion).
-- **Predicted observables** expanded from the `"<name>: <value_or_range> [unit]"`
-  strings in the HypothesisHandoff into structured `{name, value, unit, uncertainty}`.
-- **Nonlinear trigger criterion**: if any stability criterion is violated or the
-  system is strongly nonlinear, document the mechanism.
+#### Step 2a — Problem scoping
+
+State in plain text:
+- The **physical setup** (geometry, background state, relevant forces).
+- The **governing equations** (e.g., Navier-Stokes, MHD induction equation,
+  radiative transfer, Vlasov-Poisson) for this domain.
+- The **unperturbed background state** (e.g., Keplerian disk in hydrostatic
+  equilibrium, uniform self-gravitating gas cloud, isothermal atmosphere).
+- Which parameters from `HypothesisHandoff.parameters` map to which physical
+  quantities in those equations.
+
+> *Example — disk gap opening:* background state is a 2D viscous disk in
+> Keplerian rotation; governing equations are the vertically-integrated Euler
+> equations with a planet's gravitational potential.
+
+> *Example — Jeans instability:* background state is a uniform, self-gravitating
+> gas at rest; governing equation is the linearised continuity + Poisson system.
+
+#### Step 2b — Linearization and symbolic analysis
+
+Using `sympy`, apply linear perturbation theory to the governing equations
+identified in Step 2a:
+
+1. Decompose each field as `f = f_0 + ε f_1` where `f_0` is the background
+   and `f_1` is the perturbation (e.g., `ρ = ρ_0 + ρ_1`, `v = v_0 + v_1`).
+2. Substitute into the governing equations and retain only first-order terms.
+3. Assume plane-wave perturbations `f_1 ∝ exp(i(k·x − ωt))` and derive the
+   **dispersion relation** `D(ω, k, params) = 0`.
+4. Solve symbolically where possible; record the result in the benchmark script.
+
+If linearization is not applicable for the domain (e.g., atmospheric retrieval,
+X-ray spectroscopy), skip to Step 2c and note the reason.
+
+> *Example — Jeans:* continuity + momentum + Poisson → dispersion relation
+> `ω² = c_s² k² − 4πGρ_0`. Solved for `ω² = 0` gives `k_J = sqrt(4πGρ_0)/c_s`.
+
+> *Example — MRI:* linearised MHD equations in a differentially rotating disk
+> → dispersion relation `(ω² − k²v_A²)(ω² − κ²) + 4Ω²k²v_A² = 0`.
+> The instability criterion (`dΩ²/dR < 0` for ideal MHD) follows directly.
+
+#### Step 2c — Characteristic scaling
+
+Compute all dimensionless numbers and physical scales relevant to the domain.
+Every quantity must be an `astropy.Quantity`; use `astropy.constants` for
+fundamental constants. Organise results as a dict that will become
+`AnalyticalHandoff.characteristic_scales`.
 
 Domain routing:
-| Domain | Toolkit section | Key criteria to compute |
-|--------|----------------|------------------------|
-| `disk` | Disk / planet formation | Crida K (gap opening), Toomre Q (fragmentation), Stokes St (dust) |
-| `cosmological` | Cosmological simulations | Jeans mass, virial temperature, cooling time |
-| `retrieval` | Atmospheric retrievals | Scale height, transit depth amplitude, T_eq |
-| `xray` | X-ray spectroscopy | Emission measure, cooling time, hydrostatic mass |
-| `lss` | Large-scale structure | Fisher forecast, growth rate — **pipeline ends here; no `@setup-agent` route** |
+
+| Domain | Governing equations | Dimensionless numbers | Key scales |
+|--------|--------------------|-----------------------|------------|
+| `disk` | Vertically-integrated Euler (viscous, self-gravitating optional) | Toomre Q, Crida K, Stokes St, Mach Ma, Reynolds Re | Scale height H, Hill radius r_H, thermal relaxation time t_cool |
+| `cosmological` | Euler + Poisson (collisionless: Vlasov-Poisson) | Jeans number, virial ratio, cooling parameter | Jeans mass M_J, Jeans length λ_J, virial temperature T_vir, cooling time t_cool |
+| `retrieval` | Hydrostatic + radiative transfer | Scale-height ratio H/R_p, Bond albedo, irradiation parameter | Scale height H_atm, equilibrium temperature T_eq, transit depth δ |
+| `xray` | Euler + radiative cooling (thermal conduction optional) | Cooling function ratio, beta parameter | Emission measure EM, cooling time t_cool, hydrostatic mass M_hyd |
+| `lss` | Linearised continuity + Poisson (perturbation theory) | Growth rate f = d ln D/d ln a, bias b | Fisher information matrix F_ij, power spectrum amplitude σ_8 |
+
+#### Step 2d — Numerical evaluation
+
+For quantities that cannot be solved symbolically (e.g., transcendental
+dispersion relations, roots of characteristic polynomials, semi-analytical
+integrals), use:
+- `scipy.optimize.brentq` / `fsolve` for roots and growth rates.
+- `scipy.integrate.quad` / `solve_ivp` for quadratures and ODEs.
+- `numpy` for grid evaluations (parameter sweeps).
+
+Document every numerical call with: the function being solved, the bracketing
+interval or initial guess, and the tolerance used.
+
+#### Step 2e — Nonlinear regime assessment
+
+For each stability criterion, compute the signed margin from threshold and set
+`linear_regime: false` if **any** criterion is violated:
+
+| Domain | Primary criterion | Secondary criterion |
+|--------|------------------|---------------------|
+| `disk` | Crida K > 1 (gap opening) | Toomre Q < 1 (fragmentation) |
+| `cosmological` | λ > λ_J (Jeans unstable) | t_cool < t_ff (thermal instability) |
+| `retrieval` | H/R_p ≫ 1 (extended atmosphere) | T_eq > 2500 K (chemical dissociation) |
+| `xray` | t_cool < t_Hubble (cooling flow) | M_hyd vs. M_SZ discrepancy > 20% |
+| `lss` | σ_8 > 1 (nonlinear clustering) | f_NL ≠ 0 (primordial non-Gaussianity) |
+
+Document the **physical mechanism** that triggers nonlinearity (e.g.,
+"gap-opening torque exceeds viscous restoring torque → nonlinear gap
+clearing; Crida K = 1.4 > 1").
+
+Expand `predicted_observables` from the `"<name>: <value_or_range> [unit]"`
+strings in `HypothesisHandoff` into structured
+`{name, value, unit, uncertainty, formula_ref}` entries using the
+formulae verified in Steps 2b–2d.
 
 ### Step 3 — Generate comparison benchmark script
 
