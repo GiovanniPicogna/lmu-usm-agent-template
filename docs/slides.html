@@ -931,7 +931,8 @@ nav_order: 5
           <div class="card c1">
             <div class="ct">🏭 Role-based SOPs</div>
             <div class="sm b" style="margin-bottom:0.2em;">MetaGPT · Hong et al. 2023</div>
-            Fixed roles (manager → architect → engineer) + Standard Operating Procedures reduce cascading hallucinations.
+            Fixed roles (manager → architect → engineer) + Standard Operating Procedures reduce cascading
+            hallucinations.
             <div class="sm" style="margin-top:0.3em;">arXiv:2308.00352</div>
           </div>
           <div class="card c2">
@@ -966,10 +967,12 @@ nav_order: 5
             <div class="sm" style="margin-bottom:0.3em;font-weight:700;color:var(--a2);">✅ Demonstrated</div>
             <div class="pcard">
               <div class="pref">Laverick et al. 2024 · arXiv:2412.00431 (CMBagent)</div>
-              Reproduced ACT DR6 CMB lensing with <strong>no human-written code</strong>; converged MCMC in 40 min at $1.55.
+              Reproduced ACT DR6 CMB lensing with <strong>no human-written code</strong>; converged MCMC in 40 min at
+              $1.55.
             </div>
             <div class="pcard" style="border-left-color:var(--a2);">
-              <div class="pref" style="color:var(--a2);">Borrett et al. 2026 · arXiv:2604.09621 — Weak lensing challenge</div>
+              <div class="pref" style="color:var(--a2);">Borrett et al. 2026 · arXiv:2604.09621 — Weak lensing challenge
+              </div>
               Fully autonomous: did not reach expert level. <strong>Semi-autonomous (human + AI): 1st place.</strong>
             </div>
             <div class="pcard" style="border-left-color:var(--a5);">
@@ -978,13 +981,15 @@ nav_order: 5
             </div>
           </div>
           <div>
-            <div class="sm" style="margin-bottom:0.3em;font-weight:700;color:var(--a4);">⚠️ Failure Modes — MAST Taxonomy</div>
+            <div class="sm" style="margin-bottom:0.3em;font-weight:700;color:var(--a4);">⚠️ Failure Modes — MAST
+              Taxonomy</div>
             <div class="card c4" style="margin-bottom:0.4em;font-size:0.79em;">
               <div class="ct">Cemri et al. 2025 · arXiv:2503.13657 · 14 modes · 200+ tasks</div>
               <span class="r">System design 44%</span> ·
               <span class="am">Inter-agent misalignment 32%</span> ·
               <span class="b">Verification 24%</span><br>
-              Benchmark gains remain <strong>minimal vs single-agent</strong> — <em>organisational design</em> is the bottleneck.
+              Benchmark gains remain <strong>minimal vs single-agent</strong> — <em>organisational design</em> is the
+              bottleneck.
             </div>
             <div class="card c3" style="font-size:0.79em;">
               <div class="ct">🔑 Key Lessons</div>
@@ -1571,42 +1576,6 @@ Run CASA tclean on a calibrated ALMA MS.
           you receive correct BibTeX automatically.<br>
           <em>Without MCP, GPT-4o/Copilot invents plausible-but-wrong bibcodes, authors, and journal names — every
             time.</em>
-        </div>
-      </section>
-
-      <!-- ═══════════════════════════════════════════════════════
-     SLIDE 14 — PITFALLS: RESEARCH
-     ═══════════════════════════════════════════════════════ -->
-      <section>
-        <span class="stag">Part 4 — Pitfalls: What the Research Says</span>
-        <h2>Known Pitfalls of AI Agents in Scientific Research</h2>
-        <div style="font-size:0.82em;margin-bottom:0.35em;">Four recent papers — including one specifically on
-          astrophysics — map where agents actually fail:</div>
-        <div class="pcard">
-          <div class="pref">Huang 2026 — arXiv:2603.29039 — AI Cosplaying as Astrophysicists</div>
-          144 synthetic astrophysicist agents, 2,592 tasks. No AI-assisted policy universally beat unassisted work.
-          Gains are task-specific: AI helps on creative/extractive tasks but <strong>fails catastrophically on
-            derivation-heavy physics</strong>. Performance also depends on which LLM you use.
-        </div>
-        <div class="pcard" style="border-left-color:var(--a2);">
-          <div class="pref" style="color:var(--a2);">Borrett et al. 2026 — arXiv:2604.09621 — Competing with AI
-            Scientists (CMBagent)</div>
-          Multi-agent system (CMBagent) applied to cosmological parameter inference challenge. Fully autonomous
-          exploration did not reach expert-level performance. <strong>Human intervention needed to achieve 1st
-            place.</strong> Semi-autonomous beats fully autonomous for hard science.
-        </div>
-        <div class="pcard" style="border-left-color:var(--a3);">
-          <div class="pref" style="color:var(--a3);">Luo et al. 2025 — arXiv:2509.08713 — The More You Automate, the
-            Less You See</div>
-          Four failure modes: (1) inappropriate benchmark selection, (2) data leakage, (3) metric misuse, (4) post-hoc
-          selection bias. Systems generate synthetic datasets or subsample without documenting it, <strong>inflating
-            reported performance.</strong>
-        </div>
-        <div class="pcard" style="border-left-color:var(--a4);">
-          <div class="pref" style="color:var(--a4);">ReplicationBench 2025 — arXiv:2510.24591 — Can AI Agents Replicate
-            Astrophysics Papers?</div>
-          Best frontier models score <strong>&lt;20%</strong> on replicating real astrophysics results. Failure modes:
-          wrong physical assumptions, incorrect unit handling, misidentified datasets, broken pipeline logic.
         </div>
       </section>
 
