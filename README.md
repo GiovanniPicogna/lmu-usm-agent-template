@@ -5,7 +5,7 @@ policy-compliant way in astrophysics research at LMU Munich.
 
 **Status**: community draft — open to contributions from all group members.
 **Maintainer**: Giovanni Picogna ([@GiovanniPicogna](https://github.com/GiovanniPicogna))
-**Template version**: 1.1 (May 2026)
+**Template version**: 1.1 (June 2026)
 
 ---
 
@@ -53,9 +53,9 @@ policy-compliant way in astrophysics research at LMU Munich.
 │   │   │   ├── parameters.md       #   Full parameter table
 │   │   │   └── examples.md         #   Step-by-step run examples
 │   │   └── scripts/run_pluto.py        #   Patches pluto.ini, launches simulation
-│              compile_pluto.py    #   Compiles PLUTO from source with sysconf
-│              physics_config_writer.py  #  Generates physics config JSON
-│              plot_pluto.py       #   Publication-quality snapshot plots
+│   |          compile_pluto.py    #   Compiles PLUTO from source with sysconf
+│   |          physics_config_writer.py  #  Generates physics config JSON
+│   |          plot_pluto.py       #   Publication-quality snapshot plots
 │   ├── radmc3d/
 │   │   ├── SKILL.md                #   RADMC-3D: radiative transfer, synthetic ALMA images
 │   │   └── references/
@@ -437,6 +437,61 @@ rather than producing a plausible-looking but fabricated result.
 
 ---
 
+## Testing
+
+The repository ships a pytest test suite that validates the pipeline's
+**infrastructure layer**: handoff data contracts, anti-hallucination guards,
+agent structural definitions, simulation script parameter bounds, hook safety
+patterns, and cross-reference consistency between all configuration files.
+
+### Running the tests
+
+```bash
+conda activate py312
+pytest tests/                  # full suite
+pytest tests/schemas/          # handoff JSON contracts only
+pytest tests/agents/           # gates, agent structure, cross-references
+pytest tests/skills/           # skill SKILL.md structure + script parameter bounds
+pytest tests/guards/           # [DATA MISSING] sentinel and format validators
+pytest tests/ -v --tb=short    # verbose output with short tracebacks
+```
+
+### What the tests cover
+
+| Directory | Validates |
+|---|---|
+| `tests/schemas/` | All 9 handoff JSON contracts as Pydantic v2 models — field types, cross-field constraints, validation rules from `.github/shared/handoff_schemas.md` |
+| `tests/guards/` | `[DATA MISSING]` sentinel detection; ADS bibcode format (19-character regex); ISO-8601 UTC timestamp format |
+| `tests/agents/` | Human Gate 1 & 2 enforcement; `next_action` routing consistency; Iron Rules presence and numbering in all `.agent.md` files; cross-reference consistency (ARCHITECTURE.md ↔ agent files ↔ handoff schemas ↔ skill directories ↔ CLAUDE.md) |
+| `tests/skills/` | `SKILL.md` required sections; script file existence; Pydantic parameter bounds for `run_fargo3d.py`, `compile_pluto.py`, `run_pluto.py`; mutual exclusion rules for PLUTO physics flags; `physics_config_writer.py` C-expression evaluator; `SUCCESS`/`ERROR` stdout protocol for all simulation launchers |
+
+All simulation-code-dependent tests (`run_dustpy.py`, `plot_dustpy.py`,
+`plot_pluto.py`) are skipped automatically when the corresponding Python package
+(`dustpy`, `pyPLUTO`) is not installed, so the suite runs cleanly in any
+environment with only `numpy`, `scipy`, `pydantic`, and `pyyaml`.
+
+### What the tests do not cover
+
+These tests validate the **scaffolding** around the LLMs, not LLM behavior at
+runtime:
+
+- Whether the LLM follows Iron Rules during a conversation (structural presence
+  ≠ runtime compliance).
+- Whether handoff field *values* are physically meaningful — Pydantic validates
+  types and ranges, not domain physics.
+- Whether Gate 1 or Gate 2 are truly enforced by the LLM — the routing function
+  tests verify the Python check, not that the LLM won't auto-confirm.
+- Hallucinated citations — tests verify ADS bibcode format, not ADS-MCP
+  round-trip validity.
+
+Runtime behavioral robustness is handled by the two mandatory human gates
+(Gate 1 after hypothesis, Gate 2 after interpretation) and the
+`[DATA MISSING]` anti-leakage pattern. See
+[`ARCHITECTURE.md § Quality gates`](ARCHITECTURE.md) for the full reliability
+design.
+
+---
+
 ## Pipeline architecture
 
 See [`ARCHITECTURE.md`](ARCHITECTURE.md) for the complete picture:
@@ -485,14 +540,6 @@ To enable Pages in a fork or your own copy of this template:
 1. Go to **Settings → Pages**
 2. Set **Source** to `GitHub Actions`
 3. Push any change to trigger the first build
-
-To add the presentation slides to the site, export the latest version
-as PDF and commit it to `docs/`:
-```bash
-cp AI_Agents_Astrophysics_v4.pdf docs/slides.pdf
-git add docs/slides.pdf && git commit -m "docs: add presentation slides"
-```
-Then link it from `docs/index.md`.
 
 ---
 
