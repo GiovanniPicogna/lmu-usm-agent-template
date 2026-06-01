@@ -485,3 +485,150 @@ class InterpretationHandoff(BaseModel):
         if self.next_action == NextAction.abort and self.abort_reason is None:
             raise ValueError("abort_reason is required when next_action is 'abort'")
         return self
+
+
+# ── SpectralFitHandoff/v1 ─────────────────────────────────────────────────────
+
+
+class FitStatistic(BaseModel):
+    """Fit statistic type, value, and degrees of freedom."""
+
+    stat: Literal["cstat", "chi2", "wstat"]
+    value: float
+    dof: int
+
+
+class BestFitParam(BaseModel):
+    """A single best-fit parameter with value, unit, and frozen flag."""
+
+    value: float
+    unit: str
+    frozen: bool
+
+
+class SpectralFitHandoff(BaseModel):
+    """SpectralFitHandoff/v1 — emitted by @spectral-agent after a converged fit.
+
+    Consumed by @mcmc-agent for posterior refinement. fit_passed_sanity must be
+    True; for counts < 25 per bin stat must be 'cstat'. parameter_grid is
+    required when handing off to @mcmc-agent.
+    """
+
+    model_config = ConfigDict(populate_by_name=True)
+
+    schema_name: Literal["SpectralFitHandoff/v1"] = Field(alias="schema")
+    spectrum_file: str
+    background_file: Optional[str] = None
+    energy_range_keV: list[float]
+    model: str
+    best_fit: dict[str, BestFitParam]
+    fit_statistic: FitStatistic
+    fit_passed_sanity: bool
+    parameter_grid: Optional[str] = None
+    timestamp: str
+    warnings: list[str] = []
+
+    @model_validator(mode="after")
+    def sanity_passed_required(self) -> "SpectralFitHandoff":
+        """fit_passed_sanity must be True before handoff to downstream agents."""
+        if not self.fit_passed_sanity:
+            raise ValueError("fit_passed_sanity must be True before handoff")
+        return self
+
+
+# ── MCMCHandoff/v1 ────────────────────────────────────────────────────────────
+
+
+class Sampler(str, Enum):
+    emcee = "emcee"
+    dynesty = "dynesty"
+
+
+class MCMCHandoff(BaseModel):
+    """MCMCHandoff/v1 — emitted by @mcmc-agent after convergence is confirmed.
+
+    Returned to the user or @hypothesis-agent for iteration. converged must be
+    True and gelman_rubin_max must be strictly below 1.1 (R-hat threshold).
+    Uncertainties are 68% credible intervals (1σ). seed must match HDF5 attr.
+    """
+
+    model_config = ConfigDict(populate_by_name=True)
+
+    schema_name: Literal["MCMCHandoff/v1"] = Field(alias="schema")
+    chain_file: str
+    sampler: Sampler
+    n_walkers: int
+    n_steps: int
+    burn_in: int
+    converged: bool
+    gelman_rubin_max: float
+    medians: dict[str, float]
+    uncertainties_68: dict[str, list[float]]
+    corner_plot: str
+    seed: int
+    timestamp: str
+    warnings: list[str] = []
+
+    @model_validator(mode="after")
+    def converged_required(self) -> "MCMCHandoff":
+        """converged must be True before reporting results."""
+        if not self.converged:
+            raise ValueError("converged must be True before reporting results")
+        return self
+
+    @model_validator(mode="after")
+    def gelman_rubin_threshold(self) -> "MCMCHandoff":
+        """gelman_rubin_max must be strictly below 1.1 (Gelman-Rubin R-hat threshold)."""
+        if self.gelman_rubin_max >= 1.1:
+            raise ValueError(
+                f"gelman_rubin_max {self.gelman_rubin_max} >= 1.1 (chain not converged)"
+            )
+        return self
+
+
+# ── PaperHandoff/v1 ───────────────────────────────────────────────────────────
+
+
+class CompilationStatus(str, Enum):
+    ok = "ok"
+    errors = "errors"
+
+
+class PaperHandoff(BaseModel):
+    """PaperHandoff/v1 — emitted by @paper-agent after manuscript compilation.
+
+    Returned to the user (or @pipeline-agent for logging). When
+    compilation_status is 'ok', manuscript_pdf must be non-null and exist.
+    todo_count == 0 is required for a clean handoff. referee_score < 5
+    requires human review.
+    """
+
+    model_config = ConfigDict(populate_by_name=True)
+
+    schema_name: Literal["PaperHandoff/v1"] = Field(alias="schema")
+    task_id: str
+    domain: Domain
+    paper_dir: str
+    manuscript_tex: str
+    manuscript_pdf: Optional[str] = None
+    bibliography_bib: str
+    new_bibtex_keys: list[str] = []
+    sections_written: list[str]
+    n_figures: int
+    n_citations: int
+    compilation_status: CompilationStatus
+    latex_errors: list[str] = []
+    todo_count: int
+    referee_report: str
+    referee_score: float
+    timestamp: str
+    warnings: list[str] = []
+
+    @model_validator(mode="after")
+    def ok_status_requires_pdf(self) -> "PaperHandoff":
+        """manuscript_pdf must be non-null when compilation_status is 'ok'."""
+        if self.compilation_status == CompilationStatus.ok and self.manuscript_pdf is None:
+            raise ValueError(
+                "manuscript_pdf must be non-null when compilation_status is 'ok'"
+            )
+        return self
