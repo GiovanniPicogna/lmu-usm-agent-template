@@ -15,6 +15,7 @@ tools:
   - agent
   - web
   - todo
+model-hint: "haiku — ADS queries, BibTeX retrieval, and citation formatting are fast lookup tasks"
 argument-hint: "Topic, author, bibcode, or ADS query to search or cite"
 ---
 

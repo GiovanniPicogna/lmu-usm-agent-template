@@ -16,6 +16,7 @@ tools:
   - agent
   - web
   - todo
+model-hint: "opus — high theoretical reasoning and novelty scoring required"
 argument-hint: "Science question, e.g. 'How does planet mass affect gap depth in a protoplanetary disk?'"
 handoffs:
   - analytical-agent

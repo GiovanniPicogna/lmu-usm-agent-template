@@ -17,6 +17,7 @@ tools:
   - search
   - agent
   - todo
+model-hint: "opus — physical interpretation, cross-domain plausibility checks, and literature synthesis require deep reasoning"
 argument-hint: "AnalysisHandoff path, e.g. 'results/analysis/gap_depth_analysis_20260526.json'"
 handoffs:
   - hypothesis-agent

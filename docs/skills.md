@@ -45,7 +45,12 @@ skills/<code>/
 
 **Prerequisites:**
 - `dustpy`: `pip install dustpy scientific-pydantic`
-- `fargo3d` / `pluto`: compiled binary must already exist in the run directory
+- `fargo3d`: compiled binary (`fargo3d`) must already exist — the skill patches `.par` files
+  and launches an existing binary; recompilation (e.g. when changing `NFLUIDS`, `MHD`, or
+  setup directory) must be done manually with `make` in the FARGO3D root
+- `pluto`: no pre-existing binary required — `compile_pluto.py` builds or rebuilds `./pluto`
+  automatically when physics, geometry, dimensions, EOS, or module flags change; the skill's
+  pre-flight checklist (STEP 0) determines whether recompilation is needed before each run
 
 ```bash
 # Example: launch DustPy via simulation-agent

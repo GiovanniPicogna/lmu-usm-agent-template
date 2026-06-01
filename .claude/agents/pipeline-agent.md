@@ -16,9 +16,10 @@ explicitly via the `Agent` tool with a self-contained prompt. The pattern is:
       Read(".github/agents/<name>.agent.md")
    to extract its Role, Iron Rules, and Mandatory workflow.
 
-2. Spawn it via the Agent tool:
+2. Spawn it via the Agent tool, passing the model from the delegation table above:
       Agent(
         description="<stage> — <name>",
+        model="<haiku|sonnet|opus>",   # see delegation table
         prompt="""
           <paste the agent's Role and Iron Rules verbatim>
 
@@ -42,17 +43,17 @@ conversation and has not read any files yet.
 
 ## Delegation table
 
-| Stage | Agent file | Skill file (if any) | Handoff produced |
-|---|---|---|---|
-| 1 | `.github/agents/literature-agent.agent.md` | — | bibliography context |
-| 2 | `.github/agents/hypothesis-agent.agent.md` | — | `HypothesisHandoff/v1` |
-| 3 | `.github/agents/analytical-agent.agent.md` | — | `AnalyticalHandoff/v1` |
-| 4 | `.github/agents/setup-agent.agent.md` | — | `SimConfigHandoff/v1` |
-| 5 | `.github/agents/simulation-agent.agent.md` | `.github/skills/<code>/SKILL.md` | `SimulationHandoff/v1` |
-| 6 | `.github/agents/analysis-agent.agent.md` | — | `AnalysisHandoff/v1` |
-| 7 | `.github/agents/interpretation-agent.agent.md` | — | `InterpretationHandoff/v1` |
-| 8b | `.github/agents/mcmc-agent.agent.md` | — | `MCMCHandoff/v1` |
-| 9 | `.github/agents/paper-agent.agent.md` | — | `PaperHandoff/v1` |
+| Stage | Agent file | Model | Skill file (if any) | Handoff produced |
+|---|---|---|---|---|
+| 1 | `.github/agents/literature-agent.agent.md` | `haiku` | — | bibliography context |
+| 2 | `.github/agents/hypothesis-agent.agent.md` | `opus` | — | `HypothesisHandoff/v1` |
+| 3 | `.github/agents/analytical-agent.agent.md` | `opus` | — | `AnalyticalHandoff/v1` |
+| 4 | `.github/agents/setup-agent.agent.md` | `sonnet` | — | `SimConfigHandoff/v1` |
+| 5 | `.github/agents/simulation-agent.agent.md` | `sonnet` | `.github/skills/<code>/SKILL.md` | `SimulationHandoff/v1` |
+| 6 | `.github/agents/analysis-agent.agent.md` | `sonnet` | — | `AnalysisHandoff/v1` |
+| 7 | `.github/agents/interpretation-agent.agent.md` | `opus` | — | `InterpretationHandoff/v1` |
+| 8b | `.github/agents/mcmc-agent.agent.md` | `sonnet` | — | `MCMCHandoff/v1` |
+| 9 | `.github/agents/paper-agent.agent.md` | `sonnet` | — | `PaperHandoff/v1` |
 
 ---
 

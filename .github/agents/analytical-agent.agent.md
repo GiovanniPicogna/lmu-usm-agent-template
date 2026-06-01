@@ -17,6 +17,7 @@ tools:
   - search
   - agent
   - todo
+model-hint: "opus — symbolic derivations, perturbation theory, and stability criteria require deep reasoning"
 argument-hint: "HypothesisHandoff path or domain + parameters, e.g. 'results/hypotheses/gap_depth_20260526.json'"
 handoffs:
   - setup-agent
