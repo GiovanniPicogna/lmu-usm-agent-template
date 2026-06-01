@@ -242,3 +242,156 @@ class SimConfigHandoff(BaseModel):
         if not self.validated:
             raise ValueError("validated must be True before handoff")
         return self
+
+
+# ── SimulationHandoff/v1 ──────────────────────────────────────────────────────
+
+
+class SimCode2(str, Enum):
+    """Valid simulation codes for SimulationHandoff."""
+
+    fargo3d = "FARGO3D"
+    pluto = "PLUTO"
+    dustpy = "DustPy"
+    magneticum = "Magneticum"
+
+
+class SimDiagnostics(BaseModel):
+    """Diagnostic metrics recorded after a simulation run."""
+
+    n_snapshots: int
+    last_snap: int
+    t_end_code: float
+    rho_field: str
+    rho_units: str
+    rho_max: float
+    rho_min: float
+    wall_clock_s: float
+
+    @field_validator("rho_units")
+    @classmethod
+    def rho_units_not_unknown(cls, v: str) -> str:
+        """Reject the sentinel string 'unknown' as rho_units."""
+        if v == "unknown":
+            raise ValueError("rho_units must not be 'unknown'")
+        return v
+
+
+class SimUnits(BaseModel):
+    """Code unit system used in the simulation."""
+
+    length: str
+    mass: str
+    time: str
+    density: str
+
+
+class SimulationHandoff(BaseModel):
+    """SimulationHandoff/v1 — emitted by @simulation-agent after a successful run.
+
+    Consumed by @spectral-agent or @mcmc-agent. code_version and
+    skill_script_version must not be 'unknown'; rho_units must be explicit.
+    sanity_passed must be True before handoff.
+    """
+
+    model_config = ConfigDict(populate_by_name=True)
+
+    schema_name: Literal["SimulationHandoff/v1"] = Field(alias="schema")
+    task_id: str
+    run_dir: str
+    run_manifest: str
+    code: SimCode2
+    code_version: str
+    skill_script: str
+    skill_script_version: str
+    param_file: str
+    param_file_md5: str
+    output_dir: str
+    output_files: list[str]
+    diagnostics: SimDiagnostics
+    units: SimUnits
+    sanity_passed: bool
+    timestamp: str
+    warnings: list[str] = []
+
+    @field_validator("code_version")
+    @classmethod
+    def code_version_not_unknown(cls, v: str) -> str:
+        """Reject the sentinel string 'unknown' as code_version."""
+        if v == "unknown":
+            raise ValueError("code_version must not be 'unknown'")
+        return v
+
+    @field_validator("skill_script_version")
+    @classmethod
+    def skill_script_version_not_unknown(cls, v: str) -> str:
+        """Reject the sentinel string 'unknown' as skill_script_version."""
+        if v == "unknown":
+            raise ValueError("skill_script_version must not be 'unknown'")
+        return v
+
+    @model_validator(mode="after")
+    def sanity_passed_required(self) -> "SimulationHandoff":
+        """sanity_passed must be True before handing off to downstream agents."""
+        if not self.sanity_passed:
+            raise ValueError("sanity_passed must be True before handoff")
+        return self
+
+
+# ── AnalysisHandoff/v1 ──────────────────────────────────────────────────────
+
+
+class DiagnosticEntry(BaseModel):
+    """A single diagnostic metric with value, unit, and optional snapshot index."""
+
+    value: float
+    unit: str
+    snapshot: Optional[int] = None
+
+
+class AnalyticalComparisonEntry(BaseModel):
+    """Comparison between analytical prediction and numerical result."""
+
+    analytical: float
+    numerical: float
+    unit: str
+    agreement_pct: float
+
+
+class AnalysisHandoff(BaseModel):
+    """AnalysisHandoff/v1 — emitted by @analysis-agent after post-processing.
+
+    Consumed by @interpretation-agent or @mcmc-agent. plot_paths must be
+    non-empty and sanity_passed must be True before handoff.
+    """
+
+    model_config = ConfigDict(populate_by_name=True)
+
+    schema_name: Literal["AnalysisHandoff/v1"] = Field(alias="schema")
+    domain: Domain
+    task_id: str
+    output_dir: str
+    sim_config_ref: str
+    simulation_ref: Optional[str] = None
+    diagnostics: dict[str, DiagnosticEntry] = {}
+    plot_paths: list[str]
+    data_hash: str
+    analytical_comparison: dict[str, AnalyticalComparisonEntry] = {}
+    sanity_passed: bool
+    timestamp: str
+    warnings: list[str] = []
+
+    @field_validator("plot_paths")
+    @classmethod
+    def plot_paths_non_empty(cls, v: list) -> list:
+        """Require at least one plot path."""
+        if len(v) < 1:
+            raise ValueError("plot_paths must be non-empty")
+        return v
+
+    @model_validator(mode="after")
+    def sanity_passed_required(self) -> "AnalysisHandoff":
+        """sanity_passed must be True before handing off to downstream agents."""
+        if not self.sanity_passed:
+            raise ValueError("sanity_passed must be True before handoff")
+        return self
