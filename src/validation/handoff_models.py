@@ -395,3 +395,93 @@ class AnalysisHandoff(BaseModel):
         if not self.sanity_passed:
             raise ValueError("sanity_passed must be True before handoff")
         return self
+
+
+# ── InterpretationHandoff/v1 ──────────────────────────────────────────────────
+
+
+class Confidence(str, Enum):
+    high = "high"
+    medium = "medium"
+    low = "low"
+
+
+class HypothesisMatch(str, Enum):
+    confirmed = "confirmed"
+    partial = "partial"
+    refuted = "refuted"
+
+
+class NextAction(str, Enum):
+    iterate = "iterate"
+    write = "write"
+    mcmc = "mcmc"
+    stop = "stop"
+    abort = "abort"
+
+
+class Finding(BaseModel):
+    """A single finding with evidence, confidence, and literature references."""
+
+    statement: str
+    evidence: str
+    confidence: Confidence
+    literature_refs: list[str]
+
+
+class InterpretationHandoff(BaseModel):
+    """InterpretationHandoff/v1 — emitted by @interpretation-agent after Gate 2.
+
+    Consumed by @hypothesis-agent (next_action='iterate') or returned to the user.
+    findings must contain at least 1 entry with at least 1 literature_ref.
+    hypothesis_match='refuted' requires next_action='iterate' or 'abort'.
+    next_action='abort' requires a non-null abort_reason.
+    """
+
+    model_config = ConfigDict(populate_by_name=True)
+
+    schema_name: Literal["InterpretationHandoff/v1"] = Field(alias="schema")
+    domain: Domain
+    task_id: str
+    science_goal: str
+    findings: list[Finding]
+    hypothesis_match: HypothesisMatch
+    analytical_agreement_summary: str
+    plausibility_flags: list[str] = []
+    caveats: list[str] = []
+    followup_suggestions: list[str] = []
+    next_action: NextAction
+    abort_reason: Optional[str] = None
+    human_gate_2_confirmed: bool
+    timestamp: str
+    warnings: list[str] = []
+
+    @field_validator("findings")
+    @classmethod
+    def validate_findings(cls, v: list[Finding]) -> list[Finding]:
+        """Require at least 1 finding, each with at least 1 literature_ref."""
+        if len(v) < 1:
+            raise ValueError("findings must contain at least 1 entry")
+        for f in v:
+            if not f.literature_refs:
+                raise ValueError("each finding must have at least 1 literature_ref")
+        return v
+
+    @model_validator(mode="after")
+    def refuted_requires_iterate_or_abort(self) -> "InterpretationHandoff":
+        """hypothesis_match='refuted' requires next_action='iterate' or 'abort'."""
+        if (
+            self.hypothesis_match == HypothesisMatch.refuted
+            and self.next_action not in (NextAction.iterate, NextAction.abort)
+        ):
+            raise ValueError(
+                "hypothesis_match='refuted' requires next_action='iterate' or 'abort'"
+            )
+        return self
+
+    @model_validator(mode="after")
+    def abort_requires_reason(self) -> "InterpretationHandoff":
+        """next_action='abort' requires a non-null abort_reason."""
+        if self.next_action == NextAction.abort and self.abort_reason is None:
+            raise ValueError("abort_reason is required when next_action is 'abort'")
+        return self
