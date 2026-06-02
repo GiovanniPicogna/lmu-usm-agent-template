@@ -65,6 +65,37 @@ def test_gate_2_raises_when_not_confirmed(unconfirmed_interpretation):
         check_gate_2(unconfirmed_interpretation)
 
 
+@pytest.fixture
+def confirmed_referee(referee_valid_data):
+    from src.validation.handoff_models import RefereeHandoff
+
+    data = {**referee_valid_data, "human_gate_3_confirmed": True}
+    return RefereeHandoff.model_validate(data)
+
+
+@pytest.fixture
+def unconfirmed_referee(referee_valid_data):
+    from src.validation.handoff_models import RefereeHandoff
+
+    return RefereeHandoff.model_validate(referee_valid_data)
+
+
+# ── Gate 3 ────────────────────────────────────────────────────────────────────
+
+
+def test_gate_3_passes_when_confirmed(confirmed_referee):
+    from src.validation.routing import check_gate_3
+
+    check_gate_3(confirmed_referee)  # must not raise
+
+
+def test_gate_3_raises_when_not_confirmed(unconfirmed_referee):
+    from src.validation.routing import check_gate_3, GateNotConfirmedError
+
+    with pytest.raises(GateNotConfirmedError, match="Gate 3"):
+        check_gate_3(unconfirmed_referee)
+
+
 # ── [DATA MISSING] guard ──────────────────────────────────────────────────────
 
 
