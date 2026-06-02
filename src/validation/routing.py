@@ -8,6 +8,7 @@ from src.validation.handoff_models import (
     HypothesisHandoff,
     InterpretationHandoff,
     NextAction,
+    RefereeHandoff,
     SimulationHandoff,
 )
 
@@ -35,6 +36,15 @@ def check_gate_2(handoff: InterpretationHandoff) -> None:
         raise GateNotConfirmedError(
             "Gate 2 not confirmed: human_gate_2_confirmed must be True "
             "before the pipeline can route to the next stage."
+        )
+
+
+def check_gate_3(handoff: RefereeHandoff) -> None:
+    """Raise GateNotConfirmedError if human Gate 3 has not been confirmed."""
+    if not handoff.human_gate_3_confirmed:
+        raise GateNotConfirmedError(
+            "Gate 3 not confirmed: human_gate_3_confirmed must be True "
+            "before the pipeline can finalise or revise the manuscript."
         )
 
 

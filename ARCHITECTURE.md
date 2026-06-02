@@ -11,13 +11,14 @@ what data flows between them, and what quality gates govern each stage.
 
 |          Agent          |              File               | Role | Handoff schema |
 |-------------------------|---------------------------------|------|----------------|
-|    `@pipeline-agent`    |    `pipeline-agent.agent.md`    | Full 9-stage research pipeline orchestrator; enforces both human gates | — |
+|    `@pipeline-agent`    |    `pipeline-agent.agent.md`    | Full 10-stage research pipeline orchestrator; enforces all three human gates | — |
 |   `@hypothesis-agent`   |   `hypothesis-agent.agent.md`   | Science question → ranked testable hypotheses via 3-round internal debate | [`HypothesisHandoff/v1`](.github/shared/handoff_schemas.md#hypothesishandoffv1) |
 |   `@analytical-agent`   |   `analytical-agent.agent.md`   | Analytical / linear / perturbative pre-analysis; benchmarks for simulation comparison | [`AnalyticalHandoff/v1`](.github/shared/handoff_schemas.md#analyticalhandoffv1) |
 |     `@setup-agent`      |     `setup-agent.agent.md`      | Translate `AnalyticalHandoff` to validated simulation configs + optional SLURM/PBS scripts | [`SimConfigHandoff/v1`](.github/shared/handoff_schemas.md#simconfighandoffv1) |
 |    `@analysis-agent`    |    `analysis-agent.agent.md`    | Post-process simulation outputs + compare against analytical benchmarks | [`AnalysisHandoff/v1`](.github/shared/handoff_schemas.md#analysishandoffv1) |
 | `@interpretation-agent` | `interpretation-agent.agent.md` | Physical interpretation + ADS comparison + next-action decision | [`InterpretationHandoff/v1`](.github/shared/handoff_schemas.md#interpretationhandoffv1) |
 |     `@paper-agent`      | `paper-agent.agent.md` | Manuscript drafting (LaTeX), ADS citations, figure captions, compile + auto-review | [`PaperHandoff/v1`](.github/shared/handoff_schemas.md#paperhandoffv1) |
+|    `@referee-agent`     | `referee-agent.agent.md` | Independent peer review (form, soundness, novelty); recommendation + Human Gate 3 | [`RefereeHandoff/v1`](.github/shared/handoff_schemas.md#refereehandoffv1) |
 
 ### Specialist agents (pre-existing)
 
@@ -34,10 +35,10 @@ and project-specific context in `AGENTS.md`.
 
 ---
 
-## Research pipeline (full 9-stage)
+## Research pipeline (full 10-stage)
 
 The full research pipeline is orchestrated by `@pipeline-agent`.
-Two mandatory **human gates** prevent automated progression without user confirmation.
+Three mandatory **human gates** prevent automated progression without user confirmation.
 
 ```mermaid
 flowchart TD
@@ -56,13 +57,19 @@ flowchart TD
     GATE2 -->|mcmc| MC["@mcmc-agent"]
     MC -->|"MCMCHandoff/v1\n→ recorded as mcmc_ref\nin InterpretationHandoff"| WR["@paper-agent"]
     GATE2 -->|write| WR
-    WR -->|PaperHandoff/v1| DONE([Done])
+    WR -->|PaperHandoff/v1| REF["@referee-agent"]
+    REF -->|RefereeHandoff/v1| GATE3{{⚠ Human Gate 3\naccept / revise / reject}}
+    GATE3 -->|accept| DONE([Done])
+    GATE3 -->|revise| WR
+    GATE3 -->|reject| AB([abort_report.json])
     GATE2 -->|stop| DONE
-    GATE2 -->|abort| AB([abort_report.json])
+    GATE2 -->|abort| AB
 
     style WR fill:#cfc,stroke:#060,color:#000
+    style REF fill:#cfc,stroke:#060,color:#000
     style GATE1 fill:#f9f,stroke:#a00,color:#000
     style GATE2 fill:#f9f,stroke:#a00,color:#000
+    style GATE3 fill:#f9f,stroke:#a00,color:#000
     style AB fill:#ffc,stroke:#880,color:#000
 ```
 
@@ -85,13 +92,15 @@ flowchart TD
 | 8b ABORT | — | `results/<task_id>/abort_report.json` (schema: `AbortReport/v1`) |
 | 8c MCMC | `@mcmc-agent` (optional) | `MCMCHandoff/v1` → path recorded as `mcmc_ref` in InterpretationHandoff |
 | 9 WRITE | `@paper-agent` | `paper/<task_id>_<date>/manuscript.pdf` + `referee_notes.md` |
+| 10 REFEREE | `@referee-agent` | `results/referee/<task_id>_<date>.json` + `referee_review.md` |
+| **Gate 3** | User | Confirm: accept / revise / reject |
 
 ---
 
 ## Direct invocation mode (without pipeline-agent)
 
 Use this when you want to call a single specialist agent without running the
-full 9-stage cycle — e.g. rerunning only the analysis after a parameter change,
+full 10-stage cycle — e.g. rerunning only the analysis after a parameter change,
 or fitting a single spectrum. The `@pipeline-agent` is not involved.
 
 ```mermaid
@@ -173,7 +182,7 @@ flowchart TD
 Structured JSON schemas for inter-agent data passing are defined in
 [`.github/shared/handoff_schemas.md`](.github/shared/handoff_schemas.md).
 
-Key schemas: `SimulationHandoff/v1`, `SpectralFitHandoff/v1`, `MCMCHandoff/v1`, `PaperHandoff/v1`.
+Key schemas: `SimulationHandoff/v1`, `SpectralFitHandoff/v1`, `MCMCHandoff/v1`, `PaperHandoff/v1`, `RefereeHandoff/v1`.
 
 ---
 

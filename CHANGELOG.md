@@ -8,6 +8,23 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ## [Unreleased]
 
 ### Added
+- `@referee-agent` — Iron Rule 7 (visual figure inspection via multimodal Read
+  tool), Step 1b (load figure files from `AnalysisHandoff.plot_paths`),
+  internal consistency sub-check (text values ↔ figure captions, legend
+  symbols ↔ text symbols, caption model names ↔ bibliography), quantitative
+  discriminant check, language quality check, and two new anti-pattern rows.
+  These close the figure-inspection gap identified in live testing against an
+  external PDF where figures were not available as standalone files.
+- `.github/agents/referee-agent.agent.md` — `@referee-agent`: independent
+  scientific peer review (form, soundness, ADS-backed novelty) emitting
+  `RefereeHandoff/v1`. New Human Gate 3 and a bounded referee↔paper revision
+  loop wired into `@pipeline-agent` (Stage 10). `@paper-agent` gains a
+  revision mode; its `handoffs:` now targets `referee-agent`.
+- `RefereeHandoff/v1` schema in `.github/shared/handoff_schemas.md`.
+- Stage 10 REFEREE + Human Gate 3 added to `@pipeline-agent` and
+  `ARCHITECTURE.md` pipeline flowchart and stage summary table.
+- `check_gate_3()` routing function in `src/validation/routing.py`.
+- `RefereeHandoff` Pydantic model in `src/validation/handoff_models.py`.
 - `.github/agents/paper-agent.agent.md` — `@paper-agent`: drafts a LaTeX
   manuscript from `InterpretationHandoff/v1`, writes sections sequentially
   (abstract → conclusions), inserts ADS-verified citations via `@literature-agent`,

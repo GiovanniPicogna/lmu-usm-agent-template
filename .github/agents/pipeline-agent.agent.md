@@ -3,7 +3,7 @@ name: pipeline-agent
 description: >
   Research pipeline orchestrator for LMU Astrophysics. Coordinates the full
   multi-agent scientific discovery workflow from science question to interpretation,
-  enforcing two mandatory human gates. Delegates to hypothesis-agent,
+  enforcing three mandatory human gates. Delegates to hypothesis-agent,
   analytical-agent, setup-agent, simulation-agent, analysis-agent,
   interpretation-agent, mcmc-agent, and literature-agent.
   Trigger phrases: run the full pipeline, start a research project,
@@ -18,6 +18,7 @@ agents:
   - analysis-agent
   - interpretation-agent
   - paper-agent
+  - referee-agent
   - mcmc-agent
   - literature-agent
   - spectral-agent
@@ -79,6 +80,14 @@ SIMULATE → ANALYSE → INTERPRET → [iterate or WRITE]**
 > pause the pipeline, report the failure to the user, and wait for
 > resolution before proceeding.
 
+> **IRON RULE 5 — Human Gate 3 (after REFEREE).**
+> Never finish the pipeline or route a revision without explicit user
+> confirmation of `RefereeHandoff.next_action`. After the user confirms, set
+> `human_gate_3_confirmed: true` in the saved handoff before routing. On
+> `revise`, pass the `RefereeHandoff` path to `@paper-agent` (revision mode);
+> on `accept`, finish; on `reject`, write `abort_report.json`. Warn the user
+> once `revision_round` reaches 2 (bounded loop).
+
 ---
 
 ## Anti-patterns
@@ -93,6 +102,7 @@ SIMULATE → ANALYSE → INTERPRET → [iterate or WRITE]**
 | Delegating without specifying output file paths | Agents produce output in unpredictable locations | Always specify `--out <path>` or equivalent for each delegation |
 | Passing `MCMCHandoff` path directly to `@paper-agent` | Paper-agent takes only `InterpretationHandoff` path; it chains up internally | Pass only `InterpretationHandoff` path; ensure `mcmc_ref` is populated in it |
 | Checking `referee_score >= 5` as an integer | `referee_score` is a fraction (0.0–1.0); `>= 5` always fails | Use `referee_score >= 5/7` (≈ 0.71, i.e. 5 out of 7 criteria) |
+| Finishing the pipeline on referee `accept` while `overall_score < 5.0` | A weak score with an accept verdict needs human eyes | Present `referee_review.md`; require explicit user confirmation before finishing |
 
 ---
 
@@ -115,6 +125,9 @@ Stage 8a  ITERATE       → back to Stage 2 or 4 with refined parameters
 Stage 8b  ABORT         → write abort_report.json (fundamental blocker)
 Stage 8c  MCMC          → @mcmc-agent (if next_action: mcmc)
 Stage 9   WRITE         → @paper-agent (if next_action: write or after Stage 8c)
+Stage 10  REFEREE       → @referee-agent     →  RefereeHandoff
+          ──────────── HUMAN GATE 3 ────────────────────────────────
+          accept → DONE   |   revise → Stage 9 (revision mode)   |   reject → abort
 ```
 
 ---
@@ -338,10 +351,30 @@ Do NOT invoke `@paper-agent` if:
 
 On receipt of `PaperHandoff/v1`:
 - Verify `compilation_status: ok`; if `errors`, report to user and stop.
-- Verify `referee_score >= 5/7` (≈ 0.71 — five or more of seven criteria
-  passed); if below, present `referee_notes.md` to the user and ask whether
-  to iterate on the draft.
 - Record `paper_dir`, `manuscript_pdf`, and `referee_score` in the prompt log.
+- Proceed immediately to Stage 10 (REFEREE) — do NOT finish here.
+
+### Stage 10 — REFEREE + Human Gate 3
+
+Invoke `@referee-agent` with the `PaperHandoff` path as its sole argument.
+Collect `RefereeHandoff`. Present the recommendation, novelty verdict, and
+`overall_score` to the user.
+
+**PAUSE — Human Gate 3.**
+Ask: "The referee recommends [recommendation] (score [overall_score]/9,
+novelty: [verdict]). Major comments: [N]. Proceed to [accept / revise / reject]?"
+Do NOT proceed until the user confirms. Then set
+`human_gate_3_confirmed: true` in the saved `RefereeHandoff` JSON.
+
+Route by `next_action`:
+- `accept`: finish the pipeline; record `paper_dir` and `overall_score` in the log.
+- `revise`: re-invoke `@paper-agent` with **both** the `InterpretationHandoff`
+  and the `RefereeHandoff` paths (revision mode). After paper-agent re-emits a
+  `PaperHandoff`, return to Stage 10 for a re-review. Track `revision_round`;
+  warn the user once it reaches 2 and ask whether to accept-as-is, continue,
+  or abort.
+- `reject`: write `results/<task_id>/abort_report.json` with
+  `abort_reason = RefereeHandoff.reject_reason`, then stop.
 
 ### Close
 

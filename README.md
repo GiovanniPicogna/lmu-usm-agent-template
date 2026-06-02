@@ -15,7 +15,7 @@ policy-compliant way in astrophysics research at LMU Munich.
 .github/
 ├── copilot-instructions.md   # Group-wide agent baseline (auto-loaded)
 ├── agents/
-│   ├── pipeline-agent.agent.md     # @pipeline-agent: full 9-stage research orchestrator
+│   ├── pipeline-agent.agent.md     # @pipeline-agent: full 10-stage research orchestrator
 │   ├── hypothesis-agent.agent.md   # @hypothesis-agent: science question → ranked hypotheses
 │   ├── analytical-agent.agent.md   # @analytical-agent: analytical/linear pre-analysis
 │   ├── setup-agent.agent.md        # @setup-agent: simulation configs + SLURM/PBS scripts
@@ -27,6 +27,7 @@ policy-compliant way in astrophysics research at LMU Munich.
 │   ├── spectral-agent.agent.md     # @spectral-agent: X-ray Sherpa/PyXSPEC fitting
 │   ├── mcmc-agent.agent.md         # @mcmc-agent: emcee/dynesty sampling & corner plots
 │   ├── paper-agent.agent.md        # @paper-agent: LaTeX manuscript drafting + auto-review
+│   ├── referee-agent.agent.md      # @referee-agent: independent peer review + Gate 3
 │   └── references/                 # Large code blocks extracted from agent files
 │       ├── output_conventions.md   #   FARGO3D/PLUTO/GADGET I/O functions + unit tables
 │       └── code_conventions.md     #   Script skeleton, HDF5 saving, figure naming
@@ -418,6 +419,7 @@ constraints that must hold even in long conversations (context rot).
 | `@spectral-agent` | No hallucinated fit results; C-stat on low counts; model changes need confirmation |
 | `@mcmc-agent` | 68% intervals (not 90%); never overwrite chains; convergence before reporting |
 | `@paper-agent` | Numbers from AnalysisHandoff only; ADS-verified citations; LaTeX must compile; claims cross-checked against diagnostics |
+| `@referee-agent` | Novelty claims ADS-backed; soundness judged vs diagnostics; never accept with open major comments; Gate 3 mandatory |
 | `@retrieval-agent` | No detections without null test; species list from `AGENTS.md`; convergence before reporting |
 
 ### Anti-patterns table
@@ -484,7 +486,7 @@ runtime:
 - Hallucinated citations — tests verify ADS bibcode format, not ADS-MCP
   round-trip validity.
 
-Runtime behavioral robustness is handled by the two mandatory human gates
+Runtime behavioral robustness is handled by the three mandatory human gates
 (Gate 1 after hypothesis, Gate 2 after interpretation) and the
 `[DATA MISSING]` anti-leakage pattern. See
 [`ARCHITECTURE.md § Quality gates`](ARCHITECTURE.md) for the full reliability
@@ -554,7 +556,7 @@ step or commit small result files for CI uploads to find anything.
 
 See [`ARCHITECTURE.md`](ARCHITECTURE.md) for the complete picture:
 Mermaid flowchart of the full pipeline (including both human gates and the
-Stage 7b literature novelty check), full agent roster table (13 agents),
+Stage 7b literature novelty check), full agent roster table (14 agents),
 stage-by-stage summary, and the quality-gate summary.
 
 ### Structured handoffs between agents
@@ -562,7 +564,7 @@ stage-by-stage summary, and the quality-gate summary.
 When one specialist agent finishes and a downstream agent needs its results, it
 emits a **handoff JSON** whose schema is defined in
 [`.github/shared/handoff_schemas.md`](.github/shared/handoff_schemas.md).
-Nine schemas are currently defined:
+Ten schemas are currently defined:
 
 | Schema | Emitted by | Consumed by |
 |---|---|---|
@@ -574,15 +576,17 @@ Nine schemas are currently defined:
 | `AnalysisHandoff/v1` | `@analysis-agent` | `@interpretation-agent` |
 | `InterpretationHandoff/v1` | `@interpretation-agent` | `@hypothesis-agent` (iterate), `@paper-agent` (write), `@mcmc-agent` (mcmc), or user (stop / abort) |
 | `MCMCHandoff/v1` | `@mcmc-agent` | user |
-| `PaperHandoff/v1` | `@paper-agent` | user |
+| `PaperHandoff/v1` | `@paper-agent` | `@referee-agent` |
+| `RefereeHandoff/v1` | `@referee-agent` | `@paper-agent` (revise), or user (accept / reject) |
 
 Each schema includes a `sanity_passed` / `validated` / `converged` gate: the
 receiving agent will refuse to proceed if the gate is `false`.
 
-The **two mandatory human gates** in the pipeline are enforced by
-`@hypothesis-agent` (Gate 1 — confirm top hypothesis) and
+The **three mandatory human gates** in the pipeline are enforced by
+`@hypothesis-agent` (Gate 1 — confirm top hypothesis),
 `@interpretation-agent` (Gate 2 — confirm `iterate` / `write` / `mcmc` /
-`stop` / `abort`). Neither gate can be bypassed programmatically.
+`stop` / `abort`), and `@referee-agent` (Gate 3 — confirm `accept` /
+`revise` / `reject`). No gate can be bypassed programmatically.
 An `abort` decision writes `results/<task_id>/abort_report.json` — a
 citable record of inconclusive or blocked results.
 

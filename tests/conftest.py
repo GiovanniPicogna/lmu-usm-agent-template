@@ -253,3 +253,47 @@ def paper_valid_data():
         "timestamp": "2026-06-01T12:00:00Z",
         "warnings": [],
     }
+
+
+@pytest.fixture
+def referee_valid_data():
+    return {
+        "schema": "RefereeHandoff/v1",
+        "task_id": "disk_gap_depth_1mjup",
+        "domain": "disk",
+        "paper_ref": "results/paper/disk_gap_depth_1mjup_20260601.json",
+        "manuscript_tex": "paper/disk_gap_depth_1mjup_20260601/manuscript.tex",
+        "manuscript_pdf": "paper/disk_gap_depth_1mjup_20260601/manuscript.pdf",
+        "revision_round": 1,
+        "recommendation": "minor_revision",
+        "overall_score": 7.0,
+        "soundness": {
+            "methods_valid": True,
+            "results_supported": True,
+            "stats_appropriate": True,
+            "comments": ["Gap-depth definition should cite Kanagawa et al. 2015."],
+        },
+        "novelty": {
+            "verdict": "incremental",
+            "score": 0.6,
+            "closest_prior_work": "Kanagawa+2015 gap-depth scaling for 1 MJup.",
+            "prior_work_refs": ["2015MNRAS.448..994K"],
+        },
+        "form": {
+            "structure_ok": True,
+            "figures_clear": True,
+            "clarity": 0.8,
+            "comments": ["Figure 2 axis labels need units."],
+        },
+        "strengths": ["Clear analytical-vs-numerical comparison."],
+        "weaknesses": ["Single resolution; no convergence test."],
+        "major_comments": [],
+        "minor_comments": ["Add units to Figure 2.", "Cite Kanagawa+2015."],
+        "referee_report": "paper/disk_gap_depth_1mjup_20260601/referee_review.md",
+        "ads_refs_checked": ["2015MNRAS.448..994K", "2006Icar..181..587C"],
+        "next_action": "revise",
+        "reject_reason": None,
+        "human_gate_3_confirmed": False,
+        "timestamp": "2026-06-02T12:00:00Z",
+        "warnings": [],
+    }

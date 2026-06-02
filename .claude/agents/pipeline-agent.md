@@ -1,7 +1,7 @@
 # Claude Code Pipeline Orchestrator
 
 This file is the Claude Code equivalent of `.github/agents/pipeline-agent.agent.md`.
-It implements the same 9-stage research pipeline using Claude Code's `Agent` tool
+It implements the same 10-stage research pipeline using Claude Code's `Agent` tool
 instead of Copilot's `@<name>` delegation syntax.
 
 ---
@@ -54,6 +54,7 @@ conversation and has not read any files yet.
 | 7 | `.github/agents/interpretation-agent.agent.md` | `opus` | — | `InterpretationHandoff/v1` |
 | 8b | `.github/agents/mcmc-agent.agent.md` | `sonnet` | — | `MCMCHandoff/v1` |
 | 9 | `.github/agents/paper-agent.agent.md` | `sonnet` | — | `PaperHandoff/v1` |
+| 10 | `.github/agents/referee-agent.agent.md` | `opus` | — | `RefereeHandoff/v1` |
 
 ---
 
@@ -90,7 +91,7 @@ Write the JSON to: [absolute path, e.g. results/handoffs/<task_id>_<stage>.json]
 
 ## Human gates
 
-Both gates are **blocking** — do not spawn the next stage's agent until the user
+All three gates are **blocking** — do not spawn the next stage's agent until the user
 replies in the main conversation.
 
 **Gate 1** (between Stage 2 and 3): Present `HypothesisHandoff.hypotheses` ranked
@@ -99,6 +100,10 @@ by `priority_rank`. Ask: *"Proceed with hypothesis #N, modify, or choose another
 **Gate 2** (between Stage 7 and 8/9): Present `InterpretationHandoff.findings`
 and `hypothesis_match`. Ask: *"Findings: [summary]. Recommendation: [next_action].
 Confirm to proceed?"*
+
+**Gate 3** (after Stage 10): Present `RefereeHandoff.recommendation`,
+`overall_score`, and `novelty.verdict`. Ask: *"Referee recommends [recommendation]
+(score [score]/9). Accept, revise, or reject?"*
 
 ---
 
