@@ -628,3 +628,123 @@ class PaperHandoff(BaseModel):
         if self.compilation_status == CompilationStatus.ok and self.manuscript_pdf is None:
             raise ValueError("manuscript_pdf must be non-null when compilation_status is 'ok'")
         return self
+
+
+# ── RefereeHandoff/v1 ─────────────────────────────────────────────────────────
+
+
+class RefereeRecommendation(str, Enum):
+    accept = "accept"
+    minor_revision = "minor_revision"
+    major_revision = "major_revision"
+    reject = "reject"
+
+
+class NoveltyVerdict(str, Enum):
+    novel = "novel"
+    incremental = "incremental"
+    duplicate = "duplicate"
+
+
+class RefereeNextAction(str, Enum):
+    revise = "revise"
+    accept = "accept"
+    reject = "reject"
+
+
+class RefereeSoundness(BaseModel):
+    methods_valid: bool
+    results_supported: bool
+    stats_appropriate: bool
+    comments: list[str] = []
+
+
+class RefereeNovelty(BaseModel):
+    verdict: NoveltyVerdict
+    score: float
+    closest_prior_work: str
+    prior_work_refs: list[str]
+
+
+class RefereeForm(BaseModel):
+    structure_ok: bool
+    figures_clear: bool
+    clarity: float
+    comments: list[str] = []
+
+
+class RefereeHandoff(BaseModel):
+    """RefereeHandoff/v1 — emitted by @referee-agent after peer review.
+
+    Consumed by @pipeline-agent (Human Gate 3) and, when next_action='revise',
+    by @paper-agent in revision mode. recommendation='accept' requires
+    next_action='accept' and no major_comments; recommendation='reject' requires
+    next_action in {revise, reject}. novelty.prior_work_refs must be non-empty
+    (novelty judgments are ADS-backed).
+    """
+
+    model_config = ConfigDict(populate_by_name=True)
+
+    schema_name: Literal["RefereeHandoff/v1"] = Field(alias="schema")
+    task_id: str
+    domain: Domain
+    paper_ref: str
+    manuscript_tex: str
+    manuscript_pdf: Optional[str] = None
+    revision_round: int
+    recommendation: RefereeRecommendation
+    overall_score: float
+    soundness: RefereeSoundness
+    novelty: RefereeNovelty
+    form: RefereeForm
+    strengths: list[str] = []
+    weaknesses: list[str] = []
+    major_comments: list[str] = []
+    minor_comments: list[str] = []
+    referee_report: str
+    ads_refs_checked: list[str] = []
+    next_action: RefereeNextAction
+    reject_reason: Optional[str] = None
+    human_gate_3_confirmed: bool
+    timestamp: str
+    warnings: list[str] = []
+
+    @field_validator("novelty")
+    @classmethod
+    def novelty_needs_refs(cls, value: RefereeNovelty) -> RefereeNovelty:
+        """novelty.prior_work_refs must contain at least one ADS bibcode."""
+        if not value.prior_work_refs:
+            raise ValueError("novelty.prior_work_refs must contain at least 1 ADS bibcode")
+        return value
+
+    @model_validator(mode="after")
+    def revise_requires_comments(self) -> "RefereeHandoff":
+        """next_action='revise' requires at least one major or minor comment."""
+        if self.next_action == RefereeNextAction.revise and not (
+            self.major_comments or self.minor_comments
+        ):
+            raise ValueError("next_action='revise' requires at least one major or minor comments")
+        return self
+
+    @model_validator(mode="after")
+    def reject_requires_reason(self) -> "RefereeHandoff":
+        """next_action='reject' requires a non-null reject_reason."""
+        if self.next_action == RefereeNextAction.reject and self.reject_reason is None:
+            raise ValueError("next_action='reject' requires a non-null reject_reason")
+        return self
+
+    @model_validator(mode="after")
+    def recommendation_consistent_with_action(self) -> "RefereeHandoff":
+        """accept needs a clean action; reject must never be accepted."""
+        if self.recommendation == RefereeRecommendation.accept and (
+            self.next_action != RefereeNextAction.accept or self.major_comments
+        ):
+            raise ValueError(
+                "recommendation='accept' requires next_action='accept' and no major_comments"
+            )
+        if self.recommendation == RefereeRecommendation.reject and self.next_action not in (
+            RefereeNextAction.revise,
+            RefereeNextAction.reject,
+        ):
+            raise ValueError("recommendation='reject' requires next_action in {revise, reject}")
+        return self
