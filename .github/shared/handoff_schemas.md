@@ -435,10 +435,10 @@ compiled manuscript. Consumed by `@pipeline-agent` (Human Gate 3) and, when
   "domain": "<disk | cosmological | retrieval | xray | lss>",
   "paper_ref": "<string — path to the PaperHandoff JSON reviewed>",
   "manuscript_tex": "<string — path to the reviewed manuscript.tex>",
-  "manuscript_pdf": "<string | null>",
+  "manuscript_pdf": "<string | null — null if the draft did not compile>",
   "revision_round": "<int — 1 for the first review, incremented on each re-review>",
   "recommendation": "<accept | minor_revision | major_revision | reject>",
-  "overall_score": "<float 0-9>",
+  "overall_score": "<float 0–9>",
   "soundness": {
     "methods_valid": "<bool>",
     "results_supported": "<bool>",
@@ -447,14 +447,14 @@ compiled manuscript. Consumed by `@pipeline-agent` (Human Gate 3) and, when
   },
   "novelty": {
     "verdict": "<novel | incremental | duplicate>",
-    "score": "<float 0-1>",
+    "score": "<float 0–1>",
     "closest_prior_work": "<string>",
     "prior_work_refs": ["<ADS bibcode>"]
   },
   "form": {
     "structure_ok": "<bool>",
     "figures_clear": "<bool>",
-    "clarity": "<float 0-1>",
+    "clarity": "<float 0–1>",
     "comments": ["<string>"]
   },
   "strengths": ["<string>"],
