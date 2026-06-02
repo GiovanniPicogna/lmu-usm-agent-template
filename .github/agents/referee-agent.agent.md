@@ -124,7 +124,26 @@ Run these steps in strict order. Mark each in `TodoWrite` before starting.
 
 1. Derive `task_id` from the `PaperHandoff` filename
    (e.g. `gap_depth_1mjup` from `gap_depth_1mjup_20260601.json`).
-2. Create the prompt log (Iron Rule 6) before any file reads.
+
+   **If no `PaperHandoff` path was supplied** (e.g. ad-hoc test against an
+   external manuscript), do NOT proceed to file reads. Emit:
+
+   > `[DATA MISSING: no PaperHandoff/v1 path — cannot derive task_id.`
+   > `For an ad-hoc test, supply a task_id manually`
+   > `(e.g. "external_test_swain2026") and confirm before proceeding.]`
+
+   Wait for explicit user confirmation of the `task_id`. Once confirmed,
+   continue from step 2 below. Note in `warnings`:
+   `"Ad-hoc invocation — no PaperHandoff/v1 provided; upstream handoff
+   chain (AnalysisHandoff, InterpretationHandoff) unavailable."`.
+
+2. Create the prompt log (Iron Rule 6) before any file reads:
+   ```bash
+   cp prompts/TEMPLATE.md prompts/<task_id>_referee_$(date +%Y%m%d).md
+   ```
+   This step is mandatory even for ad-hoc tests. If `prompts/TEMPLATE.md`
+   does not exist, create a minimal log file with at minimum: date, model
+   version, task_id, and the exact prompt supplied by the user.
 
 ### Step 1 — Load the manuscript and handoff chain
 
