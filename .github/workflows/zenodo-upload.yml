@@ -1,0 +1,96 @@
+# .github/workflows/zenodo-upload.yml
+#
+# Upload research data to Zenodo or Zenodo Sandbox.
+#
+# Triggers:
+#   - workflow_dispatch: manual upload to Sandbox (default) or production.
+#   - push v*.*.* tag:   production upload (requires manual approval via the
+#                        'zenodo-production' GitHub environment).
+#
+# Repository secrets (Settings -> Secrets -> Actions):
+#   ZENODO_SANDBOX_TOKEN  — Zenodo Sandbox personal access token
+#   ZENODO_TOKEN          — Zenodo production personal access token
+#
+# GitHub environment (Settings -> Environments), for tag-triggered uploads:
+#   zenodo-production  — add a required reviewer for human approval.
+#
+# IMPORTANT: results/, plots/, and data/ are git-ignored, so a fresh checkout
+# sees them empty and `create` will fail its zero-files guard by design. To
+# upload from CI, either commit small result files or enable the
+# download-artifact step below. For large data/, run the CLI locally.
+
+name: Zenodo upload
+
+on:
+  workflow_dispatch:
+    inputs:
+      sandbox:
+        description: "Target Zenodo Sandbox (true) or production Zenodo (false)"
+        required: true
+        default: "true"
+        type: choice
+        options: ["true", "false"]
+  push:
+    tags:
+      - "v*.*.*"
+
+permissions:
+  contents: write
+
+jobs:
+  upload-sandbox:
+    if: github.event_name == 'workflow_dispatch' && inputs.sandbox == 'true'
+    runs-on: ubuntu-latest
+    env:
+      ZENODO_SANDBOX_TOKEN: ${{ secrets.ZENODO_SANDBOX_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: pip install requests pyyaml click
+      # - name: Download result artifacts (optional)
+      #   uses: actions/download-artifact@v4
+      #   with: { name: results, path: results/ }
+      - name: Upload to Zenodo Sandbox
+        run: python -m src.zenodo create --sandbox --yes
+      - name: Commit updated zenodo.yml (concept IDs)
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git diff --quiet zenodo.yml || (
+            git add zenodo.yml &&
+            git commit -m "chore: update zenodo.yml concept IDs [skip ci]" &&
+            git push
+          )
+
+  upload-production:
+    if: >-
+      github.event_name == 'push' ||
+      (github.event_name == 'workflow_dispatch' && inputs.sandbox == 'false')
+    runs-on: ubuntu-latest
+    environment: zenodo-production
+    env:
+      ZENODO_TOKEN: ${{ secrets.ZENODO_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: pip install requests pyyaml click
+      # - name: Download result artifacts (optional)
+      #   uses: actions/download-artifact@v4
+      #   with: { name: results, path: results/ }
+      - name: Upload to production Zenodo
+        run: python -m src.zenodo create --no-sandbox --yes
+      - name: Commit updated zenodo.yml (concept IDs)
+        # Only on manual runs (branch context). Tag-push runs are detached HEAD.
+        if: github.event_name == 'workflow_dispatch'
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git diff --quiet zenodo.yml || (
+            git add zenodo.yml &&
+            git commit -m "chore: update zenodo.yml concept IDs [skip ci]" &&
+            git push
+          )
