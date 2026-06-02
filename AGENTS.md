@@ -217,9 +217,10 @@ python .github/skills/radmc3d/scripts/run_radmc3d.py \
 # Science question: "How does planet mass affect gap depth?"
 # Domain: disk | Compute mode: local
 #
-# The pipeline pauses at two mandatory human gates:
+# The pipeline pauses at three mandatory human gates:
 #   Gate 1 — after hypothesis generation (confirm which to pursue)
 #   Gate 2 — after interpretation (choose: iterate / write→@paper-agent / mcmc / stop / abort)
+#   Gate 3 — after peer review (confirm: accept / revise / reject)
 
 # ── MCMC sampling (via @mcmc-agent) ───────────────────────────────────────
 # @mcmc-agent  results/spectral/core_fit.json
@@ -252,10 +253,12 @@ pre-commit run --all-files
 1. **Start with `@pipeline-agent`** for any new science question that requires
    simulation or retrieval. Do not invoke specialist agents directly unless
    you are continuing an already-started pipeline at a specific stage.
-2. **Human gates are blocking.** Gate 1 (after hypothesis) and Gate 2 (after
-   interpretation) require explicit user confirmation before the pipeline
-   continues. Agents must not auto-proceed. Gate 2 options: `iterate`,
-   `write`, `mcmc`, `stop`, `abort` (see `InterpretationHandoff.next_action`).
+2. **Human gates are blocking.** Gate 1 (after hypothesis), Gate 2 (after
+   interpretation), and Gate 3 (after peer review) require explicit user
+   confirmation before the pipeline continues. Agents must not auto-proceed.
+   Gate 2 options: `iterate`, `write`, `mcmc`, `stop`, `abort` (see
+   `InterpretationHandoff.next_action`). Gate 3 options: `accept`, `revise`,
+   `reject` (see `RefereeHandoff.next_action`).
 3. **Handoff schemas are contracts.** Every inter-agent handoff must
    conform to the schema in `.github/shared/handoff_schemas.md`.
    `[DATA MISSING]` is the required placeholder for any field the agent

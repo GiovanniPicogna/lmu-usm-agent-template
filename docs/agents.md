@@ -110,15 +110,15 @@ and convergence diagnostics.
 
 ## Research pipeline agents
 
-The following six agents together form the full 9-stage research pipeline
-coordinated by `@pipeline-agent`. Two mandatory **human gates** prevent
+The following seven agents together form the full 10-stage research pipeline
+coordinated by `@pipeline-agent`. Three mandatory **human gates** prevent
 automated progression without explicit user confirmation.
 
 ### `@pipeline-agent`
 
 Full research pipeline orchestrator — runs a complete science workflow from
-question to manuscript preparation. Coordinates all 12 agents in the correct
-order, enforces both human gates, creates prompt logs in `prompts/`, and
+question to manuscript preparation. Coordinates all 13 agents in the correct
+order, enforces all three human gates, creates prompt logs in `prompts/`, and
 tracks pipeline stages via a live todo list.
 
 ```
@@ -277,6 +277,29 @@ all claims cross-checked against `AnalysisHandoff.diagnostics`.
 ```
 
 Output: `paper/<task_id>_<date>/manuscript.pdf` + `referee_notes.md` — `PaperHandoff/v1`.
+
+---
+
+### `@referee-agent`
+
+Independent scientific peer reviewer — evaluates a compiled manuscript for
+**form** (structure, figures, clarity), **scientific soundness** (methods
+valid, results match diagnostics, statistics appropriate), and **novelty**
+relative to the ADS literature. Issues a journal-style recommendation
+(`accept` / `minor_revision` / `major_revision` / `reject`) and enforces
+**Human Gate 3**.
+
+Key constraints: every novelty judgment is ADS-backed (bibcode retrieved this
+session); soundness judged against `AnalysisHandoff.diagnostics`, not prose;
+never recommend `accept` while `major_comments` is non-empty; never pre-populate
+`human_gate_3_confirmed`. On `revise`, routes the manuscript back to
+`@paper-agent` in revision mode (bounded loop: warns at `revision_round` = 2).
+
+```
+@referee-agent   results/paper/gap_depth_1mjup_20260601.json
+```
+
+Output: `results/referee/<task_id>_referee_<date>.json` + `referee_review.md` — `RefereeHandoff/v1`.
 
 See [`ARCHITECTURE.md`](https://github.com/giovannipicogna/lmu-usm-agent-template/blob/main/ARCHITECTURE.md)
 for the full pipeline diagram, agent roster, handoff schemas, and quality-gate

@@ -8,6 +8,16 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ## [Unreleased]
 
 ### Added
+- `.github/agents/referee-agent.agent.md` — `@referee-agent`: independent
+  scientific peer review (form, soundness, ADS-backed novelty) emitting
+  `RefereeHandoff/v1`. New Human Gate 3 and a bounded referee↔paper revision
+  loop wired into `@pipeline-agent` (Stage 10). `@paper-agent` gains a
+  revision mode; its `handoffs:` now targets `referee-agent`.
+- `RefereeHandoff/v1` schema in `.github/shared/handoff_schemas.md`.
+- Stage 10 REFEREE + Human Gate 3 added to `@pipeline-agent` and
+  `ARCHITECTURE.md` pipeline flowchart and stage summary table.
+- `check_gate_3()` routing function in `src/validation/routing.py`.
+- `RefereeHandoff` Pydantic model in `src/validation/handoff_models.py`.
 - `.github/agents/paper-agent.agent.md` — `@paper-agent`: drafts a LaTeX
   manuscript from `InterpretationHandoff/v1`, writes sections sequentially
   (abstract → conclusions), inserts ADS-verified citations via `@literature-agent`,
