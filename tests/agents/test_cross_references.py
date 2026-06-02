@@ -21,6 +21,7 @@ PIPELINE_AGENTS = {
     "spectral-agent",
     "retrieval-agent",
     "mcmc-agent",
+    "referee-agent",
 }
 
 KNOWN_SCHEMAS = {

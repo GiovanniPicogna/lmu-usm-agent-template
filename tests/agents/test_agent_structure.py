@@ -18,6 +18,7 @@ EXPECTED_AGENTS = {
     "spectral-agent",
     "retrieval-agent",
     "mcmc-agent",
+    "referee-agent",
 }
 
 
