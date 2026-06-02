@@ -33,6 +33,7 @@ KNOWN_SCHEMAS = {
     "SpectralFitHandoff/v1",
     "MCMCHandoff/v1",
     "PaperHandoff/v1",
+    "RefereeHandoff/v1",
 }
 
 

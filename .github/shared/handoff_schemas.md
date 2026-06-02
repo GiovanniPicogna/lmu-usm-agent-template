@@ -419,3 +419,67 @@ Returned to the user (or `@pipeline-agent` for logging).
 - `new_bibtex_keys` must each be a valid ADS bibcode format
   (e.g. `2016A&A...594A.116H`), not a DOI or arXiv ID.
 - `n_figures` must equal the number of `\includegraphics` calls in the compiled PDF.
+
+---
+
+## RefereeHandoff/v1
+
+Emitted by `@referee-agent` after an independent scientific peer review of a
+compiled manuscript. Consumed by `@pipeline-agent` (Human Gate 3) and, when
+`next_action: revise`, by `@paper-agent` in revision mode.
+
+```json
+{
+  "schema": "RefereeHandoff/v1",
+  "task_id": "<string>",
+  "domain": "<disk | cosmological | retrieval | xray | lss>",
+  "paper_ref": "<string — path to the PaperHandoff JSON reviewed>",
+  "manuscript_tex": "<string — path to the reviewed manuscript.tex>",
+  "manuscript_pdf": "<string | null>",
+  "revision_round": "<int — 1 for the first review, incremented on each re-review>",
+  "recommendation": "<accept | minor_revision | major_revision | reject>",
+  "overall_score": "<float 0-9>",
+  "soundness": {
+    "methods_valid": "<bool>",
+    "results_supported": "<bool>",
+    "stats_appropriate": "<bool>",
+    "comments": ["<string>"]
+  },
+  "novelty": {
+    "verdict": "<novel | incremental | duplicate>",
+    "score": "<float 0-1>",
+    "closest_prior_work": "<string>",
+    "prior_work_refs": ["<ADS bibcode>"]
+  },
+  "form": {
+    "structure_ok": "<bool>",
+    "figures_clear": "<bool>",
+    "clarity": "<float 0-1>",
+    "comments": ["<string>"]
+  },
+  "strengths": ["<string>"],
+  "weaknesses": ["<string>"],
+  "major_comments": ["<string>"],
+  "minor_comments": ["<string>"],
+  "referee_report": "<string — path to referee_review.md>",
+  "ads_refs_checked": ["<ADS bibcode>"],
+  "next_action": "<revise | accept | reject>",
+  "reject_reason": "<string | null — required when next_action is reject>",
+  "human_gate_3_confirmed": "<bool>",
+  "timestamp": "<ISO-8601 UTC string — when this handoff was written>",
+  "warnings": ["<string>"]
+}
+```
+
+**Validation rules:**
+- `next_action: revise` requires at least one entry in `major_comments` or `minor_comments`.
+- `next_action: reject` requires a non-null `reject_reason`.
+- `recommendation: accept` requires `next_action: accept` and an empty `major_comments`.
+- `recommendation: reject` requires `next_action` in `{revise, reject}` — never `accept` a rejected paper.
+- `novelty.prior_work_refs` must contain at least 1 ADS bibcode retrieved this
+  session via `@literature-agent`. Never assert novelty or duplication from memory.
+- `human_gate_3_confirmed` must be `true` before the user makes the final
+  decision. Emit as `false`; update to `true` after explicit user confirmation.
+- `overall_score < 5.0` requires a human review before the pipeline finishes on `accept`.
+- `revision_round` increments by 1 each time the same `task_id` is re-reviewed;
+  `@pipeline-agent` warns the user after `revision_round` reaches 2 (bounded loop).

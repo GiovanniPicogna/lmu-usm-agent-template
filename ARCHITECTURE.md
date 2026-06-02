@@ -173,7 +173,7 @@ flowchart TD
 Structured JSON schemas for inter-agent data passing are defined in
 [`.github/shared/handoff_schemas.md`](.github/shared/handoff_schemas.md).
 
-Key schemas: `SimulationHandoff/v1`, `SpectralFitHandoff/v1`, `MCMCHandoff/v1`, `PaperHandoff/v1`.
+Key schemas: `SimulationHandoff/v1`, `SpectralFitHandoff/v1`, `MCMCHandoff/v1`, `PaperHandoff/v1`, `RefereeHandoff/v1`.
 
 ---
 
