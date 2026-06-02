@@ -103,3 +103,6 @@ AGENTS.override.md     # Codex CLI local overrides (paths, env names, flags)
 *_token.txt
 *_key.txt
 secrets/
+
+# Zenodo upload staging (per-target .zip archives built locally)
+.zenodo_staging/

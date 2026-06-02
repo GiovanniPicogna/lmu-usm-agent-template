@@ -1,0 +1,61 @@
+# zenodo.yml — Zenodo upload configuration for this project
+#
+# Usage:
+#   python -m src.zenodo create  [--sandbox] [--dry-run] [--no-bundle]
+#   python -m src.zenodo publish --deposit-id <ID> [--sandbox]
+#   python -m src.zenodo status  --deposit-id <ID> [--sandbox]
+#
+# Required environment variables (never commit these):
+#   ZENODO_SANDBOX_TOKEN — Zenodo Sandbox API token (intermediate results)
+#   ZENODO_TOKEN         — Zenodo production API token (publication)
+#
+# Get tokens at (scopes: deposit:write, deposit:actions):
+#   Sandbox:    https://sandbox.zenodo.org/account/settings/applications/
+#   Production: https://zenodo.org/account/settings/applications/
+#
+# Concept IDs are written here automatically by `create`. Commit zenodo.yml
+# (with concept IDs) so teammates reference the same Zenodo record across versions.
+sandbox_concept_id: null
+zenodo_concept_id: null
+
+# Deposit metadata.
+# title, description, version, and creators are auto-read from CITATION.cff.
+# Keywords below are merged with those in CITATION.cff.
+#
+# access_right: open | embargoed | restricted | closed
+#   - embargoed  REQUIRES embargo_date (ISO-8601, e.g. "2027-01-01")
+#   - restricted REQUIRES access_conditions (free text)
+# Only upload proprietary or embargoed data with explicit PI approval
+# (see .github/copilot-instructions.md §8, §10).
+metadata:
+  upload_type: dataset
+  access_right: open
+  license: cc-by-4.0
+  # embargo_date: "2027-01-01"
+  # access_conditions: "Contact the PI for access."
+  # keywords:
+  #   - protoplanetary-disk
+  #   - FARGO3D
+
+# Upload targets — define what goes into each Zenodo deposit.
+#   include_sandbox:    upload this target to Zenodo Sandbox
+#   include_production: upload this target to Zenodo production
+# NOTE: results/, plots/, and data/ are git-ignored. The GitHub Actions
+# workflow cannot see them on a fresh checkout — run the CLI locally for those,
+# or add a download-artifact step to the workflow (see Task 6).
+targets:
+  results:
+    path: results/
+    description: "Pipeline results: handoff JSON files, MCMC chains (.h5), spectral fits"
+    include_sandbox: true
+    include_production: true
+  plots:
+    path: plots/
+    description: "Publication-quality figures (PDF)"
+    include_sandbox: true
+    include_production: true
+  data:
+    path: data/
+    description: "Raw simulation and observational data (HDF5, FITS)"
+    include_sandbox: false
+    include_production: true
