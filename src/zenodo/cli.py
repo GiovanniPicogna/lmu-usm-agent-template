@@ -48,12 +48,24 @@ def cli() -> None:
 
 
 @cli.command()
-@click.option("--sandbox/--no-sandbox", default=True, show_default=True,
-              help="Target Zenodo Sandbox (default) or production Zenodo.")
-@click.option("--target", "target_names", multiple=True,
-              help="Restrict upload to these named targets (default: all applicable).")
-@click.option("--bundle/--no-bundle", default=True, show_default=True,
-              help="Upload one .zip per target (default) or each file individually.")
+@click.option(
+    "--sandbox/--no-sandbox",
+    default=True,
+    show_default=True,
+    help="Target Zenodo Sandbox (default) or production Zenodo.",
+)
+@click.option(
+    "--target",
+    "target_names",
+    multiple=True,
+    help="Restrict upload to these named targets (default: all applicable).",
+)
+@click.option(
+    "--bundle/--no-bundle",
+    default=True,
+    show_default=True,
+    help="Upload one .zip per target (default) or each file individually.",
+)
 @click.option("--dry-run", is_flag=True, help="Print the upload plan and exit without uploading.")
 @click.option("--yes", is_flag=True, help="Skip the production-data confirmation prompt.")
 @click.option("--config", "config_path", default=_DEFAULT_ZENODO_YML, show_default=True)
@@ -85,8 +97,10 @@ def create(
         )
 
     if dry_run:
-        click.echo(f"DRY RUN — {total} file(s) would be uploaded to "
-                   f"{'Zenodo Sandbox' if sandbox else 'Zenodo (production)'}:")
+        click.echo(
+            f"DRY RUN — {total} file(s) would be uploaded to "
+            f"{'Zenodo Sandbox' if sandbox else 'Zenodo (production)'}:"
+        )
         for name, files in plan.items():
             click.echo(f"  [{name}] {len(files)} file(s)")
             for file_path in files:
@@ -128,8 +142,9 @@ def create(
 
 @cli.command()
 @click.option("--sandbox/--no-sandbox", default=True, show_default=True)
-@click.option("--deposit-id", required=True, type=int,
-              help="Deposit ID to publish (printed by `create`).")
+@click.option(
+    "--deposit-id", required=True, type=int, help="Deposit ID to publish (printed by `create`)."
+)
 @click.option("--yes", is_flag=True, help="Skip the irreversible-publish confirmation prompt.")
 def publish(sandbox: bool, deposit_id: int, yes: bool) -> None:
     """Publish a draft deposit, assigning a permanent DOI (irreversible)."""

@@ -36,9 +36,7 @@ def collect_files(target: TargetConfig) -> list[Path]:
     if not root.exists():
         logger.warning("Target path %s does not exist — skipping.", root)
         return []
-    return sorted(
-        f for f in root.rglob("*") if f.is_file() and f.name not in _SKIP_NAMES
-    )
+    return sorted(f for f in root.rglob("*") if f.is_file() and f.name not in _SKIP_NAMES)
 
 
 def bundle_target(target: TargetConfig, staging_dir: Path) -> Path | None:

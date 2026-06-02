@@ -1,4 +1,5 @@
 """Shared pytest fixtures for the Zenodo upload module tests."""
+
 from __future__ import annotations
 
 import textwrap
@@ -48,7 +49,8 @@ def zenodo_yml(tmp_path: Path, zenodo_yml_content: dict) -> Path:
 @pytest.fixture
 def citation_cff(tmp_path: Path) -> Path:
     """Write a minimal CITATION.cff to a temp directory and return its path."""
-    content = textwrap.dedent("""\
+    content = textwrap.dedent(
+        """\
         cff-version: 1.2.0
         title: "Test Astrophysics Project"
         abstract: "A test project for Zenodo integration."
@@ -62,7 +64,8 @@ def citation_cff(tmp_path: Path) -> Path:
             given-names: Giovanni
             affiliation: "LMU Munich"
             orcid: "https://orcid.org/0000-0003-3754-1639"
-    """)
+    """
+    )
     path = tmp_path / "CITATION.cff"
     path.write_text(content)
     return path

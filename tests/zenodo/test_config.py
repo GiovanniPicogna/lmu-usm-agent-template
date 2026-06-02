@@ -3,6 +3,7 @@
 Covers CITATION.cff parsing, zenodo.yml loading, metadata merging, access-right
 validation, error cases, and concept-ID persistence.
 """
+
 from __future__ import annotations
 
 import logging
@@ -31,8 +32,15 @@ def test_parse_creators_full_author(citation_cff):
 
 
 def test_parse_creators_strips_orcid_url():
-    cff = {"authors": [{"family-names": "Smith", "given-names": "J",
-                        "orcid": "https://orcid.org/0000-0001-2345-6789"}]}
+    cff = {
+        "authors": [
+            {
+                "family-names": "Smith",
+                "given-names": "J",
+                "orcid": "https://orcid.org/0000-0001-2345-6789",
+            }
+        ]
+    }
     assert _parse_creators_from_cff(cff)[0]["orcid"] == "0000-0001-2345-6789"
 
 

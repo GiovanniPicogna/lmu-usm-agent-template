@@ -40,8 +40,7 @@ def plan_uploads(
     Pure (no network, no deposit). Used by --dry-run and the zero-files guard.
     """
     return {
-        name: collect_files(target)
-        for name, target in _eligible(config, sandbox, target_names)
+        name: collect_files(target) for name, target in _eligible(config, sandbox, target_names)
     }
 
 

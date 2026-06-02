@@ -88,9 +88,7 @@ def _build_metadata(cfg: dict, cff: dict) -> dict:
     """
     base = dict(cfg.get("metadata", {}))
 
-    base["title"] = cff.get(
-        "title", base.get("title", "[DATA MISSING: add title to CITATION.cff]")
-    )
+    base["title"] = cff.get("title", base.get("title", "[DATA MISSING: add title to CITATION.cff]"))
     base["description"] = cff.get(
         "abstract", base.get("description", "[DATA MISSING: add abstract to CITATION.cff]")
     )
