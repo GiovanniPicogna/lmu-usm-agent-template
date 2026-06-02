@@ -15,7 +15,7 @@ def test_revise_without_comments_rejected(referee_valid_data):
 
     referee_valid_data["major_comments"] = []
     referee_valid_data["minor_comments"] = []
-    with pytest.raises(ValidationError, match="comments"):
+    with pytest.raises(ValidationError, match="comment"):
         RefereeHandoff.model_validate(referee_valid_data)
 
 

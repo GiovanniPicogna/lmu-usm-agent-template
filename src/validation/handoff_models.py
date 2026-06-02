@@ -723,7 +723,7 @@ class RefereeHandoff(BaseModel):
         if self.next_action == RefereeNextAction.revise and not (
             self.major_comments or self.minor_comments
         ):
-            raise ValueError("next_action='revise' requires at least one major or minor comments")
+            raise ValueError("next_action='revise' requires at least one major or minor comment")
         return self
 
     @model_validator(mode="after")
