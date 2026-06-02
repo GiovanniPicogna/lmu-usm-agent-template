@@ -735,7 +735,7 @@ class RefereeHandoff(BaseModel):
 
     @model_validator(mode="after")
     def recommendation_consistent_with_action(self) -> "RefereeHandoff":
-        """accept needs a clean action; reject must never be accepted."""
+        """accept needs a clean action; reject must never be accepted; revisions require revise."""
         if self.recommendation == RefereeRecommendation.accept and (
             self.next_action != RefereeNextAction.accept or self.major_comments
         ):
@@ -747,4 +747,15 @@ class RefereeHandoff(BaseModel):
             RefereeNextAction.reject,
         ):
             raise ValueError("recommendation='reject' requires next_action in {revise, reject}")
+        if (
+            self.recommendation
+            in (
+                RefereeRecommendation.major_revision,
+                RefereeRecommendation.minor_revision,
+            )
+            and self.next_action != RefereeNextAction.revise
+        ):
+            raise ValueError(
+                f"recommendation='{self.recommendation.value}' requires next_action='revise'"
+            )
         return self
