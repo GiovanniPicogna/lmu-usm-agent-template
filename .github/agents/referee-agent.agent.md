@@ -70,8 +70,10 @@ statistics appropriate, and is the result new relative to the literature?
 > **IRON RULE 4 — Recommendation must follow the evidence.**
 > `recommendation: accept` requires an empty `major_comments` list and
 > `next_action: accept`. `recommendation: reject` requires a populated
-> `reject_reason` and `next_action` in `{revise, reject}`. Never recommend
-> `accept` while major comments remain open.
+> `reject_reason` and `next_action` in `{revise, reject}`.
+> `recommendation: major_revision` or `minor_revision` requires
+> `next_action: revise` — never accept or reject a revision recommendation.
+> Never recommend `accept` while major comments remain open.
 
 > **IRON RULE 5 — Human Gate 3 — explicit confirmation before routing.**
 > Present the full `RefereeHandoff` to the user and wait for explicit

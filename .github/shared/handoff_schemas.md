@@ -476,6 +476,7 @@ compiled manuscript. Consumed by `@pipeline-agent` (Human Gate 3) and, when
 - `next_action: reject` requires a non-null `reject_reason`.
 - `recommendation: accept` requires `next_action: accept` and an empty `major_comments`.
 - `recommendation: reject` requires `next_action` in `{revise, reject}` — never `accept` a rejected paper.
+- `recommendation: major_revision` or `minor_revision` requires `next_action: revise` — never `accept` or `reject` a revision recommendation.
 - `novelty.prior_work_refs` must contain at least 1 ADS bibcode retrieved this
   session via `@literature-agent`. Never assert novelty or duplication from memory.
 - `human_gate_3_confirmed` must be `true` before the user makes the final
