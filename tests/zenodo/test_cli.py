@@ -3,8 +3,10 @@
 Uses Click's CliRunner to invoke commands without a real terminal.
 All client and orchestration calls are patched — no HTTP access.
 """
+
 from __future__ import annotations
 
+import os
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
@@ -32,22 +34,30 @@ def _nonempty_plan():
 
 
 def test_create_fails_without_sandbox_token(runner, zenodo_yml, citation_cff):
-    result = runner.invoke(
-        cli,
-        ["create", "--sandbox", f"--config={zenodo_yml}", f"--citation-cff={citation_cff}"],
-        env={},
-    )
+    # patch.dict(clear=True) fully resets os.environ so the token is never found.
+    # CliRunner's env={} alone is insufficient: Click skips the empty-dict update
+    # (if env: guard), leaving os.environ unchanged and any real token visible.
+    with patch.dict(os.environ, {}, clear=True):
+        result = runner.invoke(
+            cli,
+            ["create", "--sandbox", f"--config={zenodo_yml}", f"--citation-cff={citation_cff}"],
+        )
     assert result.exit_code != 0
     assert "ZENODO_SANDBOX_TOKEN" in result.output
 
 
 def test_create_fails_without_production_token(runner, zenodo_yml, citation_cff):
-    result = runner.invoke(
-        cli,
-        ["create", "--no-sandbox", "--yes",
-         f"--config={zenodo_yml}", f"--citation-cff={citation_cff}"],
-        env={},
-    )
+    with patch.dict(os.environ, {}, clear=True):
+        result = runner.invoke(
+            cli,
+            [
+                "create",
+                "--no-sandbox",
+                "--yes",
+                f"--config={zenodo_yml}",
+                f"--citation-cff={citation_cff}",
+            ],
+        )
     assert result.exit_code != 0
     assert "ZENODO_TOKEN" in result.output
 
@@ -78,8 +88,13 @@ def test_create_dry_run_does_not_create_deposit(runner, zenodo_yml, citation_cff
     ):
         result = runner.invoke(
             cli,
-            ["create", "--sandbox", "--dry-run",
-             f"--config={zenodo_yml}", f"--citation-cff={citation_cff}"],
+            [
+                "create",
+                "--sandbox",
+                "--dry-run",
+                f"--config={zenodo_yml}",
+                f"--citation-cff={citation_cff}",
+            ],
             env=env_sandbox,
         )
     assert result.exit_code == 0, result.output
@@ -99,8 +114,10 @@ def test_create_creates_deposit_and_uploads(
         patch("src.zenodo.cli.plan_uploads", return_value=_nonempty_plan()),
         patch("src.zenodo.cli.ZenodoClient") as mock_client_cls,
         patch("src.zenodo.cli.create_or_new_version", return_value=mock_deposit) as mock_create,
-        patch("src.zenodo.cli.upload_targets",
-              return_value={"results": ["results/handoff.json"], "plots": []}) as mock_upload,
+        patch(
+            "src.zenodo.cli.upload_targets",
+            return_value={"results": ["results/handoff.json"], "plots": []},
+        ) as mock_upload,
     ):
         mock_client_cls.return_value = MagicMock()
         result = runner.invoke(
@@ -116,9 +133,7 @@ def test_create_creates_deposit_and_uploads(
     assert mock_client_cls.call_args.kwargs["sandbox"] is True
 
 
-def test_create_production_requires_confirmation(
-    runner, zenodo_yml, citation_cff, mock_deposit
-):
+def test_create_production_requires_confirmation(runner, zenodo_yml, citation_cff, mock_deposit):
     """Without --yes, a production create must abort on the safety prompt."""
     env = {"ZENODO_TOKEN": "fake-prod-token"}
     with (
@@ -179,9 +194,7 @@ def test_status_shows_state_and_concept_id(runner, mock_deposit, env_sandbox):
         mock_client = MagicMock()
         mock_client_cls.return_value = mock_client
         mock_client.get_deposit.return_value = mock_deposit
-        result = runner.invoke(
-            cli, ["status", "--sandbox", "--deposit-id=12345"], env=env_sandbox
-        )
+        result = runner.invoke(cli, ["status", "--sandbox", "--deposit-id=12345"], env=env_sandbox)
     assert result.exit_code == 0, result.output
     assert "unsubmitted" in result.output
     assert "12344" in result.output

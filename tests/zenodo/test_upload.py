@@ -2,9 +2,9 @@
 
 All ZenodoClient calls are replaced with MagicMock — no HTTP access.
 """
+
 from __future__ import annotations
 
-from pathlib import Path
 from unittest.mock import MagicMock
 
 import pytest
@@ -109,9 +109,7 @@ def test_upload_targets_bundles_by_default(mock_client, config, mock_deposit, tm
     staging = tmp_path / "staging"
     staging.mkdir()
 
-    uploaded = upload_targets(
-        mock_client, mock_deposit, config, sandbox=True, staging_dir=staging
-    )
+    uploaded = upload_targets(mock_client, mock_deposit, config, sandbox=True, staging_dir=staging)
 
     # one upload_file call with a .zip; results reports the source files bundled
     assert mock_client.upload_file.call_count == 1
@@ -126,9 +124,7 @@ def test_upload_targets_skips_include_sandbox_false(mock_client, config, mock_de
     staging = tmp_path / "staging"
     staging.mkdir()
 
-    uploaded = upload_targets(
-        mock_client, mock_deposit, config, sandbox=True, staging_dir=staging
-    )
+    uploaded = upload_targets(mock_client, mock_deposit, config, sandbox=True, staging_dir=staging)
     mock_client.upload_file.assert_not_called()
     assert not any(uploaded.values())
 
@@ -146,8 +142,12 @@ def test_upload_targets_filters_by_target_names(mock_client, config, mock_deposi
     staging.mkdir()
 
     uploaded = upload_targets(
-        mock_client, mock_deposit, config, sandbox=True,
-        target_names=["results"], staging_dir=staging,
+        mock_client,
+        mock_deposit,
+        config,
+        sandbox=True,
+        target_names=["results"],
+        staging_dir=staging,
     )
     assert "results" in uploaded
     assert "plots" not in uploaded

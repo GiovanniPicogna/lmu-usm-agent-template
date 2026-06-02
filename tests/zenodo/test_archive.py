@@ -1,8 +1,8 @@
 """Unit tests for file discovery and per-target zip bundling."""
+
 from __future__ import annotations
 
 import zipfile
-from pathlib import Path
 
 from src.zenodo.archive import bundle_target, collect_files
 from src.zenodo.config import TargetConfig

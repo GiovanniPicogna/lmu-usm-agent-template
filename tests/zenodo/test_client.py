@@ -4,10 +4,10 @@ All HTTP calls are mocked via unittest.mock — no network access required.
 The client funnels every call through self._session.request(method, url, ...),
 so tests mock `client._session.request`.
 """
+
 from __future__ import annotations
 
 import hashlib
-from pathlib import Path
 from unittest.mock import MagicMock, patch
 
 import pytest
