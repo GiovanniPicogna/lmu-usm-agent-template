@@ -229,6 +229,17 @@ python .github/skills/radmc3d/scripts/run_radmc3d.py \
 # Triggered by Gate 2 next_action: write
 # @paper-agent  results/interpretation/<task_id>_<date>.json
 
+# ── Zenodo data upload ────────────────────────────────────────────────────
+# First-time setup: export ZENODO_SANDBOX_TOKEN and ZENODO_TOKEN in your shell.
+# Edit zenodo.yml to customise targets (title/authors read from CITATION.cff).
+# results/, plots/, data/ are git-ignored — run these locally.
+
+python -m src.zenodo create  --sandbox --dry-run        # preview the upload plan
+python -m src.zenodo create  --sandbox                  # upload zips to Sandbox
+python -m src.zenodo publish --sandbox --deposit-id <ID> # citable DOI (confirms)
+python -m src.zenodo status  --sandbox --deposit-id <ID> # inspect a deposit
+python -m src.zenodo create  --no-sandbox               # production (PI approval)
+
 # ── Pre-commit validation ─────────────────────────────────────────────────
 pre-commit run --all-files
 ```

@@ -52,6 +52,10 @@ dependencies:
   - reproject>=0.13        # FITS image reprojection
   - photutils>=1.11        # aperture & source photometry
 
+  # ── Zenodo data upload ─────────────────────────────────────────────────────
+  - requests>=2.31     # HTTP client for Zenodo REST API
+  - pyyaml>=6.0        # YAML parsing (zenodo.yml + CITATION.cff)
+
   # ── Development & reproducibility ─────────────────────────────────────────
   - tqdm>=4.66
   - click>=8.1

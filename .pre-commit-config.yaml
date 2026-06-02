@@ -78,10 +78,10 @@ repos:
   - repo: local
     hooks:
       - id: pytest-unit
-        name: pytest (unit tests — schemas, guards, routing)
+        name: pytest (unit tests — schemas, guards, routing, zenodo)
         language: python
-        entry: python -m pytest tests/schemas tests/guards tests/agents -q
-        additional_dependencies: [pytest, pydantic, pyyaml]
+        entry: python -m pytest tests/schemas tests/guards tests/agents tests/zenodo -q
+        additional_dependencies: [pytest, pydantic, pyyaml, requests, click]
         pass_filenames: false
         always_run: true
         stages: [pre-commit]

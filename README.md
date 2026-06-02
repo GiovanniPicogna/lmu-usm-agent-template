@@ -492,6 +492,64 @@ design.
 
 ---
 
+## Zenodo data upload
+
+Simulation outputs, results, and publication figures can be uploaded to
+[Zenodo Sandbox](https://sandbox.zenodo.org) (intermediate, citable snapshots
+during development) or [Zenodo](https://zenodo.org) (permanent, DOI-bearing
+publication datasets). Metadata is read from `CITATION.cff`, so the deposit
+title, authors, ORCID, version, and keywords stay in sync with the repo.
+
+### One-time setup
+
+1. Create personal access tokens (scopes `deposit:write`, `deposit:actions`) at
+   https://sandbox.zenodo.org/account/settings/applications/ (Sandbox) and
+   https://zenodo.org/account/settings/applications/ (production).
+2. Export them (add to `.bashrc` / `.zshrc`; never commit):
+   ```bash
+   export ZENODO_SANDBOX_TOKEN=<sandbox-token>
+   export ZENODO_TOKEN=<production-token>
+   ```
+3. Edit `zenodo.yml` to customise targets, keywords, and access rights.
+
+### Usage
+
+```bash
+# Preview what would be uploaded (no deposit created):
+python -m src.zenodo create --sandbox --dry-run
+
+# Upload results/ and plots/ to Zenodo Sandbox as one .zip per target:
+python -m src.zenodo create --sandbox
+
+# Publish the draft (assign a citable DOI — irreversible, prompts to confirm):
+python -m src.zenodo publish --sandbox --deposit-id <ID>
+
+# Inspect a deposit:
+python -m src.zenodo status --sandbox --deposit-id <ID>
+
+# Production (at paper submission; prompts for PI-approval confirmation):
+python -m src.zenodo create  --no-sandbox
+python -m src.zenodo publish --no-sandbox --deposit-id <ID>
+```
+
+`results/`, `plots/`, and `data/` are git-ignored — run the CLI **locally**
+after generating outputs. The `create` command refuses to create an empty
+deposit (zero-files guard).
+
+> **Policy:** only upload proprietary or embargoed data with explicit PI
+> approval (`.github/copilot-instructions.md` §8, §10). For embargoed deposits
+> set `access_right: embargoed` and an `embargo_date` in `zenodo.yml`.
+
+### GitHub Actions
+
+`.github/workflows/zenodo-upload.yml` runs manually (Sandbox by default) or on
+`v*.*.*` tag pushes (production, gated by the `zenodo-production` environment).
+Store `ZENODO_SANDBOX_TOKEN` and `ZENODO_TOKEN` as repository secrets. Because
+result directories are git-ignored, enable the workflow's `download-artifact`
+step or commit small result files for CI uploads to find anything.
+
+---
+
 ## Pipeline architecture
 
 See [`ARCHITECTURE.md`](ARCHITECTURE.md) for the complete picture:
