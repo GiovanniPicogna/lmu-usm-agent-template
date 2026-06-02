@@ -49,6 +49,16 @@ def test_reject_recommendation_with_accept_action_rejected(referee_valid_data):
         RefereeHandoff.model_validate(referee_valid_data)
 
 
+def test_major_revision_with_accept_action_rejected(referee_valid_data):
+    from src.validation.handoff_models import RefereeHandoff
+
+    referee_valid_data["recommendation"] = "major_revision"
+    referee_valid_data["next_action"] = "accept"
+    referee_valid_data["major_comments"] = ["Fundamental methodology flaw."]
+    with pytest.raises(ValidationError, match="major_revision"):
+        RefereeHandoff.model_validate(referee_valid_data)
+
+
 def test_novelty_without_prior_work_refs_rejected(referee_valid_data):
     from src.validation.handoff_models import RefereeHandoff
 
