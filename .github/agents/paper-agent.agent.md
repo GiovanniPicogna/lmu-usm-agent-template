@@ -19,7 +19,7 @@ tools:
   - todo
 argument-hint: "InterpretationHandoff path, e.g. 'results/interpretation/gap_depth_20260526.json'"
 handoffs:
-  - pipeline-agent
+  - referee-agent
 ---
 
 # Paper Agent — LMU Astrophysics
@@ -63,6 +63,15 @@ generate new data, rerun analysis, or invent references.
 > MNRAS (`mnras.cls`) for cosmological/lss, AASTeX (`aastex631.cls`) for ApJ/AJ.
 > Fall back to `article` if the class file is not installed; state this in the
 > prompt log.
+
+> **IRON RULE 6 — In revision mode, address every major comment.**
+> When invoked with a `RefereeHandoff` path in addition to the
+> `InterpretationHandoff`, you are revising, not drafting from scratch. Edit
+> only the sections the referee flagged, address every `major_comments` entry
+> (and `minor_comments` where feasible), recompile, and re-emit `PaperHandoff`.
+> If a major comment cannot be addressed from the existing handoff data, write
+> `\todo{REFEREE: <comment>}` and list it in `PaperHandoff.warnings` — never
+> fabricate new results to satisfy a referee.
 
 ---
 
@@ -124,6 +133,22 @@ Run these steps in strict order. Mark each in `TodoWrite` before starting.
    # Bibliography path: prefer calling handoff field; fall back to project default
    bib_path = interp.get("bibliography_bib", "paper/bibliography.bib")
    ```
+
+### Step 0b — Detect revision mode
+
+If a `RefereeHandoff` path was supplied alongside the `InterpretationHandoff`,
+load it and enter **revision mode**:
+
+```python
+referee = json.loads(Path("results/referee/<task_id>_referee_<date>.json").read_text())
+revision = True
+```
+
+In revision mode, skip Steps 1–9 for sections the referee did not flag; instead
+open each section named in `referee["major_comments"]` / `["minor_comments"]`,
+apply the requested change, then resume at Step 10 (Compile). Numbers still come
+only from `AnalysisHandoff` (Iron Rule 1); new citations still go through
+`@literature-agent` (Iron Rule 2).
 
 ### Step 1 — Initialise paper directory
 
@@ -318,6 +343,10 @@ Check exit code. If non-zero:
    and set `compilation_status: errors`.
 
 ### Step 11 — Automated referee report
+
+> This is a **mechanical self-check** (completeness), distinct from the
+> independent scientific peer review performed by `@referee-agent` in Stage 10.
+> Passing this checklist does not imply the paper is publishable.
 
 Evaluate the compiled manuscript against these criteria:
 
