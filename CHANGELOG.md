@@ -8,6 +8,13 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ## [Unreleased]
 
 ### Added
+- `@referee-agent` — Iron Rule 7 (visual figure inspection via multimodal Read
+  tool), Step 1b (load figure files from `AnalysisHandoff.plot_paths`),
+  internal consistency sub-check (text values ↔ figure captions, legend
+  symbols ↔ text symbols, caption model names ↔ bibliography), quantitative
+  discriminant check, language quality check, and two new anti-pattern rows.
+  These close the figure-inspection gap identified in live testing against an
+  external PDF where figures were not available as standalone files.
 - `.github/agents/referee-agent.agent.md` — `@referee-agent`: independent
   scientific peer review (form, soundness, ADS-backed novelty) emitting
   `RefereeHandoff/v1`. New Human Gate 3 and a bounded referee↔paper revision

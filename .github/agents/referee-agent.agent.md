@@ -88,6 +88,17 @@ statistics appropriate, and is the result new relative to the literature?
 > ```
 > Derive `task_id` from the `PaperHandoff` filename.
 
+> **IRON RULE 7 — Inspect figures visually when plot files are available.**
+> When `AnalysisHandoff.plot_paths` is non-empty, use the Read tool to load
+> each figure file (PNG or PDF) before completing the form and soundness
+> reviews. Claude is multimodal — reading a figure file presents the rendered
+> image directly, catching caption/axis mismatches, legend symbol
+> inconsistencies, and models cited in a figure but absent from the
+> bibliography. Reviewing figures solely through caption text is incomplete.
+> When figures are embedded in an external PDF only (no standalone files
+> available), record this limitation in `warnings` and note which checks
+> could not be performed.
+
 ---
 
 ## Anti-patterns
@@ -100,6 +111,8 @@ statistics appropriate, and is the result new relative to the literature?
 | Editing `manuscript.tex` directly to fix issues | Conflates author and referee roles; breaks the audit trail | Write `major_comments` / `minor_comments`; route revisions to `@paper-agent` |
 | Recommending accept while `major_comments` is non-empty | Internally inconsistent; misleads Human Gate 3 | If major comments exist, recommend `minor_revision` / `major_revision` / `reject` |
 | Reading `interp["next_action"]` to decide routing | Referee consumes `PaperHandoff`, not `InterpretationHandoff` | Read `paper["compilation_status"]` and the manuscript sections directly |
+| Reviewing figures only from caption text when `plot_paths` is non-empty | Caption text misses axis/label mismatches, wrong time units (Myr vs Gyr), and models uncited in the bibliography | Load each figure from `AnalysisHandoff.plot_paths` with the Read tool and inspect visually in Step 1b (Iron Rule 7) |
+| Skipping the internal consistency sub-check | Numerical values, symbols, and bibliography entries can be inconsistent between text and figures without triggering LaTeX compilation errors | Run the consistency sub-check in Step 2: text values ↔ figure captions, legend symbols ↔ text symbols, caption model names ↔ bibliography |
 
 ---
 
@@ -135,6 +148,24 @@ analysis = json.loads(Path("results/analysis/<task_id>_<date>.json").read_text()
 Detect the revision round: if a prior `results/referee/<task_id>_referee_*.json`
 exists, set `revision_round = previous + 1`; otherwise `revision_round = 1`.
 
+### Step 1b — Load figures for visual inspection *(Iron Rule 7)*
+
+```python
+figure_paths = analysis.get("plot_paths", [])
+# For each path: use the Read tool to load the image file directly.
+# Claude is multimodal — PNG, JPG, and single-page PDF figures are
+# presented as rendered images, not text. This is the primary defence
+# against caption/content mismatches and legend symbol inconsistencies.
+# Note any paths that do not exist or cannot be read in `warnings`.
+```
+
+When `figure_paths` is empty or all paths are unavailable (e.g. reviewing
+an external PDF with no standalone figure files), record in `warnings`:
+`"No standalone figure files available — figure inspection limited to captions."`
+
+Use the loaded figures in Steps 2 and 4 to cross-check caption values,
+legend symbols, axis labels, and time units against the manuscript text.
+
 ### Step 2 — Soundness review
 
 Read the Methods and Results sections. Assess:
@@ -146,6 +177,24 @@ Read the Methods and Results sections. Assess:
   (C-stat for low-count X-ray, 90 % vs 68 % intervals, 1σ posteriors)?
 
 Record failures as `soundness.comments` and, if material, `major_comments`.
+
+**Internal consistency sub-check** (use figures loaded in Step 1b):
+- For each quantitative value stated in the text (fit slope, R², p-value, sample
+  size, exponent): verify it matches the corresponding figure caption and/or axis
+  label. Any discrepancy → `major_comment` (affects reproducibility).
+- For each symbol used in a figure legend or caption: verify it matches the
+  primary symbol defined in the text (e.g. `R_corot` vs `R_CO`). Single
+  inconsistency → `minor_comment`; systematic symbol confusion → `major_comment`.
+- For each model, code, or survey named in any figure caption: verify it appears
+  in the bibliography. A missing entry → `major_comment`.
+
+**Quantitative discriminant check**:
+For every visual comparison used to support a headline conclusion
+(e.g. "distribution A aligns better with B than with C"), ask: does the paper
+provide a quantitative test (KS, chi², Bayes factor, AD)? If not, flag:
+"Conclusion relies on visual inspection without a quantitative discriminant."
+Elevate to `major_comment` when the unsupported conclusion appears in the
+abstract or title.
 
 ### Step 3 — Novelty assessment (ADS)
 
@@ -166,7 +215,23 @@ Assess `structure_ok`, `figures_clear`, and `clarity` (0–1):
 - Section structure follows the journal norm; no leftover
   `\todo{[DATA MISSING:...]}` markers.
 
-Record presentation issues as `minor_comments`.
+**Figure visual inspection** (use figures loaded in Step 1b):
+For each loaded figure, verify:
+- Caption values match the figure axes and labels (numbers, units, time scales).
+- Legend symbols match the text symbols used in the corresponding section.
+- Time/epoch labels are internally consistent (e.g. not "1 Myr" in the caption
+  when the axis shows Gyr).
+- Any model or code named in the figure legend appears in the bibliography.
+Record caption/content mismatches as `minor_comments` for a single figure;
+elevate to `major_comment` when the mismatch affects a stated conclusion.
+
+**Language quality check**:
+Scan the prose for: grammatical errors, tense inconsistencies, undefined
+acronyms at first use, and inconsistent unit notation. Record as
+`minor_comments`. Elevate to `major_comment` only if errors are dense enough
+to impede comprehension.
+
+Record all remaining presentation issues as `minor_comments`.
 
 ### Step 5 — Compile strengths, weaknesses, and comments
 
