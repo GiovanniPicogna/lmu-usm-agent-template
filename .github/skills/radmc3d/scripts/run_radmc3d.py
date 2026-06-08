@@ -49,6 +49,7 @@ MSUN_TO_G: float = u.Msun.to(u.g)
 
 # ── amr_grid.inp ─────────────────────────────────────────────────────────────
 
+
 def write_amr_grid(
     output_dir: Path,
     r_interfaces_cm: np.ndarray,
@@ -72,11 +73,11 @@ def write_amr_grid(
     np_ = len(phi_interfaces) - 1
 
     with open(output_dir / "amr_grid.inp", "w") as f:
-        f.write("1\n")          # iformat
-        f.write("0\n")          # grid style: regular, no AMR
-        f.write("100\n")        # coordinate system: spherical
-        f.write("0\n")          # gridinfo: no extra info
-        f.write("1 1 1\n")      # all three dimensions active
+        f.write("1\n")  # iformat
+        f.write("0\n")  # grid style: regular, no AMR
+        f.write("100\n")  # coordinate system: spherical
+        f.write("0\n")  # gridinfo: no extra info
+        f.write("1 1 1\n")  # all three dimensions active
         f.write(f"{nr} {nt} {np_}\n")
         for r in r_interfaces_cm:
             f.write(f"{r:.6e}\n")
@@ -87,6 +88,7 @@ def write_amr_grid(
 
 
 # ── wavelength_micron.inp ─────────────────────────────────────────────────────
+
 
 def write_wavelength_grid(output_dir: Path, wavelengths_um: list[float]) -> None:
     """Write wavelength_micron.inp sorted in ascending order."""
@@ -104,14 +106,17 @@ def make_thermal_wavelength_grid(target_um: list[float]) -> list[float]:
     Covers 0.1 µm (stellar UV) through 10 mm (far-IR emission) with the
     user-requested wavelengths included.
     """
-    grid = np.concatenate([
-        np.logspace(-1, 1, 20),    # 0.1–10 µm   stellar / scattered light
-        np.logspace(1, 4, 60),     # 10 µm–10 mm  dust thermal emission
-    ])
+    grid = np.concatenate(
+        [
+            np.logspace(-1, 1, 20),  # 0.1–10 µm   stellar / scattered light
+            np.logspace(1, 4, 60),  # 10 µm–10 mm  dust thermal emission
+        ]
+    )
     return sorted(set(grid.tolist() + [float(w) for w in target_um]))
 
 
 # ── stars.inp ────────────────────────────────────────────────────────────────
+
 
 def write_stars(
     output_dir: Path,
@@ -138,15 +143,16 @@ def write_stars(
     nlam = len(wavelengths_um)
 
     with open(output_dir / "stars.inp", "w") as f:
-        f.write("2\n")                      # iformat
-        f.write(f"1 {nlam}\n\n")            # nstars  nlam
-        f.write(f"{r_cm:.6e} {m_g:.6e} 0.0 0.0 0.0\n\n")   # r m x y z
+        f.write("2\n")  # iformat
+        f.write(f"1 {nlam}\n\n")  # nstars  nlam
+        f.write(f"{r_cm:.6e} {m_g:.6e} 0.0 0.0 0.0\n\n")  # r m x y z
         for lam in sorted(wavelengths_um):
             f.write(f"{lam:.6e}\n")
         f.write(f"\n{-abs(t_star_K):.6e}\n")  # negative T → blackbody
 
 
 # ── radmc3d.inp ───────────────────────────────────────────────────────────────
+
 
 def write_radmc3d_inp(
     output_dir: Path,
@@ -180,6 +186,7 @@ def write_radmc3d_inp(
 
 # ── dustopac.inp ──────────────────────────────────────────────────────────────
 
+
 def write_dustopac(output_dir: Path, opacity_name: str = "dsharp") -> None:
     """
     Write dustopac.inp referencing a single dust species.
@@ -187,16 +194,17 @@ def write_dustopac(output_dir: Path, opacity_name: str = "dsharp") -> None:
     Uses opacity type 1 (dustkappa_<name>.inp file with κ_abs, κ_scat, g).
     """
     with open(output_dir / "dustopac.inp", "w") as f:
-        f.write("2\n")    # iformat
-        f.write("1\n")    # number of species
+        f.write("2\n")  # iformat
+        f.write("1\n")  # number of species
         f.write("=" * 76 + "\n")
-        f.write("1\n")    # opacity type: dustkappa file
-        f.write("0\n")    # not grain-aligned
+        f.write("1\n")  # opacity type: dustkappa file
+        f.write("0\n")  # not grain-aligned
         f.write(f"{opacity_name}\n")
         f.write("-" * 76 + "\n")
 
 
 # ── dust_density.inp ──────────────────────────────────────────────────────────
+
 
 def write_dust_density(output_dir: Path, rho_3d: np.ndarray) -> None:
     """
@@ -212,9 +220,9 @@ def write_dust_density(output_dir: Path, rho_3d: np.ndarray) -> None:
     ncells = nr * nt * np_
 
     with open(output_dir / "dust_density.inp", "w") as f:
-        f.write("1\n")           # iformat
-        f.write(f"{ncells}\n")   # total number of cells
-        f.write("1\n")           # number of dust species
+        f.write("1\n")  # iformat
+        f.write(f"{ncells}\n")  # total number of cells
+        f.write("1\n")  # number of dust species
         # r outermost, theta middle, phi innermost
         flat = rho_3d.reshape(-1)
         for val in flat:
@@ -222,6 +230,7 @@ def write_dust_density(output_dir: Path, rho_3d: np.ndarray) -> None:
 
 
 # ── FARGO3D reader ────────────────────────────────────────────────────────────
+
 
 def read_fargo3d_grid(run_dir: Path) -> tuple[np.ndarray, np.ndarray]:
     """
@@ -235,8 +244,7 @@ def read_fargo3d_grid(run_dir: Path) -> tuple[np.ndarray, np.ndarray]:
     r_file = run_dir / "domain_r.dat"
     if not r_file.exists():
         raise FileNotFoundError(
-            f"domain_r.dat not found in {run_dir}. "
-            "This file must be present for FARGO3D runs."
+            f"domain_r.dat not found in {run_dir}. " "This file must be present for FARGO3D runs."
         )
     r_interfaces = np.loadtxt(str(r_file))
 
@@ -322,10 +330,10 @@ def extrude_sigma_to_3d(
         # Scale height at this radius
         h_cm = aspect_ratio * r_ref_cm * (r_cm / r_ref_cm) ** (1.0 + flaring_index)
 
-        sigma_dust = dust_to_gas * sigma_gcm2[ir, :]   # (nphi,)  g/cm²
+        sigma_dust = dust_to_gas * sigma_gcm2[ir, :]  # (nphi,)  g/cm²
         norm = sigma_dust / (np.sqrt(2.0 * np.pi) * h_cm)  # (nphi,)
 
-        z_cm = r_cm * np.cos(theta_centers)   # (ntheta,)  vertical height
+        z_cm = r_cm * np.cos(theta_centers)  # (ntheta,)  vertical height
 
         for it in range(ntheta):
             rho_dust[ir, it, :] = norm * np.exp(-0.5 * (z_cm[it] / h_cm) ** 2)
@@ -333,13 +341,15 @@ def extrude_sigma_to_3d(
     return rho_dust
 
 
-def make_theta_grid(r_interfaces_au: np.ndarray, aspect_ratio: float, flaring_index: float, n_theta: int) -> np.ndarray:
+def make_theta_grid(
+    r_interfaces_au: np.ndarray, aspect_ratio: float, flaring_index: float, n_theta: int
+) -> np.ndarray:
     """
     Build co-latitude (theta) cell-wall array centred on the midplane (π/2).
 
     The opening is set to ±4 scale heights at the outer grid edge.
     """
-    r_au = r_interfaces_au[-1]   # outer radius
+    r_au = r_interfaces_au[-1]  # outer radius
     r_ref_au = r_interfaces_au[len(r_interfaces_au) // 2]
     h_over_r_outer = aspect_ratio * (r_au / r_ref_au) ** flaring_index
     theta_half = min(4.0 * h_over_r_outer, np.pi / 4.0)
@@ -349,6 +359,7 @@ def make_theta_grid(r_interfaces_au: np.ndarray, aspect_ratio: float, flaring_in
 
 
 # ── DustPy reader ─────────────────────────────────────────────────────────────
+
 
 def read_dustpy_density(run_dir: Path, snapshot: int, dust_to_gas: float) -> tuple:
     """
@@ -367,7 +378,7 @@ def read_dustpy_density(run_dir: Path, snapshot: int, dust_to_gas: float) -> tup
     with h5py.File(str(target), "r") as f:
         # DustPy stores dust surface density under Dust/Sigma
         if "Dust" in f and "Sigma" in f["Dust"]:
-            sigma_dust = f["Dust/Sigma"][:]   # shape (nr, nspec) in g/cm²
+            sigma_dust = f["Dust/Sigma"][:]  # shape (nr, nspec) in g/cm²
             sigma_total = sigma_dust.sum(axis=-1)  # sum over grain sizes
         elif "gas" in f and "Sigma" in f["gas"]:
             sigma_gas = f["gas/Sigma"][:]
@@ -383,15 +394,15 @@ def read_dustpy_density(run_dir: Path, snapshot: int, dust_to_gas: float) -> tup
         else:
             raise KeyError(f"Cannot find grid/r_i in {target}")
 
-    nr = len(sigma_total)
     # Broadcast 1D radial profile to a single azimuthal cell
-    sigma_2d = sigma_total[:, np.newaxis]                   # (nr, 1)
+    sigma_2d = sigma_total[:, np.newaxis]  # (nr, 1)
     phi_interfaces = np.array([0.0, 2.0 * np.pi])
 
     return sigma_2d, r_interfaces_au, phi_interfaces
 
 
 # ── opacity helper ────────────────────────────────────────────────────────────
+
 
 def install_opacity(radmc3d_dir: Path, opacity_name: str) -> None:
     """
@@ -435,20 +446,19 @@ def install_opacity(radmc3d_dir: Path, opacity_name: str) -> None:
 def _write_placeholder_opacity(path: Path) -> None:
     """Write a two-point opacity stub so RADMC-3D can start."""
     with open(path, "w") as f:
-        f.write("2\n")   # iformat: lambda, kappa_abs, kappa_scat, g
-        f.write("2\n")   # nwav
+        f.write("2\n")  # iformat: lambda, kappa_abs, kappa_scat, g
+        f.write("2\n")  # nwav
         f.write("1.0      1.0  0.1  0.0\n")
         f.write("10000.0  0.1  0.0  0.0\n")
 
 
 # ── subprocess runner ─────────────────────────────────────────────────────────
 
+
 def run_radmc3d_command(radmc3d_dir: Path, args: list[str]) -> None:
     """Run a radmc3d command in radmc3d_dir. Raises RuntimeError on failure."""
     cmd = ["radmc3d"] + args
-    result = subprocess.run(
-        cmd, cwd=str(radmc3d_dir), capture_output=True, text=True
-    )
+    result = subprocess.run(cmd, cwd=str(radmc3d_dir), capture_output=True, text=True)
     if result.returncode != 0:
         raise RuntimeError(
             f"radmc3d {' '.join(args)} failed (exit {result.returncode}):\n"
@@ -457,6 +467,7 @@ def run_radmc3d_command(radmc3d_dir: Path, args: list[str]) -> None:
 
 
 # ── output readers ────────────────────────────────────────────────────────────
+
 
 def image_to_fits(
     radmc3d_dir: Path,
@@ -472,8 +483,7 @@ def image_to_fits(
         import radmc3dPy.image as rimage
     except ImportError as exc:
         raise ImportError(
-            "radmc3dPy is required to read RADMC-3D output. "
-            "Install with: pip install radmc3dPy"
+            "radmc3dPy is required to read RADMC-3D output. " "Install with: pip install radmc3dPy"
         ) from exc
 
     im = rimage.readImage(str(radmc3d_dir / "image.out"))
@@ -500,16 +510,15 @@ def spectrum_to_fits(radmc3d_dir: Path, output_fits: Path) -> float:
     wavelength_um = data[:, 0]
     flux_jy = data[:, 1] * 1.0e23  # erg/s/cm²/Hz → Jy
 
-    col_lam = fits.Column(name="wavelength_um", format="D",
-                          array=wavelength_um, unit="micron")
-    col_flux = fits.Column(name="flux_Jy", format="D",
-                           array=flux_jy, unit="Jy")
+    col_lam = fits.Column(name="wavelength_um", format="D", array=wavelength_um, unit="micron")
+    col_flux = fits.Column(name="flux_Jy", format="D", array=flux_jy, unit="Jy")
     hdu = fits.BinTableHDU.from_columns([col_lam, col_flux])
     hdu.writeto(str(output_fits), overwrite=False)
     return float(np.nanmax(flux_jy))
 
 
 # ── main pipeline ─────────────────────────────────────────────────────────────
+
 
 def setup_and_run(params: dict) -> tuple[str, float]:
     """
@@ -652,15 +661,24 @@ def setup_and_run(params: dict) -> tuple[str, float]:
         npix = int(params.get("npix", 300))
         sizeau = float(params.get("sizeau", 400.0))
 
-        run_radmc3d_command(radmc3d_dir, [
-            "image",
-            "lambda", str(wavelength_um[0]),
-            "incl", str(incl),
-            "phi", str(phi),
-            "posang", str(posang),
-            "npix", str(npix),
-            "sizeau", str(sizeau),
-        ])
+        run_radmc3d_command(
+            radmc3d_dir,
+            [
+                "image",
+                "lambda",
+                str(wavelength_um[0]),
+                "incl",
+                str(incl),
+                "phi",
+                str(phi),
+                "posang",
+                str(posang),
+                "npix",
+                str(npix),
+                "sizeau",
+                str(sizeau),
+            ],
+        )
 
         lam_int = int(round(wavelength_um[0]))
         output_fits = results_dir / f"{run_name}_image_{lam_int}um.fits"
@@ -675,37 +693,42 @@ def setup_and_run(params: dict) -> tuple[str, float]:
         return str(output_fits), peak_flux
 
     else:
-        raise ValueError(
-            f"Unknown mode '{mode}'. Choose from: image | sed | spectrum | mctherm"
-        )
+        raise ValueError(f"Unknown mode '{mode}'. Choose from: image | sed | spectrum | mctherm")
 
 
 # ── CLI ───────────────────────────────────────────────────────────────────────
 
+
 def build_parser() -> argparse.ArgumentParser:
-    p = argparse.ArgumentParser(
-        description="RADMC-3D wrapper for LMU disk simulations"
+    p = argparse.ArgumentParser(description="RADMC-3D wrapper for LMU disk simulations")
+    p.add_argument(
+        "--json", type=str, help="JSON string with all parameters (overrides all other flags)"
     )
-    p.add_argument("--json", type=str,
-                   help="JSON string with all parameters (overrides all other flags)")
     p.add_argument("--run_dir", type=str)
-    p.add_argument("--mode", default="image",
-                   choices=["image", "sed", "spectrum", "mctherm"])
+    p.add_argument("--mode", default="image", choices=["image", "sed", "spectrum", "mctherm"])
     p.add_argument("--wavelength_um", type=float, nargs="+", default=[870.0])
     p.add_argument("--npix", type=int, default=300)
     p.add_argument("--sizeau", type=float, default=400.0)
     p.add_argument("--incl_deg", type=float, default=25.0)
     p.add_argument("--phi_deg", type=float, default=0.0)
     p.add_argument("--posang_deg", type=float, default=0.0)
-    p.add_argument("--dpc", type=float, default=140.0,
-                   help="Source distance in parsec (for FITS WCS and Jy conversion)")
+    p.add_argument(
+        "--dpc",
+        type=float,
+        default=140.0,
+        help="Source distance in parsec (for FITS WCS and Jy conversion)",
+    )
     p.add_argument("--n_photons_therm", type=int, default=1_000_000)
     p.add_argument("--n_photons_scat", type=int, default=100_000)
     p.add_argument("--scattering_mode_max", type=int, default=1)
     p.add_argument("--dust_opacity_file", type=str, default="dsharp")
     p.add_argument("--dust_to_gas", type=float, default=0.01)
-    p.add_argument("--sigma0_cgs", type=float, default=1.0,
-                   help="FARGO3D code-unit conversion: Sigma[g/cm2] = Sigma[code] * sigma0_cgs")
+    p.add_argument(
+        "--sigma0_cgs",
+        type=float,
+        default=1.0,
+        help="FARGO3D code-unit conversion: Sigma[g/cm2] = Sigma[code] * sigma0_cgs",
+    )
     p.add_argument("--aspect_ratio", type=float, default=0.05)
     p.add_argument("--flaring_index", type=float, default=0.25)
     p.add_argument("--n_theta", type=int, default=64)
@@ -714,10 +737,14 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--t_star_K", type=float, default=5778.0)
     p.add_argument("--iseed", type=int, default=-17933201)
     p.add_argument("--setthreads", type=int, default=1)
-    p.add_argument("--snapshot", type=int, default=-1,
-                   help="Which simulation snapshot to use (-1 = last)")
-    p.add_argument("--skip_mctherm", action="store_true",
-                   help="Skip thermal Monte Carlo (for scattered-light images)")
+    p.add_argument(
+        "--snapshot", type=int, default=-1, help="Which simulation snapshot to use (-1 = last)"
+    )
+    p.add_argument(
+        "--skip_mctherm",
+        action="store_true",
+        help="Skip thermal Monte Carlo (for scattered-light images)",
+    )
     p.add_argument("--results_dir", type=str, default="results/radmc3d")
     return p
 
