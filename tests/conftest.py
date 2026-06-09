@@ -184,7 +184,7 @@ def interpretation_valid_data():
                 "resolution": "dismissed",
             },
             {
-                "objection": "A lower-mass planet at a different radius could mimic this gap depth.",
+                "objection": "A lower-mass planet at different radius could mimic this gap depth.",
                 "category": "degeneracy",
                 "grounding_ref": "2016A&A...594A.116H",
                 "resolution": "mitigated",
