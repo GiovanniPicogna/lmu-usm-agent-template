@@ -486,6 +486,37 @@ ERRORS:   examples.md §Common errors               → NaN, make failures, deco
 
 ---
 
+## Source as context
+
+**Ground physics options, problem setups, and parameter slots in the actual
+PLUTO checkout — never recall them from training memory.** Which Riemann solvers
+are valid for a given `PHYSICS`, how many `USER_DEF_PARAMETERS` a problem
+defines, and which `Test_Problems/` exist all vary by PLUTO version; a solver
+label that is invalid for the compiled physics fails at runtime, and a
+miscounted `[Parameters]` block silently misaligns every user parameter. Before
+patching `definitions.h` or `pluto.ini`, grep `$PLUTO_DIR` (read from
+`AGENTS.md`):
+
+```bash
+# Available problem setups to base a run on
+ls "$PLUTO_DIR/Test_Problems/HD/" "$PLUTO_DIR/Test_Problems/MHD/"
+
+# Exact USER_DEF_PARAMETERS count and module flags for THIS problem
+grep -n "USER_DEF_PARAMETERS\|PHYSICS\|GEOMETRY\|EOS" \
+    "$PLUTO_DIR/Test_Problems/HD/Disk_Planet/definitions.h"
+
+# Valid Riemann-solver labels actually defined in the source tree
+grep -rEn "#define[[:space:]]+(ROE|HLL|HLLC|TVDLF|HLLD)" "$PLUTO_DIR/Src/"
+
+# Code version (authoritative, for the handoff)
+grep -n "PLUTO_VERSION" "$PLUTO_DIR/Src/pluto.h"
+```
+
+A grepped fact from the checkout **overrides** any value in this SKILL.md or
+model memory. If `$PLUTO_DIR` is unset, stop and emit
+`[DATA MISSING: PLUTO_DIR not set — cannot ground physics options]` rather than
+guessing solver names or parameter counts.
+
 ## Mandatory workflow
 
 For every PLUTO task, follow this sequence:

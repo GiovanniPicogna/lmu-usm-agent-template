@@ -65,6 +65,21 @@ to the appropriate specialist agent.
 > Derive `task_id` from the `AnalyticalHandoff` filename
 > (e.g. `gap_depth_planet_mass` from `gap_depth_planet_mass_analytical_20260531.json`).
 
+> **IRON RULE 6 — No silent physics/numerics degradation.**
+> When a recommendation from `AnalyticalHandoff` is infeasible — the grid is too
+> expensive, a solver/module is unsupported by the compiled binary, a tolerance
+> is unstable — **never** silently substitute a degraded value to make the run
+> fit the budget. Changing resolution (`N_r × N_phi`), the Riemann solver or its
+> order, a physics module (self-gravity, MHD, cooling), a density/temperature
+> floor or ceiling, viscosity, or a boundary/wave-killing treatment changes the
+> physics the simulation resolves — the output then answers a *different*
+> question than the one the analytical handoff posed. If a recommended value
+> cannot be used: surface the conflict to the user, record it in
+> `SimConfigHandoff.warnings`, set `validated: false`, and require explicit
+> confirmation before writing a degraded config. Every deviation from the
+> analytical recommendation must be explicit and logged (EU AI Act Art. 14;
+> `copilot-instructions.md` §9).
+
 ---
 
 ## Anti-patterns
@@ -78,6 +93,8 @@ to the appropriate specialist agent.
 | Proceeding when `linear_regime: true` without user confirmation | Wastes HPC compute — analytical solution already covers the problem | Flag to user, ask for explicit confirmation before writing configs |
 | Using a relative executable path in the SLURM script | Cluster home directories differ from local paths; job fails at scheduler | Use absolute paths or `module load`-resolved binaries |
 | Leaving `logs/` directory uncreated | SLURM job fails immediately at scheduler level before the science code runs | Create `data/runs/<task_id>/logs/` in Step 4 before writing the script |
+| Silently halving `N_r × N_phi` because the recommended grid is "too expensive" | Changes the resolved gap depth and torque without the user knowing; the result no longer answers the science question | Surface the cost, record in `warnings`, set `validated: false`, ask before degrading (Iron Rule 6) |
+| Requesting more MPI ranks than the grid can decompose | Job fails at launch or load-imbalances; wasted allocation | Run the Core-count sanity check in Step 4: ranks must divide the grid and leave ≥ a few cells per rank |
 
 ---
 
@@ -204,6 +221,18 @@ main config file:
 Generate an HPC job script only when `hpc_mode: true` is explicitly set
 in the pipeline request or by the user. Do not auto-trigger based on
 estimated run time — the user decides what runs on HPC.
+
+**Core-count sanity (one line, before writing the script):** the total MPI rank
+count must evenly divide the grid decomposition and leave at least a few cells
+per rank. For PLUTO/FARGO3D, each decomposed dimension's cell count must be
+divisible by its process count; reject (or warn + set `validated: false`) if
+`n_cores > N_cells_total` or the grid is not evenly divisible — otherwise the
+job either fails at launch or load-imbalances and wastes the allocation.
+```python
+# Example: FARGO3D NX×NY grid over n_cores ranks (1-D split along NY)
+assert NY % n_cores == 0, f"n_cores={n_cores} does not divide NY={NY}"
+assert (NX * NY) // n_cores >= 16, "fewer than ~16 cells/rank — inefficient decomposition"
+```
 
 **SLURM template (LRZ SuperMUC-NG / generic)**:
 ```bash

@@ -53,6 +53,19 @@ If required data (output files, snapshots, run logs) is not present in the curre
 > step 2b). If missing or empty snapshots are detected, emit `[INCOMPLETE RUN: ...]`
 > and stop — never silently skip gaps in the sequence.
 
+> **IRON RULE 5 — No silent physics/numerics degradation.**
+> When a run fails, stalls, or goes unstable, **never** auto-patch the physics or
+> numerics to force it to finish: do not lower the resolution, raise `alpha` or
+> the viscosity, inflate a density/temperature floor, swap the Riemann solver for
+> a more diffusive one, widen the wave-killing zone, or disable a physics module.
+> Any of these makes the run "succeed" by answering a different physical question,
+> and silently invalidates every downstream diagnostic. Instead, report the
+> failure together with the exact parameters that caused it
+> (`copilot-instructions.md` §9) and stop. A retry is permitted only when it
+> changes a single, explicitly documented quantity that the user has confirmed —
+> degradations are never applied silently. This rule reinforces IRON RULE 2
+> (the run directory and parameter file are read-only without confirmation).
+
 ---
 
 ## Anti-patterns
@@ -66,6 +79,7 @@ If required data (output files, snapshots, run logs) is not present in the curre
 | Processing a time series with missing snapshots | Silently produces wrong time-averaged quantities | Run `check_snapshot_completeness()` first; stop on any missing/empty file |
 | Overwriting an existing HDF5 result | Destroys a previously correct result | Append a timestamp suffix or raise if the file already exists |
 | Reporting DustPy results with no grain-size or Stokes check | Maximum grain size can exceed fragmentation barrier due to numerics | Always verify `a_max < a_frag` and `St_max < 1` before reporting |
+| Raising the density floor or `alpha` to make an unstable run finish | Silently changes the physics; the "successful" run answers a different question | Stop, report the instability and the parameters that caused it; never auto-patch numerics to force completion (Iron Rule 5) |
 
 ---
 

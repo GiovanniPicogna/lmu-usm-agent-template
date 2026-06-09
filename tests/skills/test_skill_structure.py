@@ -72,3 +72,18 @@ def test_skill_references_directory_if_present(skill_dir):
         pytest.skip(f"{skill_dir.name} has no references/ directory")
     ref_files = list(refs_dir.glob("*.md"))
     assert ref_files, f"{skill_dir.name}/references/ exists but contains no .md files"
+
+
+@pytest.mark.parametrize("skill_name", ["pluto", "fargo3d"])
+def test_disk_skill_documents_source_as_context(skill_name):
+    """pluto and fargo3d skills must document the source-as-context pattern:
+    grep the actual code checkout to ground parameter names rather than relying
+    on the model's training memory.
+    """
+    content = (SKILLS_DIR / skill_name / "SKILL.md").read_text()
+    assert "source as context" in content.lower(), (
+        f"{skill_name}/SKILL.md missing the 'Source as context' section"
+    )
+    assert "grep" in content, (
+        f"{skill_name}/SKILL.md source-as-context must show a grep of the code checkout"
+    )

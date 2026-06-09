@@ -58,6 +58,35 @@ argument-hint: "Par file + parameters, e.g. 'setups/p_gap/p_gap.par Alpha=1e-3 P
 **Execution:** `fargo3d_bin` · `n_procs` · `gpu`
 Use `extra_params: {"Key": value}` for any other `.par` entry.
 
+## Source as context
+
+**Ground parameter names, setups, and defaults in the actual FARGO3D checkout —
+never recall them from training memory.** Parameter spellings, available setups,
+and boundary-condition names differ between FARGO3D versions; a hallucinated
+`.par` key is silently ignored by the code and your override never takes effect.
+Before writing or patching a `.par`, grep the checkout (`$FARGO_ROOT`, read from
+`AGENTS.md`):
+
+```bash
+# Available setups (the <setup>.par you can target)
+ls "$FARGO_ROOT/setups/"
+
+# Confirm a parameter exists and read its default for THIS setup
+grep -n -i "Alpha\|Sigma0\|AspectRatio\|FlaringIndex" \
+    "$FARGO_ROOT/setups/p_gap/p_gap.par"
+
+# C ↔ .par variable bindings and compiled defaults (authoritative)
+grep -rn "Alpha\|Sigma0\|PlanetMass" "$FARGO_ROOT/src/var.c"
+
+# Valid boundary-condition labels for this setup
+sed -n '1,40p' "$FARGO_ROOT/setups/p_gap/p_gap.bound" 2>/dev/null
+```
+
+A grepped fact from the checkout **overrides** any value in
+`references/parameters.md` or model memory. If `$FARGO_ROOT` is unset or the key
+is absent from the setup's `.par`, stop and emit
+`[DATA MISSING: parameter <name> not found in <setup>.par]` rather than guessing.
+
 ## Output
 
 ```
