@@ -157,9 +157,9 @@ def test_setup_agent_forbids_silent_degradation():
     for an infeasible analytical recommendation (no silent degradation).
     """
     content = (AGENTS_DIR / "setup-agent.agent.md").read_text()
-    assert _DEGRADATION_PHRASE in content, (
-        "setup-agent missing the 'No silent physics/numerics degradation' iron rule"
-    )
+    assert (
+        _DEGRADATION_PHRASE in content
+    ), "setup-agent missing the 'No silent physics/numerics degradation' iron rule"
 
 
 def test_simulation_agent_forbids_silent_degradation():
@@ -167,21 +167,19 @@ def test_simulation_agent_forbids_silent_degradation():
     failing run to complete (no silent degradation on failure).
     """
     content = (AGENTS_DIR / "simulation-agent.agent.md").read_text()
-    assert _DEGRADATION_PHRASE in content, (
-        "simulation-agent missing the 'No silent physics/numerics degradation' iron rule"
-    )
+    assert (
+        _DEGRADATION_PHRASE in content
+    ), "simulation-agent missing the 'No silent physics/numerics degradation' iron rule"
     # Must name at least one concrete degradation it forbids
-    assert "auto-patch" in content.lower() or "density floor" in content.lower(), (
-        "simulation-agent degradation rule must name a concrete forbidden action"
-    )
+    assert (
+        "auto-patch" in content.lower() or "density floor" in content.lower()
+    ), "simulation-agent degradation rule must name a concrete forbidden action"
 
 
 def test_setup_agent_has_core_count_sanity_check():
     """setup-agent must document a core-count / domain-decomposition sanity check."""
     content = (AGENTS_DIR / "setup-agent.agent.md").read_text()
-    assert "Core-count sanity" in content, (
-        "setup-agent missing the 'Core-count sanity' check"
-    )
-    assert "divis" in content.lower(), (
-        "core-count check must verify the grid is divisible by the rank count"
-    )
+    assert "Core-count sanity" in content, "setup-agent missing the 'Core-count sanity' check"
+    assert (
+        "divis" in content.lower()
+    ), "core-count check must verify the grid is divisible by the rank count"

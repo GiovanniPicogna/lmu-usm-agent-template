@@ -81,9 +81,9 @@ def test_disk_skill_documents_source_as_context(skill_name):
     on the model's training memory.
     """
     content = (SKILLS_DIR / skill_name / "SKILL.md").read_text()
-    assert "source as context" in content.lower(), (
-        f"{skill_name}/SKILL.md missing the 'Source as context' section"
-    )
-    assert "grep" in content, (
-        f"{skill_name}/SKILL.md source-as-context must show a grep of the code checkout"
-    )
+    assert (
+        "source as context" in content.lower()
+    ), f"{skill_name}/SKILL.md missing the 'Source as context' section"
+    assert (
+        "grep" in content
+    ), f"{skill_name}/SKILL.md source-as-context must show a grep of the code checkout"
