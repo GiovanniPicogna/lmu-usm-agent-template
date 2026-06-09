@@ -63,7 +63,7 @@ statistics appropriate, and is the result new relative to the literature?
 
 > **IRON RULE 3 — Soundness is judged against the diagnostics, not the prose.**
 > For every quantitative claim in the Results section, verify it matches
-> `AnalysisHandoff.diagnostics` (and `InterpretationHandoff.findings`).
+> `AnalysisHandoff.diagnostics` to two significant figures.
 > A claim the manuscript states but the diagnostics do not support is a
 > `major_comment`, not an accept.
 
@@ -104,6 +104,27 @@ statistics appropriate, and is the result new relative to the literature?
 > available), record this limitation in `warnings` and note which checks
 > could not be performed.
 
+> **IRON RULE 8 — Enforce information asymmetry: load raw diagnostics, not the author's reasoning.**
+> In Step 1 load only the manuscript (`manuscript.tex`), `PaperHandoff`, and
+> `AnalysisHandoff.diagnostics`. Do **not** load `InterpretationHandoff` or any
+> other file that contains the paper-agent's reasoning chain or conclusions.
+> This is information asymmetry by design: if you read the interpretation
+> agent's narrative before forming your own soundness judgment, the review is
+> anchored to the author's framing and is not independent. The referee and the
+> author run on the same model family; the only genuine source of independence
+> is re-deriving from raw data, not from the author's prose.
+> If the `InterpretationHandoff` path is handed to you, ignore it until
+> **after** Step 2 (soundness review) is complete.
+
+> **IRON RULE 9 — Run the astrophysics stats linter before filing soundness.**
+> Before completing Step 2, call the rule-based linter
+> `src/validation/astrophysics_stats_linter.run_all_checks(...)` with the
+> fit statistic, CI percentage, R-hat, and physical parameters read from
+> `AnalysisHandoff.diagnostics`. Surface any linter failures directly as
+> `major_comments` (statistic or convergence violations) or `minor_comments`
+> (CI convention, unknown parameters). Never skip this step — it is the
+> primary deterministic check against correlated self-grading.
+
 ---
 
 ## Anti-patterns
@@ -118,6 +139,8 @@ statistics appropriate, and is the result new relative to the literature?
 | Reading `interp["next_action"]` to decide routing | Referee consumes `PaperHandoff`, not `InterpretationHandoff` | Read `paper["compilation_status"]` and the manuscript sections directly |
 | Reviewing figures only from caption text when `plot_paths` is non-empty | Caption text misses axis/label mismatches, wrong time units (Myr vs Gyr), and models uncited in the bibliography | Load each figure from `AnalysisHandoff.plot_paths` with the Read tool and inspect visually in Step 1b (Iron Rule 7) |
 | Skipping the internal consistency sub-check | Numerical values, symbols, and bibliography entries can be inconsistent between text and figures without triggering LaTeX compilation errors | Run the consistency sub-check in Step 2: text values ↔ figure captions, legend symbols ↔ text symbols, caption model names ↔ bibliography |
+| Loading `InterpretationHandoff` before soundness review | Anchors the referee's judgment to the author's narrative; the review is no longer independent (information asymmetry violated, Iron Rule 8) | Complete Step 2 using only `AnalysisHandoff.diagnostics` and the manuscript; the `InterpretationHandoff` may be consulted only after soundness is assessed |
+| Skipping `astrophysics_stats_linter.run_all_checks()` | Mechanical convention checks (C-stat, CI labelling, R-hat) require no LLM judgment; skipping them lets basic errors into the accept decision | Run the linter in Step 2 before filing any soundness verdict; surface failures as `major_comments` (Iron Rule 9) |
 
 ---
 
@@ -158,15 +181,17 @@ from pathlib import Path
 
 paper = json.loads(Path("results/paper/<task_id>_<date>.json").read_text())
 
-# Referee consumes PaperHandoff — not InterpretationHandoff
+# Referee consumes PaperHandoff — not InterpretationHandoff.
+# Iron Rule 8 (information asymmetry): do NOT load InterpretationHandoff here.
+# The referee must re-derive soundness from raw diagnostics independently.
 assert paper["schema"] == "PaperHandoff/v1", "[DATA MISSING: expected a PaperHandoff]"
 
 manuscript = Path(paper["manuscript_tex"])
 assert manuscript.exists(), "[DATA MISSING: manuscript path]"
 
-# Upstream evidence for the soundness cross-check
-interp = json.loads(Path("results/interpretation/<task_id>_<date>.json").read_text())
+# Load raw diagnostics only — this is the sole evidence source for Step 2.
 analysis = json.loads(Path("results/analysis/<task_id>_<date>.json").read_text())
+diagnostics = analysis["diagnostics"]
 ```
 
 Detect the revision round: if a prior `results/referee/<task_id>_referee_*.json`
@@ -192,13 +217,30 @@ legend symbols, axis labels, and time units against the manuscript text.
 
 ### Step 2 — Soundness review
 
+*Evidence source: `diagnostics` loaded in Step 1. Do not consult
+`InterpretationHandoff` until this step is complete (Iron Rule 8).*
+
+Run the astrophysics stats linter first (Iron Rule 9):
+```python
+from src.validation.astrophysics_stats_linter import run_all_checks
+checks = run_all_checks(
+    statistic=diagnostics.get("fit_statistic", "unknown"),
+    counts_per_bin=diagnostics.get("counts_per_bin", 100.0),
+    ci_pct=diagnostics.get("ci_pct", 68.0),
+    ci_domain=diagnostics.get("ci_domain", "general"),
+    r_hat_max=diagnostics.get("r_hat_max", 1.0),
+    physical_params=diagnostics.get("physical_params", {}),
+)
+# Linter failures → major_comments (statistic/convergence) or minor_comments (CI convention)
+```
+
 Read the Methods and Results sections. Assess:
 - `methods_valid` — is the simulation/retrieval/fit setup appropriate for the
   science question? Are code, resolution, and physical assumptions stated?
 - `results_supported` — does every quantitative claim match
   `AnalysisHandoff.diagnostics` to two significant figures? (Iron Rule 3.)
-- `stats_appropriate` — correct statistic and confidence convention
-  (C-stat for low-count X-ray, 90 % vs 68 % intervals, 1σ posteriors)?
+- `stats_appropriate` — correct statistic and confidence convention;
+  use linter results above, do not re-derive from memory.
 
 Record failures as `soundness.comments` and, if material, `major_comments`.
 

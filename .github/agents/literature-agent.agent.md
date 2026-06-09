@@ -52,6 +52,37 @@ the NASA ADS. You do NOT write scientific text or generate analysis code.
 > Derive `task_id` as a short `snake_case` label from the user's request
 > (e.g. `ism_sloshing`, `gap_depth_review`).
 
+> **IRON RULE 4 — Verify claims against retrieved source text (hard citations).**
+> A genuine ADS bibcode does **not** make the prose claim attached to it true.
+> The worst pipeline failure mode is a verified DOI lending false authority to
+> a hallucinated finding.  When the calling agent supplies a claim to be
+> grounded in a specific paper, retrieve the source text and call the
+> citation verifier before returning the citation:
+>
+> ```python
+> from src.validation.citation_verifier import verify_claim_against_source
+>
+> # abstract_text: retrieved via ads_library_documents or the ADS abstract field
+> result = verify_claim_against_source(
+>     bibcode="2020A&A...641A...1P",
+>     claim="The spectral index is n_s = 0.965",
+>     source_text=abstract_text,
+>     provenance="abstract_only",   # or "full_text" when available
+> )
+> ```
+>
+> Rules:
+> - If `result.verified is True`: return the citation with
+>   `evidence_span` and `provenance` included in the output.
+> - If `result.verified is False`: emit
+>   `[DATA MISSING: CLAIM NOT GROUNDED — <bibcode> — similarity={result.similarity:.2f}]`
+>   and ask the user to supply the correct source passage.  Never silently
+>   attach an unverified claim to a bibcode.
+> - `provenance="abstract_only"` is an honest cap: if full text is unavailable,
+>   state this explicitly — do not imply full-text grounding.
+> - ADS `ads_library_documents` returns full text for open-access articles;
+>   for closed-access papers the abstract is the ceiling.
+
 ---
 
 ## Anti-patterns
@@ -222,5 +253,18 @@ DOI:        <doi>
 BibTeX key: <AuthorYYYY>
 Status:     ADDED | SKIPPED (already present) | RENAMED (key collision → AuthorYYYYa)
 ```
+
+When a claim was verified against source text (Iron Rule 4), add:
+
+```
+Claim:       <stated claim>
+Verified:    true | false
+Provenance:  full_text | abstract_only | ungrounded
+Evidence:    "<evidence_span — verbatim passage from retrieved text>"
+Similarity:  <0.0–1.0>
+```
+
+If `verified: false`, emit `[DATA MISSING: CLAIM NOT GROUNDED — <bibcode>]`
+instead of the evidence block and do not attach the claim to the citation.
 
 Then confirm the bibliography path and total entries added.
