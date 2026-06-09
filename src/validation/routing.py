@@ -9,8 +9,11 @@ from src.validation.handoff_models import (
     InterpretationHandoff,
     NextAction,
     RefereeHandoff,
+    RefereeNextAction,
     SimulationHandoff,
 )
+
+DEFAULT_MAX_REVISION_ROUNDS = 3
 
 
 class GateNotConfirmedError(Exception):
@@ -46,6 +49,40 @@ def check_gate_3(handoff: RefereeHandoff) -> None:
             "Gate 3 not confirmed: human_gate_3_confirmed must be True "
             "before the pipeline can finalise or revise the manuscript."
         )
+
+
+def referee_loop_decision(
+    handoff: RefereeHandoff, max_revision_rounds: int = DEFAULT_MAX_REVISION_ROUNDS
+) -> str:
+    """Decide what follows a referee review (Gate 3 restructure).
+
+    The paper-agent <-> referee-agent revision loop runs autonomously and
+    bounded; the human (Gate 3) is consulted only once, on the converged draft,
+    never inside the per-round loop.
+
+    Parameters
+    ----------
+    handoff : RefereeHandoff
+        The latest referee review.
+    max_revision_rounds : int
+        Hard cap on autonomous revision rounds before escalating to the human.
+
+    Returns
+    -------
+    str
+        ``'revise_autonomous'`` when the referee requested a revision and the
+        round budget is not exhausted: loop back to ``@paper-agent`` WITHOUT a
+        human gate. ``'human_gate_3'`` when the draft has converged (referee
+        recommends accept), the referee recommends reject, or the revision
+        budget is exhausted: escalate to the human for the single Gate 3
+        accept/revise/reject decision.
+    """
+    if (
+        handoff.next_action == RefereeNextAction.revise
+        and handoff.revision_round < max_revision_rounds
+    ):
+        return "revise_autonomous"
+    return "human_gate_3"
 
 
 def check_no_data_missing(data: Any) -> None:

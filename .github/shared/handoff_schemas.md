@@ -230,6 +230,14 @@ Consumed by `@hypothesis-agent` (if `next_action: iterate`) or directly returned
   "plausibility_flags": ["<string>"],
   "caveats": ["<string>"],
   "followup_suggestions": ["<string>"],
+  "skeptic_review": [
+    {
+      "objection": "<string — adversarial challenge raised in Step 5.5>",
+      "category": "<numerical_artifact | degeneracy | alternative_mechanism | benchmark_conflict | statistical_not_physical | selection_effect>",
+      "grounding_ref": "<string — AnalysisHandoff diagnostic key, AnalyticalHandoff benchmark, or ADS bibcode>",
+      "resolution": "<dismissed | mitigated | upheld>"
+    }
+  ],
   "next_action": "<iterate | write | mcmc | stop | abort>",
   "abort_reason": "<string | null — required when next_action is abort>",
   "human_gate_2_confirmed": "<bool>",
@@ -246,6 +254,9 @@ Consumed by `@hypothesis-agent` (if `next_action: iterate`) or directly returned
   Never stop on refuted hypotheses without iteration or explicit abort.
 - `next_action: abort` requires a non-null `abort_reason` and triggers writing
   `results/<task_id>/abort_report.json` (see pipeline-agent Stage 9 abort path).
+- `skeptic_review` (Step 5.5 / IRON RULE 6): each objection's `grounding_ref`
+  must be non-empty. `next_action: write` requires ≥ 2 objections, and an
+  `upheld` objection forbids `next_action: write` (resolve or downgrade first).
 
 ---
 
@@ -482,5 +493,10 @@ compiled manuscript. Consumed by `@pipeline-agent` (Human Gate 3) and, when
 - `human_gate_3_confirmed` must be `true` before the user makes the final
   decision. Emit as `false`; update to `true` after explicit user confirmation.
 - `overall_score < 5.0` requires a human review before the pipeline finishes on `accept`.
-- `revision_round` increments by 1 each time the same `task_id` is re-reviewed;
-  `@pipeline-agent` warns the user after `revision_round` reaches 2 (bounded loop).
+- `revision_round` increments by 1 each time the same `task_id` is re-reviewed.
+  The paper↔referee revision loop is **autonomous and bounded**:
+  `routing.referee_loop_decision` returns `revise_autonomous` while
+  `next_action: revise` and `revision_round < cap` (default 3) — the manuscript
+  re-drafts and re-reviews **without** a human gate. Human Gate 3 fires **once**,
+  on the converged draft (referee `accept`/`reject`, or the cap is reached);
+  `@pipeline-agent` warns the user when the cap is reached.

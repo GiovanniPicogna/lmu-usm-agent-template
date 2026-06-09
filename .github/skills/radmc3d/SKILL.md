@@ -354,7 +354,7 @@ radmc3d image iline 2 imolspec 1 widthkms 10 linenlam 40 incl 25 npix 200 sizeau
 
 ---
 
-## Mandatory Workflow
+## Mandatory workflow
 
 For every RADMC-3D task, follow this sequence:
 
@@ -367,7 +367,7 @@ For every RADMC-3D task, follow this sequence:
 
 ---
 
-## Iron Rules
+## Iron rules
 
 - Always run `mctherm` before thermal imaging — `dust_temperature.dat` must exist.
 - Use a validated dust opacity table (DSHARP preferred); never invent opacity values.
@@ -375,6 +375,7 @@ For every RADMC-3D task, follow this sequence:
 - Match `scattering_mode_max` to the opacity file type (see table above).
 - Both `radmc3d sed` and `radmc3d spectrum` write output to `spectrum.out` — not `sed.out`.
 - Do not trigger this skill for hydrodynamics — use `pluto`, `fargo3d`, or `dustpy`.
+- Treat input hydro density grids (PLUTO/FARGO3D/DustPy outputs) as read-only — never modify upstream snapshots.
 - Never overwrite existing `image.out` or `dust_temperature.dat` without user confirmation.
 - RADMC-3D uses CGS units internally; use `astropy.units` for all conversions.
 - Never hardcode distance in pc or source coordinates — accept them as parameters.

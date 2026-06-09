@@ -176,6 +176,20 @@ def interpretation_valid_data():
         "plausibility_flags": [],
         "caveats": [],
         "followup_suggestions": [],
+        "skeptic_review": [
+            {
+                "objection": "Gap depth could be resolution-dependent in a single run.",
+                "category": "numerical_artifact",
+                "grounding_ref": "gap_depth",
+                "resolution": "dismissed",
+            },
+            {
+                "objection": "A lower-mass planet at a different radius could mimic this gap depth.",
+                "category": "degeneracy",
+                "grounding_ref": "2016A&A...594A.116H",
+                "resolution": "mitigated",
+            },
+        ],
         "next_action": "write",
         "abort_reason": None,
         "human_gate_2_confirmed": False,

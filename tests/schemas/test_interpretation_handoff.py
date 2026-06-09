@@ -78,3 +78,71 @@ def test_invalid_next_action_rejected(interpretation_valid_data):
     interpretation_valid_data["next_action"] = "publish"
     with pytest.raises(ValidationError):
         InterpretationHandoff.model_validate(interpretation_valid_data)
+
+
+# ── Adversarial skeptic round (Step 5.5 / IRON RULE 6) ────────────────────────
+
+
+def _skeptic_objection(
+    resolution="dismissed",
+    grounding_ref="gap_depth",
+    category="numerical_artifact",
+):
+    """Build a single skeptic objection dict for test fixtures."""
+    return {
+        "objection": "Gap depth may be resolution-dependent.",
+        "category": category,
+        "grounding_ref": grounding_ref,
+        "resolution": resolution,
+    }
+
+
+def test_write_requires_completed_skeptic_round(interpretation_valid_data):
+    from src.validation.handoff_models import InterpretationHandoff
+
+    interpretation_valid_data["skeptic_review"] = []
+    with pytest.raises(ValidationError, match="skeptic round"):
+        InterpretationHandoff.model_validate(interpretation_valid_data)
+
+
+def test_upheld_objection_blocks_write(interpretation_valid_data):
+    from src.validation.handoff_models import InterpretationHandoff
+
+    interpretation_valid_data["skeptic_review"] = [
+        _skeptic_objection(resolution="upheld"),
+        _skeptic_objection(resolution="dismissed", category="degeneracy"),
+    ]
+    with pytest.raises(ValidationError, match="upheld"):
+        InterpretationHandoff.model_validate(interpretation_valid_data)
+
+
+def test_skeptic_objection_requires_grounding(interpretation_valid_data):
+    from src.validation.handoff_models import InterpretationHandoff
+
+    # next_action='iterate' isolates the grounding rule from the write rule.
+    interpretation_valid_data["next_action"] = "iterate"
+    interpretation_valid_data["skeptic_review"] = [_skeptic_objection(grounding_ref="  ")]
+    with pytest.raises(ValidationError, match="grounded"):
+        InterpretationHandoff.model_validate(interpretation_valid_data)
+
+
+def test_upheld_objection_allowed_when_iterating(interpretation_valid_data):
+    from src.validation.handoff_models import InterpretationHandoff
+
+    interpretation_valid_data["next_action"] = "iterate"
+    interpretation_valid_data["skeptic_review"] = [_skeptic_objection(resolution="upheld")]
+    i = InterpretationHandoff.model_validate(interpretation_valid_data)
+    assert len(i.skeptic_review) == 1
+    assert i.skeptic_review[0].resolution.value == "upheld"
+
+
+def test_valid_write_with_skeptic_round_parses(interpretation_valid_data):
+    from src.validation.handoff_models import InterpretationHandoff
+
+    interpretation_valid_data["skeptic_review"] = [
+        _skeptic_objection(resolution="dismissed"),
+        _skeptic_objection(resolution="mitigated", category="alternative_mechanism"),
+    ]
+    i = InterpretationHandoff.model_validate(interpretation_valid_data)
+    assert len(i.skeptic_review) == 2
+    assert i.skeptic_review[0].category.value == "numerical_artifact"

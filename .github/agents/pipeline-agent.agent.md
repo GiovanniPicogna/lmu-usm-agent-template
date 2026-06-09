@@ -80,13 +80,18 @@ SIMULATE → ANALYSE → INTERPRET → [iterate or WRITE]**
 > pause the pipeline, report the failure to the user, and wait for
 > resolution before proceeding.
 
-> **IRON RULE 5 — Human Gate 3 (after REFEREE).**
-> Never finish the pipeline or route a revision without explicit user
-> confirmation of `RefereeHandoff.next_action`. After the user confirms, set
-> `human_gate_3_confirmed: true` in the saved handoff before routing. On
-> `revise`, pass the `RefereeHandoff` path to `@paper-agent` (revision mode);
-> on `accept`, finish; on `reject`, write `abort_report.json`. Warn the user
-> once `revision_round` reaches 2 (bounded loop).
+> **IRON RULE 5 — Human Gate 3 fires once, on the converged draft.**
+> The paper↔referee revision loop is **autonomous and bounded**: call
+> `src.validation.routing.referee_loop_decision(handoff)`. On
+> `revise_autonomous` (referee `next_action: revise` and
+> `revision_round < cap`), re-invoke `@paper-agent` in revision mode and
+> re-review **without** pausing for the user — this is intra-stage iteration,
+> not a gate. Only on `human_gate_3` (referee `accept`/`reject`, or the
+> `revision_round` cap is reached) do you PAUSE: present the converged draft +
+> `referee_review.md` and require explicit confirmation before setting
+> `human_gate_3_confirmed: true`, finishing, or writing `abort_report.json`.
+> Never finish or `reject` autonomously. Default cap = 3; warn the user when
+> the cap is reached.
 
 ---
 
@@ -126,7 +131,8 @@ Stage 8b  ABORT         → write abort_report.json (fundamental blocker)
 Stage 8c  MCMC          → @mcmc-agent (if next_action: mcmc)
 Stage 9   WRITE         → @paper-agent (if next_action: write or after Stage 8c)
 Stage 10  REFEREE       → @referee-agent     →  RefereeHandoff
-          ──────────── HUMAN GATE 3 ────────────────────────────────
+Stage 10a REVISE LOOP    → revise & round < cap → Stage 9 (autonomous, no gate)
+          ──────────── HUMAN GATE 3 (once, on the converged draft) ──
           accept → DONE   |   revise → Stage 9 (revision mode)   |   reject → abort
 ```
 
@@ -354,25 +360,35 @@ On receipt of `PaperHandoff/v1`:
 - Record `paper_dir`, `manuscript_pdf`, and `referee_score` in the prompt log.
 - Proceed immediately to Stage 10 (REFEREE) — do NOT finish here.
 
-### Stage 10 — REFEREE + Human Gate 3
+### Stage 10 — REFEREE (autonomous revise loop) + Human Gate 3
 
-Invoke `@referee-agent` with the `PaperHandoff` path as its sole argument.
-Collect `RefereeHandoff`. Present the recommendation, novelty verdict, and
-`overall_score` to the user.
+Invoke `@referee-agent` with the `PaperHandoff` path as its sole argument and
+collect the `RefereeHandoff`. Then decide routing with the deterministic helper
+— do not eyeball it:
 
-**PAUSE — Human Gate 3.**
-Ask: "The referee recommends [recommendation] (score [overall_score]/9,
-novelty: [verdict]). Major comments: [N]. Proceed to [accept / revise / reject]?"
-Do NOT proceed until the user confirms. Then set
-`human_gate_3_confirmed: true` in the saved `RefereeHandoff` JSON.
+```python
+from src.validation.routing import referee_loop_decision
+decision = referee_loop_decision(referee_handoff)  # default cap = 3
+```
 
-Route by `next_action`:
+**If `decision == "revise_autonomous"`** (referee `next_action: revise` and
+`revision_round < cap`): re-invoke `@paper-agent` in revision mode with **both**
+the `InterpretationHandoff` and `RefereeHandoff` paths, then return to Stage 10
+for a re-review. **Do NOT pause for the user** — this bounded loop is autonomous
+intra-stage iteration, not a gate. Record each `revision_round` in the log.
+
+**If `decision == "human_gate_3"`** (referee `accept`/`reject`, or the
+`revision_round` cap is reached): this is the converged draft.
+
+**PAUSE — Human Gate 3 (fires once).**
+Ask: "After [revision_round] revision round(s), the referee recommends
+[recommendation] (score [overall_score]/9, novelty: [verdict], major comments:
+[N]) on the converged draft. Proceed to [accept / revise / reject]?"
+Do NOT proceed until the user confirms. Then set `human_gate_3_confirmed: true`
+in the saved `RefereeHandoff` JSON and route by the user's decision:
 - `accept`: finish the pipeline; record `paper_dir` and `overall_score` in the log.
-- `revise`: re-invoke `@paper-agent` with **both** the `InterpretationHandoff`
-  and the `RefereeHandoff` paths (revision mode). After paper-agent re-emits a
-  `PaperHandoff`, return to Stage 10 for a re-review. Track `revision_round`;
-  warn the user once it reaches 2 and ask whether to accept-as-is, continue,
-  or abort.
+- `revise`: re-invoke `@paper-agent` (revision mode); return to Stage 10. If the
+  cap was already reached, the user is explicitly authorising another round.
 - `reject`: write `results/<task_id>/abort_report.json` with
   `abort_reason = RefereeHandoff.reject_reason`, then stop.
 

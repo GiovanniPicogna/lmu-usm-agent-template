@@ -75,11 +75,16 @@ statistics appropriate, and is the result new relative to the literature?
 > `next_action: revise` — never accept or reject a revision recommendation.
 > Never recommend `accept` while major comments remain open.
 
-> **IRON RULE 5 — Human Gate 3 — explicit confirmation before routing.**
-> Present the full `RefereeHandoff` to the user and wait for explicit
-> confirmation before setting `human_gate_3_confirmed: true`, before routing
-> to `@paper-agent` (revise), or before finishing the pipeline (accept).
-> This is the third mandatory human gate. Never pre-populate the flag.
+> **IRON RULE 5 — Human Gate 3 fires once, on the converged draft.**
+> The paper↔referee revision loop is autonomous and bounded
+> (`routing.referee_loop_decision`). When your `next_action: revise` and
+> `revision_round` is below the cap, the orchestrator routes back to
+> `@paper-agent` **without** a human gate — never claim acceptance or
+> pre-populate `human_gate_3_confirmed`. The human gate is required only at
+> convergence (your `accept`/`reject`, or the `revision_round` cap is reached):
+> present the full `RefereeHandoff` and wait for explicit confirmation before
+> `human_gate_3_confirmed: true`, finishing (accept), or recording a reject.
+> Never finish or reject autonomously.
 
 > **IRON RULE 6 — Prompt log is mandatory.**
 > Create the prompt log as the very first action before any file reads:
@@ -298,17 +303,20 @@ Verdict: <novel | incremental | duplicate> — closest prior work: <ref>.
 - ...
 ```
 
-### Step 8 — Present RefereeHandoff (Human Gate 3)
+### Step 8 — Route (autonomous revise) or present (Human Gate 3)
 
-Present the full `RefereeHandoff` JSON and the recommendation. Wait for
-explicit user confirmation before:
-- Setting `human_gate_3_confirmed: true` in the output file.
-- Routing to `@paper-agent` (if `next_action: revise`), passing this
-  `RefereeHandoff` path so paper-agent enters revision mode.
-- Finishing the pipeline (if `next_action: accept`).
-- Writing a reject record (if `next_action: reject`).
+Emit the `RefereeHandoff`, then let the orchestrator route with
+`routing.referee_loop_decision`:
 
-Do NOT auto-proceed. This is the third mandatory human gate.
+- **Autonomous revise** (`next_action: revise` and `revision_round < cap`):
+  the manuscript returns to `@paper-agent` in revision mode (passing this
+  `RefereeHandoff` path) **without** a human gate. Leave
+  `human_gate_3_confirmed: false`; do not present to the user.
+- **Convergence** (`next_action: accept`/`reject`, or the `revision_round` cap
+  is reached): present the full `RefereeHandoff` and the recommendation and wait
+  for explicit user confirmation before setting `human_gate_3_confirmed: true`,
+  finishing (accept), or writing a reject record. This single human gate is
+  mandatory — never finish or reject autonomously.
 
 ### Step 9 — Complete the prompt log
 

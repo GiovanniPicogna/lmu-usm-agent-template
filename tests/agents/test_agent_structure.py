@@ -92,3 +92,22 @@ def test_agent_does_not_contain_unfilled_placeholders(agent_file):
     # <YYYYMMDD> is an intentional date-format token in output path templates, not a placeholder
     placeholders = [p for p in raw if p.strip("<>") not in _DATE_FORMAT_TOKENS]
     assert not placeholders, f"{agent_file.name} contains unfilled placeholders: {placeholders}"
+
+
+SKEPTIC_CATEGORIES = (
+    "numerical_artifact",
+    "degeneracy",
+    "alternative_mechanism",
+    "benchmark_conflict",
+    "statistical_not_physical",
+    "selection_effect",
+)
+
+
+def test_interpretation_agent_documents_skeptic_round():
+    """interpretation-agent must define the adversarial skeptic round (Step 5.5)."""
+    content = (AGENTS_DIR / "interpretation-agent.agent.md").read_text()
+    assert "IRON RULE 6" in content, "interpretation-agent missing IRON RULE 6 (skeptic round)"
+    assert "Step 5.5" in content, "interpretation-agent missing Step 5.5 (skeptic round)"
+    for category in SKEPTIC_CATEGORIES:
+        assert category in content, f"skeptic taxonomy missing '{category}' in interpretation-agent"

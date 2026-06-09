@@ -58,7 +58,8 @@ flowchart TD
     MC -->|"MCMCHandoff/v1\n→ recorded as mcmc_ref\nin InterpretationHandoff"| WR["@paper-agent"]
     GATE2 -->|write| WR
     WR -->|PaperHandoff/v1| REF["@referee-agent"]
-    REF -->|RefereeHandoff/v1| GATE3{{⚠ Human Gate 3\naccept / revise / reject}}
+    REF -->|"revise & round < cap\nautonomous — no human"| WR
+    REF -->|"accept / reject / cap reached\nRefereeHandoff/v1"| GATE3{{⚠ Human Gate 3\naccept / revise / reject\non the converged draft}}
     GATE3 -->|accept| DONE([Done])
     GATE3 -->|revise| WR
     GATE3 -->|reject| AB([abort_report.json])
@@ -93,7 +94,8 @@ flowchart TD
 | 8c MCMC | `@mcmc-agent` (optional) | `MCMCHandoff/v1` → path recorded as `mcmc_ref` in InterpretationHandoff |
 | 9 WRITE | `@paper-agent` | `paper/<task_id>_<date>/manuscript.pdf` + `referee_notes.md` |
 | 10 REFEREE | `@referee-agent` | `results/referee/<task_id>_<date>.json` + `referee_review.md` |
-| **Gate 3** | User | Confirm: accept / revise / reject |
+| 10a REVISE (autonomous) | `@paper-agent` ↔ `@referee-agent` | Bounded loop: on `revise` with `revision_round < cap`, re-draft and re-review **without** a human gate (`routing.referee_loop_decision`) |
+| **Gate 3** | User | Fires **once**, on the converged draft (referee `accept`/`reject`, or revision cap reached). Confirm: accept / revise / reject |
 
 ---
 

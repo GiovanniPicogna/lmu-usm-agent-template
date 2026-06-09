@@ -68,6 +68,17 @@ You do NOT run new simulations or produce new figures.
 > Derive `task_id` as a short `snake_case` label from the handoff filename
 > (e.g. `gap_depth_planet_mass` from `gap_depth_planet_mass_analysis_20260531.json`).
 
+> **IRON RULE 6 — Adversarial skeptic round is mandatory and grounded.**
+> Before assigning confidence (Step 6) you MUST run the skeptic round
+> (Step 5.5): raise at least 2 objections, each tagged with a category and
+> anchored to a concrete `grounding_ref` — an `AnalysisHandoff` diagnostic
+> key, an `AnalyticalHandoff` benchmark expression, or an ADS bibcode.
+> Ungrounded objections are discarded. Dismissing every objection without a
+> grounded reason is forbidden (anti-sycophancy, mirrors the hypothesis-agent
+> `novelty_score=1.0` rule). If any objection is `upheld`, no affected finding
+> may be `confidence: high` and `next_action` must not be `write` until it is
+> resolved or downgraded.
+
 ---
 
 ## Anti-patterns
@@ -83,6 +94,8 @@ You do NOT run new simulations or produce new figures.
 | Setting `next_action: abort` without writing `abort_report.json` | Pipeline silently terminates with no audit trail (copilot-instructions.md §10) | Always write `results/<task_id>/abort_report.json` before stopping |
 | Starting file reads before creating the prompt log | Breaks reproducibility audit trail | Step 0 (prompt log) must be the very first action |
 | Skipping `AnalyticalHandoff` when its path is not in `simulation_ref` chain | Agent cannot assess nonlinear triggers or analytical comparison | Ask the user for the `AnalyticalHandoff` path before proceeding |
+| Raising a skeptic objection with no `grounding_ref` ("maybe it's a numerical artifact") | Ungrounded doubt is noise — two correlated opinions, not a check | Anchor every objection to a diagnostic value, benchmark, or ADS bibcode, or discard it |
+| Dismissing all skeptic objections to reach `next_action: write` | Rubber-stamp skepticism defeats the round (mirrors `novelty_score=1.0`) | Engage each objection; an `upheld` one blocks `write` and caps confidence |
 
 ---
 
@@ -206,6 +219,43 @@ This is mandatory — do not skip even if the result seems obvious.
 - `partial`: ≥ 1 observable confirmed, ≥ 1 discrepant (20–50 % range).
 - `refuted`: primary predicted observable disagrees by > 3σ or > 50 %.
 
+### Step 5.5 — Adversarial skeptic round
+
+Before assigning confidence, challenge your own interpretation. Adopt a
+skeptic stance, raise **2–4 objections**, then respond to each. This directly
+targets the documented failure mode where a statistically good result is
+physically wrong (Stargazer; see `ARCHITECTURE.md`).
+
+Each objection must:
+
+1. **Fall in one taxonomy category:**
+   - `numerical_artifact` — is the result resolution- or convergence-dependent?
+     a single run with no convergence test?
+   - `degeneracy` — could a different parameter combination reproduce the same
+     observable (right number, wrong physics)?
+   - `alternative_mechanism` — is a different physical cause equally consistent
+     with the diagnostic and the literature?
+   - `benchmark_conflict` — does the result actually contradict the
+     `AnalyticalHandoff` prediction in a way being explained away?
+   - `statistical_not_physical` — is the agreement only within error bars, or
+     physically vacuous?
+   - `selection_effect` — did the analysis mask a region/snapshot
+     (`AnalysisHandoff.warnings`) that would change the conclusion?
+2. **Cite a `grounding_ref`:** an `AnalysisHandoff` diagnostic key, an
+   `AnalyticalHandoff` benchmark expression, or an ADS bibcode. Objections you
+   cannot ground are discarded, not recorded.
+3. **Be resolved** as one of:
+   - `dismissed` — refuted with a grounded counter-argument.
+   - `mitigated` — partly valid; add a corresponding entry to `caveats`.
+   - `upheld` — stands. An upheld objection forces `next_action: iterate`
+     (or `mcmc`/`stop`) and forbids `confidence: high` for the affected finding.
+
+Record every kept objection in `skeptic_review` as
+`{objection, category, grounding_ref, resolution}`. Raise at least 2 grounded
+objections in distinct categories; dismissing all of them without grounded
+reasons is forbidden (IRON RULE 6). The resolutions feed Step 6 (confidence)
+and Step 7 (`next_action`).
+
 ### Step 6 — Assign confidence per finding
 
 For each entry in `findings`, set `confidence` using these criteria:
@@ -299,6 +349,14 @@ Save to `results/interpretation/<task_id>_interpretation_<YYYYMMDD>.json`:
   "plausibility_flags": [],
   "caveats": ["<string — may source from AnalysisHandoff.warnings>"],
   "followup_suggestions": [],
+  "skeptic_review": [
+    {
+      "objection": "<string — the adversarial challenge>",
+      "category": "<numerical_artifact|degeneracy|alternative_mechanism|benchmark_conflict|statistical_not_physical|selection_effect>",
+      "grounding_ref": "<diagnostic key | benchmark expression | ADS bibcode>",
+      "resolution": "<dismissed|mitigated|upheld>"
+    }
+  ],
   "next_action": "<iterate|write|mcmc|stop|abort>",
   "abort_reason": null,
   "human_gate_2_confirmed": false,
@@ -313,3 +371,6 @@ Save to `results/interpretation/<task_id>_interpretation_<YYYYMMDD>.json`:
 - `hypothesis_ref` — integer index matching `HypothesisHandoff.hypotheses[N]`; required by paper-agent.
 - `bibliography_bib` — path to `.bib` file; passed to paper-agent via handoff.
 - `human_gate_2_confirmed` — set to `true` only after explicit user confirmation in this session.
+- `skeptic_review` — the Step 5.5 adversarial round; ≥ 2 grounded objections are
+  required when `next_action: write`, and an `upheld` objection forbids `write`
+  (enforced by `InterpretationHandoff` validators in `src/validation/handoff_models.py`).

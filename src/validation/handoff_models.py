@@ -429,6 +429,50 @@ class Finding(BaseModel):
     literature_refs: list[str]
 
 
+class SkepticCategory(str, Enum):
+    """Taxonomy of adversarial objections raised during the skeptic round."""
+
+    numerical_artifact = "numerical_artifact"
+    degeneracy = "degeneracy"
+    alternative_mechanism = "alternative_mechanism"
+    benchmark_conflict = "benchmark_conflict"
+    statistical_not_physical = "statistical_not_physical"
+    selection_effect = "selection_effect"
+
+
+class SkepticResolution(str, Enum):
+    """Outcome of a skeptic objection after the agent responds to it."""
+
+    dismissed = "dismissed"
+    mitigated = "mitigated"
+    upheld = "upheld"
+
+
+class SkepticObjection(BaseModel):
+    """A single grounded adversarial objection from the interpretation skeptic round.
+
+    Every objection must be anchored (IRON RULE 6) to a concrete diagnostic key,
+    an analytical-benchmark expression, or an ADS bibcode — never an ungrounded
+    doubt. ``grounding_ref`` carries that anchor.
+    """
+
+    objection: str
+    category: SkepticCategory
+    grounding_ref: str
+    resolution: SkepticResolution
+
+    @field_validator("grounding_ref")
+    @classmethod
+    def grounding_ref_nonempty(cls, v: str) -> str:
+        """Objections must be grounded: reject an empty/blank grounding_ref."""
+        if not v.strip():
+            raise ValueError(
+                "skeptic objections must be grounded: grounding_ref must reference a "
+                "diagnostic key, analytical benchmark, or ADS bibcode (got empty value)"
+            )
+        return v
+
+
 class InterpretationHandoff(BaseModel):
     """InterpretationHandoff/v1 — emitted by @interpretation-agent after Gate 2.
 
@@ -450,6 +494,7 @@ class InterpretationHandoff(BaseModel):
     plausibility_flags: list[str] = []
     caveats: list[str] = []
     followup_suggestions: list[str] = []
+    skeptic_review: list[SkepticObjection] = []
     next_action: NextAction
     abort_reason: Optional[str] = None
     human_gate_2_confirmed: bool
@@ -482,6 +527,32 @@ class InterpretationHandoff(BaseModel):
         """next_action='abort' requires a non-null abort_reason."""
         if self.next_action == NextAction.abort and self.abort_reason is None:
             raise ValueError("abort_reason is required when next_action is 'abort'")
+        return self
+
+    @model_validator(mode="after")
+    def write_requires_skeptic_round(self) -> "InterpretationHandoff":
+        """next_action='write' requires a completed skeptic round (IRON RULE 6).
+
+        At least 2 grounded objections must have been raised before a result can
+        be routed to the paper-agent.
+        """
+        if self.next_action == NextAction.write and len(self.skeptic_review) < 2:
+            raise ValueError(
+                "next_action='write' requires a completed skeptic round "
+                "(at least 2 grounded objections in skeptic_review)"
+            )
+        return self
+
+    @model_validator(mode="after")
+    def upheld_objection_blocks_write(self) -> "InterpretationHandoff":
+        """An unresolved (upheld) skeptic objection forbids next_action='write'."""
+        if self.next_action == NextAction.write and any(
+            o.resolution == SkepticResolution.upheld for o in self.skeptic_review
+        ):
+            raise ValueError(
+                "an upheld skeptic objection forbids next_action='write'; "
+                "set next_action='iterate' or resolve the objection first"
+            )
         return self
 
 

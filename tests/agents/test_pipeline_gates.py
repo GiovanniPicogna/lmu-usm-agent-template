@@ -139,3 +139,50 @@ def test_abort_path_raises_on_non_abort(interpretation_valid_data):
     handoff = InterpretationHandoff.model_validate(interpretation_valid_data)
     with pytest.raises(ValueError, match="non-abort"):
         check_abort_path(handoff, Path("/tmp"))
+
+
+# ── Gate 3 restructure: autonomous, bounded paper↔referee loop ────────────────
+
+
+def _referee(referee_valid_data, **overrides):
+    from src.validation.handoff_models import RefereeHandoff
+
+    return RefereeHandoff.model_validate({**referee_valid_data, **overrides})
+
+
+def test_referee_loop_revises_autonomously_within_budget(referee_valid_data):
+    from src.validation.routing import referee_loop_decision
+
+    handoff = _referee(referee_valid_data, next_action="revise", revision_round=1)
+    assert referee_loop_decision(handoff, max_revision_rounds=3) == "revise_autonomous"
+
+
+def test_referee_loop_escalates_to_human_when_budget_exhausted(referee_valid_data):
+    from src.validation.routing import referee_loop_decision
+
+    handoff = _referee(referee_valid_data, next_action="revise", revision_round=3)
+    assert referee_loop_decision(handoff, max_revision_rounds=3) == "human_gate_3"
+
+
+def test_referee_loop_escalates_to_human_on_accept(referee_valid_data):
+    from src.validation.routing import referee_loop_decision
+
+    handoff = _referee(
+        referee_valid_data,
+        recommendation="accept",
+        next_action="accept",
+        major_comments=[],
+    )
+    assert referee_loop_decision(handoff) == "human_gate_3"
+
+
+def test_referee_loop_escalates_to_human_on_reject(referee_valid_data):
+    from src.validation.routing import referee_loop_decision
+
+    handoff = _referee(
+        referee_valid_data,
+        recommendation="reject",
+        next_action="reject",
+        reject_reason="Fatal methodological flaw in the gap-depth definition.",
+    )
+    assert referee_loop_decision(handoff) == "human_gate_3"
