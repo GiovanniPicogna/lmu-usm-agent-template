@@ -112,9 +112,7 @@ def test_provenance_caller_supplied_abstract_only():
 
 def test_provenance_caller_supplied_full_text():
     """Caller can pass provenance='full_text'; verifier must preserve it."""
-    result = verify_claim_against_source(
-        BIBCODE, "n_s = 0.965", ABSTRACT, provenance="full_text"
-    )
+    result = verify_claim_against_source(BIBCODE, "n_s = 0.965", ABSTRACT, provenance="full_text")
     assert result.provenance == "full_text"
 
 

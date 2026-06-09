@@ -120,9 +120,9 @@ def test_referee_agent_enforces_information_asymmetry():
     """
     content = (AGENTS_DIR / "referee-agent.agent.md").read_text()
     # Must have an explicit iron rule about information asymmetry
-    assert "information asymmetry" in content.lower(), (
-        "referee-agent missing an explicit 'information asymmetry' iron rule"
-    )
+    assert (
+        "information asymmetry" in content.lower()
+    ), "referee-agent missing an explicit 'information asymmetry' iron rule"
     # Step 1 code block must NOT load InterpretationHandoff
     assert "interp = json.loads" not in content, (
         "referee-agent Step 1 still loads interp via json.loads — "
@@ -135,17 +135,15 @@ def test_referee_agent_uses_analysis_diagnostics_for_soundness():
     not InterpretationHandoff.findings, as the evidence source.
     """
     content = (AGENTS_DIR / "referee-agent.agent.md").read_text()
-    assert "AnalysisHandoff" in content, (
-        "referee-agent must load AnalysisHandoff for diagnostics-based soundness check"
-    )
+    assert (
+        "AnalysisHandoff" in content
+    ), "referee-agent must load AnalysisHandoff for diagnostics-based soundness check"
 
 
 def test_literature_agent_has_claim_verification_rule():
     """literature-agent must document the claim verification workflow (hard citations)."""
     content = (AGENTS_DIR / "literature-agent.agent.md").read_text()
-    assert "verify" in content.lower(), (
-        "literature-agent missing claim verification guidance"
-    )
-    assert "evidence_span" in content or "provenance" in content, (
-        "literature-agent missing evidence_span/provenance fields in claim verification"
-    )
+    assert "verify" in content.lower(), "literature-agent missing claim verification guidance"
+    assert (
+        "evidence_span" in content or "provenance" in content
+    ), "literature-agent missing evidence_span/provenance fields in claim verification"

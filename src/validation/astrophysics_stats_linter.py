@@ -130,8 +130,7 @@ def check_xray_fit_statistic(
             rule="xray_fit_statistic",
             passed=True,
             message=(
-                f"{stat} is valid for all count regimes "
-                f"(counts/bin={counts_per_bin:.1f})."
+                f"{stat} is valid for all count regimes " f"(counts/bin={counts_per_bin:.1f})."
             ),
         )
 
