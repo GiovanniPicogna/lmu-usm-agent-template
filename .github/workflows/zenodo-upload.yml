@@ -44,8 +44,8 @@ jobs:
     env:
       ZENODO_SANDBOX_TOKEN: ${{ secrets.ZENODO_SANDBOX_TOKEN }}
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v6
         with:
           python-version: "3.11"
       - run: pip install requests pyyaml click
@@ -73,8 +73,8 @@ jobs:
     env:
       ZENODO_TOKEN: ${{ secrets.ZENODO_TOKEN }}
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v6
         with:
           python-version: "3.11"
       - run: pip install requests pyyaml click
